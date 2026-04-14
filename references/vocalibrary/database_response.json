@@ -1,0 +1,52 @@
+{
+  "vocabulary": "keep an eyes on A",
+  "frequency_of_use_by_native_speakers": {
+    "level": 6,
+    "reason": "この表現は日常会話でよく使用されるが、'keep an eye on'の方が一般的であるため、頻度はやや低い。"
+  },
+  "intellectual_level": {
+    "level": 3,
+    "reason": "この表現は非常に基本的であり、特に知的度が高いとは言えない。"
+  },
+  "meanings": ["見守る", "監視する"],
+  "supplement": "一般的に誰かや何かを注意深く見守る場合に使われる。特に、短期間の見守りや監視を意味することが多い。",
+  "etymology": "「目を保つ」という意味の古い英語の表現から派生しており、注意を払うことを意味する。",
+  "pronunciation_symbol": "kiːp ən aɪz ɒn eɪ",
+  "collocation": [
+    {
+      "sentence": "keep an eyes on the kids",
+      "japanese": "子供たちを見守る"
+    },
+    {
+      "sentence": "keep an eyes on the house",
+      "japanese": "家を見守る"
+    }
+  ],
+  "example_sentences": [
+    {
+      "english": "Can you **keep an eyes on** my bag while I go to the restroom?",
+      "japanese": "トイレに行く間、私のバッグを**見守って**くれますか？"
+    },
+    {
+      "english": "I asked my neighbor to **keep an eyes on** my house while I'm on vacation.",
+      "japanese": "休暇中、隣人に私の家を**見守って**もらうよう頼みました。"
+    }
+  ],
+  "similar_expressions": [
+    {
+      "english": "keep an eye on",
+      "japanese": "見守る",
+      "point": "最も一般的な表現で、頻繁に使われる。"
+    },
+    {
+      "english": "watch over",
+      "japanese": "見守る、監視する",
+      "point": "より強い注意を払う意味合いが含まれる。長期間の見守りや保護を意味することが多い。"
+    },
+    {
+      "english": "monitor",
+      "japanese": "監視する",
+      "point": "主に機械やシステムの監視に使われるが、人に対しても使うことができる。より公式的なニュアンスがある。"
+    }
+  ]
+}
