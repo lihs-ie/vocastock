@@ -1,8 +1,10 @@
 # vocastock Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-14
+Auto-generated from all feature plans. Last updated: 2026-04-15
 
 ## Active Technologies
+- Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/development/*.md` (003-architecture-design)
+- Git-managed repository files、設計上で参照する抽象的な永続化ストアとアセットストア (003-architecture-design)
 
 - Markdown 1.x, YAML, JSON + Spec Kit workflow, existing domain documents, requirements memo, ADR memo (001-complete-domain-model)
 
@@ -45,6 +47,7 @@ an aggregate's own identifier field must be `identifier`, and related identifier
 fields must use concept names such as `bank`, `entry`, or `image`.
 
 ## Recent Changes
+- 003-architecture-design: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/development/*.md`
 
 - 001-complete-domain-model: Added Markdown 1.x, YAML, JSON + Spec Kit workflow, existing domain documents, requirements memo, ADR memo
 
