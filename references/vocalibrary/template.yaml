@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  vocalibrary
+
+  Sample SAM Template for vocalibrary
+
+Globals:
+  Function:
+    Timeout: 120
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: "Project name"
+    Default: "vocalibrary"
+
+Resources:
+  VocalibraryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      MemorySize: 256
+      Architectures:
+        - arm64
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /vocalibrary
+            Method: post
+            TimeoutInMillis: 29000
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "secretsmanager:GetSecretValue"
+              Resource: !Ref SecretManager
+      Environment:
+        Variables:
+          NOTION_API_KEY: !Sub "{{resolve:secretsmanager:${SecretManager}:SecretString:NOTION_API_KEY}}"
+          NOTION_DATABASE_ID: !Sub "{{resolve:secretsmanager:${SecretManager}:SecretString:NOTION_DATABASE_ID}}"
+          OPENAI_API_ENDPOINT: !Sub "{{resolve:secretsmanager:${SecretManager}:SecretString:OPENAI_API_ENDPOINT}}"
+          OPENAI_API_KEY: !Sub "{{resolve:secretsmanager:${SecretManager}:SecretString:OPENAI_API_KEY}}"
+          OPENAI_IMAGE_API_ENDPOINT: !Sub "{{resolve:secretsmanager:${SecretManager}:SecretString:OPENAI_IMAGE_API_ENDPOINT}}"
+          SAVING_IMAGE_API_ENDPOINT: !Sub "{{resolve:secretsmanager:${SecretManager}:SecretString:SAVING_IMAGE_API_ENDPOINT}}"
+          CHECK_IMAGE_API_ENDPOINT: !Sub "{{resolve:secretsmanager:${SecretManager}:SecretString:CHECK_IMAGE_API_ENDPOINT}}"
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - app.ts
+
+  SecretManager:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${ProjectName}-secret"
+      Description: "Secret for vocalibrary"
+
+Outputs:
+  VocalibraryAPI:
+    Description: "API Gateway endpoint URL for Prod stage for Vocalibrary function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/vocalibrary/"
+  VocalibraryFunction:
+    Description: "Vocalibrary Lambda Function ARN"
+    Value: !GetAtt VocalibraryFunction.Arn
+  VocalibraryFunctionIamRole:
+    Description: "Implicit IAM Role created for Vocalibrary function"
+    Value: !GetAtt VocalibraryFunctionRole.Arn

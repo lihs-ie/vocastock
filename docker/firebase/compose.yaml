@@ -1,0 +1,46 @@
+services:
+  firebase-emulators:
+    build:
+      context: ../..
+      dockerfile: docker/firebase/Dockerfile
+      args:
+        NODE_VERSION: 24.14.1
+        FIREBASE_TOOLS_VERSION: 15.2.1
+    container_name: vocastock-firebase-emulators
+    env_file:
+      - ./env/.env
+    working_dir: /workspace
+    volumes:
+      - ../..:/workspace
+      - firebase_cache:/root/.cache/firebase/emulators
+      - firebase_state:/workspace/.firebase
+    command:
+      - bash
+      - -lc
+      - >
+        mkdir -p /workspace/.artifacts/firebase/logs /workspace/.artifacts/firebase/import /workspace/.artifacts/firebase/export &&
+        firebase emulators:start
+        --project "${FIREBASE_PROJECT}"
+        --config /workspace/firebase.json
+        --import /workspace/.artifacts/firebase/import
+        --export-on-exit /workspace/.artifacts/firebase/export
+        --only "${FIREBASE_EMULATOR_SERVICES}"
+        2>&1 | tee /workspace/.artifacts/firebase/logs/emulators.log
+    ports:
+      - "${FIREBASE_UI_PORT}:4000"
+      - "${FIREBASE_HOSTING_PORT}:5000"
+      - "${FIREBASE_AUTH_PORT}:9099"
+      - "${FIREBASE_FIRESTORE_PORT}:8080"
+      - "${FIREBASE_STORAGE_PORT}:9199"
+      - "${FIREBASE_HUB_PORT}:4400"
+      - "${FIREBASE_LOGGING_PORT}:4500"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4000/ >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+volumes:
+  firebase_cache:
+  firebase_state:
