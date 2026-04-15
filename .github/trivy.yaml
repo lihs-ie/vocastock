@@ -1,0 +1,16 @@
+format: table
+exit-code: 1
+ignore-unfixed: false
+severity:
+  - MEDIUM
+  - HIGH
+  - CRITICAL
+scanners:
+  - vuln
+skip-dirs:
+  - _build
+  - .artifacts
+  - .git
+  - .specify
+  - references
+  - specs

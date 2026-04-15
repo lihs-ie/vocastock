@@ -1,0 +1,128 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.41.5"
+  NODE_VERSION: "24.14.1"
+  JAVA_VERSION: "21"
+
+jobs:
+  toolchain-validate:
+    name: toolchain-validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install and verify toolchains
+        run: bash scripts/ci/install_toolchains.sh
+      - name: Validate version catalog
+        run: bash scripts/ci/check_version_catalog.sh
+
+  flutter-static-checks:
+    name: flutter-static-checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: toolchain-validate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install and verify toolchains
+        run: bash scripts/ci/install_toolchains.sh
+      - name: Run Flutter quality checks
+        run: bash scripts/ci/run_quality_checks.sh
+      - uses: actions/upload-artifact@v4
+        if: ${{ success() || failure() }}
+        with:
+          name: ci-metrics-flutter-static-checks
+          path: .artifacts/ci
+          if-no-files-found: ignore
+
+  emulator-smoke:
+    name: emulator-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: toolchain-validate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Dockerized Firebase emulator smoke
+        run: bash scripts/ci/run_emulator_smoke.sh
+      - uses: actions/upload-artifact@v4
+        if: ${{ success() || failure() }}
+        with:
+          name: ci-metrics-emulator-smoke
+          path: .artifacts/ci
+          if-no-files-found: ignore
+
+  android-build-smoke:
+    name: android-build-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: toolchain-validate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install and verify toolchains
+        run: bash scripts/ci/install_toolchains.sh
+      - name: Run Android build smoke
+        run: bash scripts/ci/run_android_build_smoke.sh
+      - uses: actions/upload-artifact@v4
+        if: ${{ success() || failure() }}
+        with:
+          name: ci-metrics-android-build-smoke
+          path: .artifacts/ci
+          if-no-files-found: ignore
+
+  vulnerability-scan:
+    name: vulnerability-scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: toolchain-validate
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Trivy policy
+        run: bash scripts/ci/run_quality_checks.sh --validate-trivy-policy
+      - name: Mark vulnerability scan start
+        run: |
+          mkdir -p .artifacts/ci/durations .artifacts/ci/logs
+          date +%s > .artifacts/ci/durations/vulnerability-scan.started-at
+      - name: Run Trivy filesystem scan
+        run: bash scripts/ci/run_vulnerability_scan.sh
+      - name: Record vulnerability scan duration
+        if: ${{ success() || failure() }}
+        run: |
+          start_epoch="$(cat .artifacts/ci/durations/vulnerability-scan.started-at)"
+          end_epoch="$(date +%s)"
+          printf "%s\n" "$((end_epoch - start_epoch))" > .artifacts/ci/durations/vulnerability-scan.seconds
+      - uses: actions/upload-artifact@v4
+        if: ${{ success() || failure() }}
+        with:
+          name: ci-metrics-vulnerability-scan
+          path: .artifacts/ci
+          if-no-files-found: ignore
+
+  ci-runtime-budget:
+    name: ci-runtime-budget
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs:
+      - flutter-static-checks
+      - emulator-smoke
+      - android-build-smoke
+      - vulnerability-scan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ci-metrics-*
+          path: .artifacts/downloaded
+          merge-multiple: true
+      - name: Enforce Linux CI runtime budget
+        run: bash scripts/ci/check_ci_runtime_budget.sh .artifacts/downloaded
