@@ -1,10 +1,15 @@
 # vocastock Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-15
+Auto-generated from all feature plans. Last updated: 2026-04-16
 
 ## Active Technologies
 - Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/development/*.md` (003-architecture-design)
 - Git-managed repository files、設計上で参照する抽象的な永続化ストアとアセットストア (003-architecture-design)
+- Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/` (005-domain-modeling)
+- Git-managed repository files、設計上で参照する抽象的な explanation storage と image asset storage (005-domain-modeling)
+- Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/` (005-domain-modeling)
+- Git-managed repository files、設計上で参照する抽象的な learner store、explanation store、image asset store (005-domain-modeling)
+- Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/` (005-domain-modeling)
 
 - Markdown 1.x, YAML, JSON + Spec Kit workflow, existing domain documents, requirements memo, ADR memo (001-complete-domain-model)
 
@@ -47,9 +52,10 @@ an aggregate's own identifier field must be `identifier`, and related identifier
 fields must use concept names such as `bank`, `entry`, or `image`.
 
 ## Recent Changes
-- 003-architecture-design: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/development/*.md`
+- 005-domain-modeling: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`
+- 005-domain-modeling: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`
+- 005-domain-modeling: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`
 
-- 001-complete-domain-model: Added Markdown 1.x, YAML, JSON + Spec Kit workflow, existing domain documents, requirements memo, ADR memo
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
