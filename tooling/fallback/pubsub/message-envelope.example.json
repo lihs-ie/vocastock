@@ -1,0 +1,14 @@
+{
+  "message": "pubsub-message-001",
+  "topic": "workflow.jobs",
+  "publishedAt": "2026-04-15T00:00:00Z",
+  "attributes": {
+    "correlation": "job-correlation-001",
+    "attempt": "1"
+  },
+  "payload": {
+    "kind": "explanation-requested",
+    "entry": "entry-001",
+    "requestedBy": "member-001"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "asset": "visual-asset-001",
+  "entry": "entry-001",
+  "provider": "google-drive",
+  "mimeType": "image/png",
+  "path": ".artifacts/fallback/drive-assets/visual-asset-001.png"
+}
