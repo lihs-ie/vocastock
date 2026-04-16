@@ -9,6 +9,7 @@ vocas_ensure_artifact_directories
 log_dir="$(vocas_repo_root)/.artifacts/ci/logs"
 mkdir -p "$log_dir"
 
+vocas_log "local host baseline uses Android Studio ${VOCAS_APPROVED_ANDROID_STUDIO_VERSION}; CI Android smoke runs on ${VOCAS_APPROVED_LINUX_RUNNER_CLASS}"
 java -version 2>&1 | tee "$log_dir/android-java.log"
 
 if project_dir="$(vocas_find_flutter_project_dir)"; then

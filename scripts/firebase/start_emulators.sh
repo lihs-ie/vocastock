@@ -18,6 +18,8 @@ set -a
 source "$env_file"
 set +a
 
+vocas_log "starting firebase emulators for services: ${FIREBASE_EMULATOR_SERVICES:-$VOCAS_FIREBASE_EMULATOR_SERVICES}"
+
 for port_var in \
   FIREBASE_UI_PORT \
   FIREBASE_HOSTING_PORT \

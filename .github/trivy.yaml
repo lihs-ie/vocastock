@@ -1,3 +1,4 @@
+# Block Medium and above findings for protected-branch eligibility.
 format: table
 exit-code: 1
 ignore-unfixed: false

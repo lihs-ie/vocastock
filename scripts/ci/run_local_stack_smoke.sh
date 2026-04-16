@@ -16,6 +16,7 @@ cleanup() {
 trap cleanup EXIT
 
 if [[ "$reuse_running" != "--reuse-running" ]]; then
+  vocas_log "starting local stack smoke for services: ${VOCAS_FIREBASE_EMULATOR_SERVICES}"
   bash "$SCRIPT_DIR/../firebase/start_emulators.sh"
 fi
 

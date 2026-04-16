@@ -7,9 +7,24 @@ source "$SCRIPT_DIR/../lib/vocastock_env.sh"
 vocas_ensure_artifact_directories
 vocas_enable_workspace_npm_global
 
+if [[ -n "${GITHUB_ENV:-}" ]]; then
+  {
+    printf "VOCAS_APPROVED_MACOS_VERSION=%s\n" "$VOCAS_APPROVED_MACOS_VERSION"
+    printf "VOCAS_APPROVED_FLUTTER_VERSION=%s\n" "$VOCAS_APPROVED_FLUTTER_VERSION"
+    printf "VOCAS_APPROVED_XCODE_VERSION=%s\n" "$VOCAS_APPROVED_XCODE_VERSION"
+    printf "VOCAS_APPROVED_ANDROID_STUDIO_VERSION=%s\n" "$VOCAS_APPROVED_ANDROID_STUDIO_VERSION"
+    printf "VOCAS_APPROVED_DOCKER_DESKTOP_VERSION=%s\n" "$VOCAS_APPROVED_DOCKER_DESKTOP_VERSION"
+    printf "VOCAS_APPROVED_LINUX_RUNNER_CLASS=%s\n" "$VOCAS_APPROVED_LINUX_RUNNER_CLASS"
+    printf "VOCAS_APPROVED_APPLE_RUNNER_CLASS=%s\n" "$VOCAS_APPROVED_APPLE_RUNNER_CLASS"
+    printf "VOCAS_LOCAL_HOST_BASELINE=%s\n" "$(vocas_local_host_baseline)"
+  } >> "$GITHUB_ENV"
+fi
+
 vocas_require_command node
 vocas_require_command npm
 vocas_require_command java
+
+vocas_log "CI runner uses command-line toolchains; local host baseline is $(vocas_local_host_baseline)"
 
 if vocas_have_command flutter; then
   current_flutter="$(flutter --version 2>/dev/null | head -n 1 | awk '{print $2}' || true)"

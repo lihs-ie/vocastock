@@ -9,6 +9,8 @@ vocas_require_command gh
 payload_file="$SCRIPT_DIR/github_ruleset_payload.json"
 [[ -f "$payload_file" ]] || vocas_die "missing payload file: $payload_file"
 
+vocas_log "applying required-check ruleset managed by docs/development/ci-policy.md"
+
 repository="${1:-}"
 ruleset_identifier="${2:-}"
 

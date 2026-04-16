@@ -1,5 +1,12 @@
 # CI ポリシー
 
+## Local Host Baseline との差分
+
+- local host baseline は `macOS 26.4.1 / Flutter 3.41.5 / Xcode 26.4 / Android Studio 2025.3 / Docker Desktop 4.69.0`
+- Linux required checks は `ubuntu-24.04` 上で command-line toolchain のみを使い、local host app bundle version を再現しない
+- Apple build smoke は `macos-15` 上で実行し、local host baseline との差分は [approved-components.md](/Users/lihs/workspace/vocastock/tooling/versions/approved-components.md) と [security-version-review.md](/Users/lihs/workspace/vocastock/docs/development/security-version-review.md) で管理する
+- local host baseline を更新した場合は workflow、ruleset、bootstrap script、version catalog を同じ変更単位で更新する
+
 ## Required Checks
 
 | Check | Workflow | Runner | Purpose |
@@ -36,13 +43,14 @@
 - flaky ではなく環境差分による失敗と判断した場合のみ rerun する
 - rerun 前に `.artifacts/ci/logs/` の内容を確認する
 - ruleset 変更時は、`main` へ入る前に `develop` 上で required checks 名が一致することを確認する
+- local host baseline と CI runner の差分を見つけた場合、rerun だけで済ませず version catalog と文書を更新する
 
 ## actrun ローカル検証
 
 - `ci.yml`:
-  `actrun workflow run .github/workflows/ci.yml --local --include-dirty`
+  `actrun workflow run .github/workflows/ci.yml --local --include-dirty --trust`
 - `apple-build.yml`:
-  `actrun workflow run .github/workflows/apple-build.yml --local --include-dirty`
+  `actrun workflow run .github/workflows/apple-build.yml --local --include-dirty --trust`
 - workflow は Node setup 以外を shell script 側へ寄せ、actrun でも同じ定義を解釈できるようにする
 
 ## Runtime Budget
@@ -58,3 +66,4 @@
 - エンドユーザー向け成果物は CI artifact として公開しない
 - Trivy 結果は `.artifacts/ci/logs/trivy-results.txt` に集約する
 - duration 記録は `.artifacts/ci/durations/*.seconds` に統一する
+- local host baseline の観測結果は CI artifact ではなく version governance 文書へ記録する

@@ -10,6 +10,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
+vocas_log "running emulator smoke for services: ${VOCAS_FIREBASE_EMULATOR_SERVICES}"
 bash "$SCRIPT_DIR/../firebase/start_emulators.sh"
 bash "$SCRIPT_DIR/../firebase/smoke_local_stack.sh" "$VOCAS_EMULATOR_READY_BUDGET_SECONDS"
 

@@ -17,4 +17,4 @@ docker compose \
   -f "$(vocas_repo_root)/docker/firebase/compose.yaml" \
   down
 
-vocas_log "firebase emulators stopped"
+vocas_log "firebase emulators stopped for services: ${VOCAS_FIREBASE_EMULATOR_SERVICES}"

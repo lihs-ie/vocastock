@@ -19,4 +19,4 @@ docker compose \
 rm -rf "$(vocas_repo_root)/.artifacts/firebase/export" "$(vocas_repo_root)/.artifacts/firebase/import"
 mkdir -p "$(vocas_repo_root)/.artifacts/firebase/export" "$(vocas_repo_root)/.artifacts/firebase/import"
 
-vocas_log "firebase emulator state reset"
+vocas_log "firebase emulator state reset for services: ${VOCAS_FIREBASE_EMULATOR_SERVICES}"

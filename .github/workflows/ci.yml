@@ -12,6 +12,7 @@ env:
   FLUTTER_VERSION: "3.41.5"
   NODE_VERSION: "24.14.1"
   JAVA_VERSION: "21"
+  LOCAL_HOST_BASELINE: "macOS 26.4.1 / Flutter 3.41.5 / Xcode 26.4 / Android Studio 2025.3 / Docker Desktop 4.69.0"
 
 jobs:
   toolchain-validate:
@@ -20,6 +21,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Print local-versus-runner boundary
+        run: |
+          echo "Local host baseline: ${LOCAL_HOST_BASELINE}"
+          echo "Linux CI runner: ubuntu-24.04"
       - name: Install and verify toolchains
         run: bash scripts/ci/install_toolchains.sh
       - name: Validate version catalog

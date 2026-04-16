@@ -32,6 +32,8 @@
 | component | ToolchainComponentIdentifier | 1 | 対象コンポーネント |
 | supportStatus | SupportStatus | 1 | `supported`, `security-fix-only`, `deprecated`, `unsupported` |
 | securityReview | SecurityReview | 1 | 調査日、確認元、結果、例外有無 |
+| observedBaseline | ObservedBaseline | 0..1 | 実機で確認した host baseline version と観測日 |
+| baselineDelta | BaselineDelta | 0..1 | 旧承認値との差分と更新理由 |
 | rationale | ApprovalRationale | 1 | 採用理由の要約 |
 | alternatives | AlternativeDecision[] | 0..n | 検討した候補 |
 | reviewCadence | ReviewCadence | 1 | 見直し周期 |
@@ -42,6 +44,7 @@
 
 - `supportStatus` が `unsupported` の記録は `approvalStatus = approved` を許可しない
 - `securityReview` に Medium 以上の未解決事項がある場合は `approvalStatus = blocked`
+- `observedBaseline` が存在し、`approvedVersion` と異なる場合は `baselineDelta` が必須
 - `reviewCadence` は 90 日以内、または vendor release 発生時のいずれか早い方で見直す
 
 **State transitions**:
@@ -59,7 +62,7 @@
 |-------|------|-------------|-------------|
 | identifier | HostPlatformProfileIdentifier | 1 | ホスト環境識別子 |
 | operatingSystem | OperatingSystem | 1 | `macOS` |
-| supportedVersions | SupportedVersionRange | 1 | 例: `15.6+` |
+| supportedVersions | SupportedVersionRange | 1 | 例: `26.4.1+` |
 | architecture | HostArchitecture[] | 1..2 | `arm64`, `x86_64` |
 | requiredComponents | ToolchainComponentIdentifier[] | 1..n | 必須 host-side コンポーネント |
 | optionalComponents | ToolchainComponentIdentifier[] | 0..n | 補助的な任意コンポーネント |
@@ -177,6 +180,18 @@
 - `approved`
 - `superseded`
 - `blocked`
+
+### ObservedBaseline
+
+- `version`
+- `observedAt`
+- `source`
+
+### BaselineDelta
+
+- `previousApprovedVersion`
+- `changeReason`
+- `followUpRequired`
 
 ### LifecycleState
 

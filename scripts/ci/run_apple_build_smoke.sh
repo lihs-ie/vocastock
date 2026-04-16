@@ -11,6 +11,7 @@ vocas_ensure_artifact_directories
 log_dir="$(vocas_repo_root)/.artifacts/ci/logs"
 mkdir -p "$log_dir"
 
+vocas_log "local host baseline uses macOS ${VOCAS_APPROVED_MACOS_VERSION} / Xcode ${VOCAS_APPROVED_XCODE_VERSION}; CI Apple smoke runs on ${VOCAS_APPROVED_APPLE_RUNNER_CLASS}"
 xcodebuild -version 2>&1 | tee "$log_dir/apple-xcodebuild.log"
 if vocas_have_command pod; then
   pod --version 2>&1 | tee "$log_dir/apple-cocoapods.log"

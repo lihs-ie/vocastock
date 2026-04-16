@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/vocastock_env.sh"
 
+vocas_log "validating local stack against Firebase services: ${VOCAS_FIREBASE_EMULATOR_SERVICES}"
 bash "$SCRIPT_DIR/validate_local_setup.sh"
 
 if [[ "${1:-}" == "--reuse-running" ]]; then
