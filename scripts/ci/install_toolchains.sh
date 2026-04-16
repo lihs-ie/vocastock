@@ -39,6 +39,7 @@ fi
 
 firebase_bin="$(vocas_npm_global_bin)/firebase"
 firebase_package_dir="$(vocas_npm_global_prefix)/lib/node_modules/firebase-tools"
+firebase_packages_root="$(dirname "$firebase_package_dir")"
 firebase_package_manifest="$firebase_package_dir/package.json"
 firebase_version=""
 if [[ -f "$firebase_package_manifest" ]]; then
@@ -46,8 +47,9 @@ if [[ -f "$firebase_package_manifest" ]]; then
 fi
 
 if [[ "$firebase_version" != "$VOCAS_APPROVED_FIREBASE_TOOLS_VERSION" ]]; then
+  mkdir -p "$firebase_packages_root"
   rm -rf "$firebase_package_dir" "$firebase_bin"
-  find "$(dirname "$firebase_package_dir")" -maxdepth 1 -type d -name '.firebase-tools-*' -exec rm -rf {} +
+  find "$firebase_packages_root" -maxdepth 1 -type d -name '.firebase-tools-*' -exec rm -rf {} +
   npm install --global --no-fund --no-audit "firebase-tools@${VOCAS_APPROVED_FIREBASE_TOOLS_VERSION}"
 fi
 
