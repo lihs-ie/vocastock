@@ -9,7 +9,10 @@ budget_seconds="${CI_RUNTIME_BUDGET_SECONDS:-$VOCAS_CI_RUNTIME_BUDGET_SECONDS}"
 
 vocas_log "enforcing CI runtime budget for runner classes ${VOCAS_APPROVED_LINUX_RUNNER_CLASS} and ${VOCAS_APPROVED_APPLE_RUNNER_CLASS}"
 
-mapfile -t duration_files < <(find "$search_root" -name "*.seconds" -type f | sort)
+duration_files=()
+while IFS= read -r duration_file; do
+  duration_files+=("$duration_file")
+done < <(find "$search_root" -name "*.seconds" -type f | sort)
 (( ${#duration_files[@]} > 0 )) || vocas_die "no CI duration files found under $search_root"
 
 total_seconds=0
