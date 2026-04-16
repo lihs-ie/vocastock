@@ -18,3 +18,7 @@
 - 品種都度別に登録した英単語を管理することができる
 - 英単語はどれだけ自分に定着したかをレベル分けで管理する
   - 頻出度レベルとは異なる
+
+## 開発基盤メモ
+
+- 開発時の host baseline、CI runner 境界、version governance は `docs/development/*.md` と `tooling/versions/approved-components.md` を正とする

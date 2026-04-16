@@ -17,12 +17,13 @@
 
 ## 3. ローカル環境の smoke path を実装する
 
-- macOS ホストへ承認済み Flutter / Xcode / Android Studio / Docker Desktop を導入する
+- macOS ホストを `26.4.1` に揃え、Flutter `3.41.5`、Xcode `26.4`、Android Studio `2025.3`、Docker Desktop `4.69.0` を導入する
 - Docker 化した Firebase emulator stack を起動し、healthcheck が `ready` になることを確認する
 - `flutter doctor --verbose`、`dart analyze`、`flutter test`、最小 build smoke を順に実行する
 - 秘匿値が不要な範囲では local default だけで検証を開始できることを確認する
 - `bash scripts/bootstrap/measure_local_setup_budget.sh start` と `finish` で 60 分 budget を計測する
 - `bash scripts/firebase/measure_emulator_ready_time.sh` で 5 分 budget を計測する
+- `bash scripts/bootstrap/verify_macos_toolchain.sh` と `bash scripts/bootstrap/validate_local_setup.sh` が成功することを確認する
 
 ## 4. CI と保護ブランチを有効化する
 
@@ -32,10 +33,11 @@
 - vulnerability scan は `MEDIUM,HIGH,CRITICAL` で fail することを確認する
 - `bash scripts/ci/apply_github_ruleset.sh owner/repo` で ruleset payload を適用する
 - `bash scripts/ci/check_ci_runtime_budget.sh` で CI runtime budget を確認する
-- actrun で local 検証する場合は `actrun workflow run .github/workflows/ci.yml --local --include-dirty` を使う
+- actrun で local 検証する場合は `actrun workflow run .github/workflows/ci.yml --local --include-dirty --trust` を使う
 
 ## 5. 継続見直しルールを確認する
 
 - 採用コンポーネントごとに support status と security review date を記録する
+- 実機 host baseline が approvedVersion より新しい場合は、差分と更新理由を同じ変更へ記録する
 - vendor の stable/LTS 更新か security advisory 発生時に再評価する
 - 例外を入れる場合は期間付きで記録し、次回見直し日を固定する

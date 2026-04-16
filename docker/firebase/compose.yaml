@@ -9,6 +9,7 @@ services:
     container_name: vocastock-firebase-emulators
     env_file:
       - ./env/.env
+    # Local defaults live in docker/firebase/env/.env.example. Secrets are not committed.
     working_dir: /workspace
     volumes:
       - ../..:/workspace

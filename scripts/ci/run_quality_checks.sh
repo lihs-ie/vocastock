@@ -37,6 +37,8 @@ if [[ "$mode" == "--validate-trivy-policy" ]]; then
   exit 0
 fi
 
+vocas_log "quality checks run on CI runners; local host baseline remains $(vocas_local_host_baseline)"
+
 {
   echo "# flutter-static-checks"
   echo

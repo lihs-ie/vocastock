@@ -1,5 +1,6 @@
 FROM eclipse-temurin:21-jre-jammy
 
+# Local host baseline is tracked separately in tooling/versions/approved-components.md.
 ARG NODE_VERSION=24.14.1
 ARG FIREBASE_TOOLS_VERSION=15.2.1
 

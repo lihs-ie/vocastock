@@ -15,6 +15,11 @@ set -a
 source "$env_file"
 set +a
 
+configured_services="${FIREBASE_EMULATOR_SERVICES:-$VOCAS_FIREBASE_EMULATOR_SERVICES}"
+if [[ "$configured_services" != "$VOCAS_FIREBASE_EMULATOR_SERVICES" ]]; then
+  vocas_warn "env file services (${configured_services}) differ from approved inventory (${VOCAS_FIREBASE_EMULATOR_SERVICES})"
+fi
+
 timeout_seconds="${1:-$VOCAS_EMULATOR_READY_BUDGET_SECONDS}"
 start_epoch="$(date +%s)"
 log_file="$(vocas_repo_root)/.artifacts/firebase/logs/emulators.log"
@@ -36,4 +41,4 @@ while true; do
   sleep 5
 done
 
-vocas_log "firebase emulator smoke passed"
+vocas_log "firebase emulator smoke passed for services: ${configured_services}"

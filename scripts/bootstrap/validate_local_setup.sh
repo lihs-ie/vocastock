@@ -7,6 +7,7 @@ source "$SCRIPT_DIR/../lib/vocastock_env.sh"
 vocas_require_macos
 vocas_ensure_artifact_directories
 
+vocas_log "validating local host baseline: $(vocas_local_host_baseline)"
 bash "$SCRIPT_DIR/verify_macos_toolchain.sh"
 
 vocas_require_command docker
@@ -19,8 +20,8 @@ if [[ ! -f "$env_file" ]]; then
   vocas_log "seeded docker/firebase/env/.env from example"
 fi
 
-if vocas_have_command flutter; then
-  flutter doctor --verbose
+if flutter_bin="$(vocas_resolve_flutter_bin 2>/dev/null || true)"; then
+  "$flutter_bin" doctor --verbose
 else
   vocas_die "flutter is not installed"
 fi

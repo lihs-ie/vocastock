@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 
+VOCAS_APPROVED_MACOS_VERSION="26.4.1"
 VOCAS_APPROVED_FLUTTER_VERSION="3.41.5"
-VOCAS_APPROVED_XCODE_VERSION="26.3"
-VOCAS_APPROVED_ANDROID_STUDIO_VERSION="2025.3.2"
-VOCAS_APPROVED_ANDROID_STUDIO_LABEL="Panda 2 (2025.3.2)"
+VOCAS_APPROVED_XCODE_VERSION="26.4"
+VOCAS_APPROVED_ANDROID_STUDIO_VERSION="2025.3"
+VOCAS_APPROVED_ANDROID_STUDIO_LABEL="2025.3"
 VOCAS_APPROVED_COCOAPODS_VERSION="1.16.2"
-VOCAS_APPROVED_DOCKER_DESKTOP_VERSION="4.60.1"
+VOCAS_APPROVED_DOCKER_DESKTOP_VERSION="4.69.0"
 VOCAS_APPROVED_NODE_VERSION="24.14.1"
 VOCAS_APPROVED_FIREBASE_TOOLS_VERSION="15.2.1"
 VOCAS_APPROVED_TEMURIN_VERSION="21.0.10+7"
 VOCAS_APPROVED_TRIVY_CLI_VERSION="0.68.2"
+VOCAS_APPROVED_LINUX_RUNNER_CLASS="ubuntu-24.04"
+VOCAS_APPROVED_APPLE_RUNNER_CLASS="macos-15"
 
 VOCAS_FIREBASE_PROJECT="demo-vocastock"
 VOCAS_FIREBASE_EMULATOR_SERVICES="auth,firestore,storage,hosting,ui"
@@ -38,6 +41,20 @@ vocas_die() {
 
 vocas_have_command() {
   command -v "$1" >/dev/null 2>&1
+}
+
+vocas_resolve_flutter_bin() {
+  if vocas_have_command flutter; then
+    command -v flutter
+    return 0
+  fi
+
+  if [[ -x "${HOME}/flutter/bin/flutter" ]]; then
+    printf "%s/flutter/bin/flutter\n" "$HOME"
+    return 0
+  fi
+
+  return 1
 }
 
 vocas_require_command() {
@@ -92,6 +109,35 @@ vocas_npm_global_prefix() {
 
 vocas_npm_global_bin() {
   printf "%s/bin\n" "$(vocas_npm_global_prefix)"
+}
+
+vocas_local_host_baseline() {
+  printf "macOS %s / Flutter %s / Xcode %s / Android Studio %s / CocoaPods %s / Docker Desktop %s\n" \
+    "$VOCAS_APPROVED_MACOS_VERSION" \
+    "$VOCAS_APPROVED_FLUTTER_VERSION" \
+    "$VOCAS_APPROVED_XCODE_VERSION" \
+    "$VOCAS_APPROVED_ANDROID_STUDIO_VERSION" \
+    "$VOCAS_APPROVED_COCOAPODS_VERSION" \
+    "$VOCAS_APPROVED_DOCKER_DESKTOP_VERSION"
+}
+
+vocas_load_local_env() {
+  local env_file
+  env_file="$(vocas_repo_root)/docker/firebase/env/.env"
+  if [[ ! -f "$env_file" ]]; then
+    env_file="$(vocas_repo_root)/docker/firebase/env/.env.example"
+  fi
+  set -a
+  source "$env_file"
+  set +a
+}
+
+vocas_pubsub_fallback_fixture() {
+  printf "%s/tooling/fallback/pubsub/message-envelope.example.json\n" "$(vocas_repo_root)"
+}
+
+vocas_drive_fallback_fixture() {
+  printf "%s/tooling/fallback/drive/asset-reference.example.json\n" "$(vocas_repo_root)"
 }
 
 vocas_prepend_path() {

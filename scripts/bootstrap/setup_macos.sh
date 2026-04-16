@@ -18,6 +18,7 @@ cat <<EOF
 vocastock macOS bootstrap
 
 Approved versions
+- macOS Host: ${VOCAS_APPROVED_MACOS_VERSION}
 - Flutter SDK: ${VOCAS_APPROVED_FLUTTER_VERSION}
 - Xcode: ${VOCAS_APPROVED_XCODE_VERSION}
 - Android Studio: ${VOCAS_APPROVED_ANDROID_STUDIO_LABEL}
@@ -25,12 +26,13 @@ Approved versions
 - Docker Desktop: ${VOCAS_APPROVED_DOCKER_DESKTOP_VERSION}
 
 Recommended install flow
-1. Install or update Homebrew: https://brew.sh/
-2. Install Flutter ${VOCAS_APPROVED_FLUTTER_VERSION} from https://docs.flutter.dev/install/manual
-3. Install Xcode ${VOCAS_APPROVED_XCODE_VERSION} from the App Store or Apple Downloads
-4. Install Android Studio ${VOCAS_APPROVED_ANDROID_STUDIO_LABEL} from https://developer.android.com/studio
-5. Install CocoaPods ${VOCAS_APPROVED_COCOAPODS_VERSION}: sudo gem install cocoapods -v ${VOCAS_APPROVED_COCOAPODS_VERSION}
-6. Install Docker Desktop ${VOCAS_APPROVED_DOCKER_DESKTOP_VERSION} from https://www.docker.com/products/docker-desktop/
+1. Confirm the host is macOS ${VOCAS_APPROVED_MACOS_VERSION}
+2. Install or update Homebrew: https://brew.sh/
+3. Install Flutter ${VOCAS_APPROVED_FLUTTER_VERSION} from https://docs.flutter.dev/install/manual
+4. Install Xcode ${VOCAS_APPROVED_XCODE_VERSION} from the App Store or Apple Downloads
+5. Install Android Studio ${VOCAS_APPROVED_ANDROID_STUDIO_LABEL} from https://developer.android.com/studio
+6. Install CocoaPods ${VOCAS_APPROVED_COCOAPODS_VERSION}: sudo gem install cocoapods -v ${VOCAS_APPROVED_COCOAPODS_VERSION}
+7. Install Docker Desktop ${VOCAS_APPROVED_DOCKER_DESKTOP_VERSION} from https://www.docker.com/products/docker-desktop/
 
 Bootstrap helpers
 - Verify host toolchain: bash scripts/bootstrap/verify_macos_toolchain.sh
