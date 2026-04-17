@@ -1,8 +1,8 @@
-# Specification Quality Checklist: ドメインモデリング - Sense導入差分
+# Specification Quality Checklist: バックエンド Command 設計
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
 **Created**: 2026-04-17  
-**Feature**: [spec.md](/Users/lihs/workspace/vocastock/specs/005-domain-modeling/spec.md)
+**Feature**: [spec.md](/Users/lihs/workspace/vocastock/specs/007-backend-command-design/spec.md)
 
 ## Content Quality
 
@@ -31,7 +31,5 @@
 
 ## Notes
 
-- 2026-04-17 に `005-domain-modeling` を `Sense` 導入差分へ更新し、`plan.md` / `tasks.md` と scope を整合させた
-- `Sense` は `Explanation` 所有の意味単位、`VisualImage` は独立集約維持、`currentImage` は単一参照維持を前提にした
-- 複数 current image の同時公開は後続 feature scope として明記した
-- Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
+- 既存の architecture / domain 決定を前提とした command 設計 feature として整理し、実装技術そのものは scope から外した。
+- `specs/005-domain-modeling/spec.md` を暫定 semantic source とする条件と、`docs/internal/domain/learner.md`、`vocabulary-expression.md`、`learning-state.md` へ切り替える exit 条件を spec に明記した。

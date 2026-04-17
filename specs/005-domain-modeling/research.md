@@ -1,107 +1,85 @@
 # Research: ドメインモデリング
 
-## Decision: `Learner` を所有境界とし、`VocabularyExpression` は学習者が所有する登録対象として扱う
+## Decision: `Sense` を `Explanation` 所有の内部エンティティとして導入する
 
-**Rationale**: 習熟度が学習者ごとに変わる以上、語彙登録の境界も学習者側に寄せる方が自然である。
-`VocabularyExpression` を共有語彙にすると、重複登録判定、登録状態、生成状態、学習進捗の責務が
-再び混ざる。`Learner` を独立集約とし、その配下に `VocabularyExpression` を置くことで、
-語彙自体の概念と学習者の所有責務を同時に明確化できる。
-
-**Alternatives considered**:
-
-- `VocabularyExpression` を project-wide 共有語彙として扱う
-- `Learner` を domain に持たず、外部 identity のみを参照する
-
-## Decision: 英単語と連語は同一の `VocabularyExpression` 概念で扱う
-
-**Rationale**: 登録、検証、解説生成、画像生成、学習進捗は単語と連語で大きく変わらない。
-別概念に分けると、一意性判定、状態遷移、ポート契約、文書更新が二重化する。
-`VocabularyExpression` に `VocabularyExpressionKind` を持たせる方が、学習者所有の登録対象として
-一貫したルールを保ちやすい。
+**Rationale**: 多義語の「意味の数」と「画像の数」を直接結びつける前に、意味単位そのものを
+明示する必要がある。`Sense` を `Explanation` 配下に置くと、語彙登録対象や学習状態の境界は
+変えずに、意味、状況、ニュアンス、例文、コロケーションを意味単位で整理できる。
+`Sense` を独立集約にすると、`Explanation` から切り離された更新順序や参照整合が必要になり、
+現時点の domain complexity に対して過剰である。
 
 **Alternatives considered**:
 
-- 単一英単語だけを対象にする
-- 単語と連語を別々の集約として扱う
+- `Meaning.values` のまま文字列一覧だけを維持する
+- `Sense` を `Explanation` から独立した集約にする
 
-## Decision: `VocabularyExpression` の重複登録判定は同一学習者内の `NormalizedVocabularyExpressionText` で行う
+## Decision: `Explanation.meaning` を coarse-grained な意味の塊ではなく、`Explanation.senses` へ置き換える
 
-**Rationale**: 学習者所有モデルでは、同じ英語表現でも別学習者なら独立して存在できる。
-一方で同一学習者内の重複は登録状態や生成状態を分岐させるため避けたい。
-`NormalizedVocabularyExpressionText` を一意キーに使うと、表記揺れを吸収しつつ学習者境界の
-内側だけで重複を制御できる。
-
-**Alternatives considered**:
-
-- システム全体で英語表現を一意にする
-- 同一学習者内でも重複登録を許可する
-
-## Decision: `Proficiency` は `LearningState` に分離し、`Learner` と `VocabularyExpression` の関係上で扱う
-
-**Rationale**: 頻出度と知的度は語彙や解説の属性であり、習熟度は学習者の状態である。
-`Proficiency` を `VocabularyExpression` や `Explanation` に置くと、客観属性と主観進捗が混ざる。
-`LearningState` を独立集約にすると、学習者所有の語彙であっても評価軸を分離できる。
+**Rationale**: 既存の `Meaning.values + situation + nuance` では、複数意味がある場合でも
+状況やニュアンスが explanation 全体で 1 つに潰れてしまう。`Sense` に `label`、
+`situation`、`nuance` を持たせると、意味ごとの差分を domain 上で保てる。
+多義語に対して「どの例文がどの意味か」を説明しやすくなる。
 
 **Alternatives considered**:
 
-- `Proficiency` を `VocabularyExpression` の内部フィールドにする
-- `Proficiency` を `Explanation` の属性として扱う
+- `Meaning.values` に補足文字列を追記して疑似的に意味を増やす
+- 画像だけ複数にして意味の構造化は行わない
 
-## Decision: `Explanation` は `VocabularyExpression` の current 参照を持つ知識集約とし、再生成中は直前の完了済み結果を保持する
+## Decision: 例文とコロケーションは `Sense` に属させ、発音・語源・頻出度・知的度は `Explanation` に残す
 
-**Rationale**: 解説生成は `VocabularyExpression` 単位で進むが、ユーザーへ見せるのは常に完了済み結果のみである。
-そのため `VocabularyExpression.currentExplanation` を明示し、再生成開始時にこれを消さず、
-新しい成功時だけ差し替える設計が一貫する。これにより中間結果を見せず、再生成失敗時も
-最後の正常結果を維持できる。
-
-**Alternatives considered**:
-
-- 解説を常に最新ジョブ 1 件だけに上書きする
-- 解説生成中は過去の完了済み解説も隠す
-
-## Decision: `VisualImage` は `Explanation` から独立した集約とし、`currentImage` と履歴を分ける
-
-**Rationale**: 画像は生成タイミング、保存先参照、再生成履歴が解説本文と異なる。`Explanation` が
-`currentImage` を参照し、各 `VisualImage` が `previousImage` で同一解説内の履歴を辿れるようにすると、
-現在表示中の画像と履歴画像の責務が分離される。再生成中も現在画像を維持し、新しい成功時だけ
-参照を切り替えられる。
+**Rationale**: 例文とコロケーションは意味ごとの使われ方に強く依存する。一方で発音、語源、
+頻出度、知的度は表現全体の説明として扱う方が自然であり、意味ごとに分割すると重複や
+説明のばらつきが増える。これにより、説明全体の共通情報と意味別の局所情報を分離できる。
 
 **Alternatives considered**:
 
-- `Explanation` が画像 URL を直接持つ
-- 画像を `Explanation` の子エンティティとして扱う
-- 画像再生成時に過去画像を破棄する
+- 例文、コロケーション、発音、語源をすべて `Sense` に移す
+- 例文、コロケーションも explanation 全体の配列のままにする
 
-## Decision: `Learner` は独立集約だが、認証そのものは外部責務として `AuthenticationSubject` 参照だけを持つ
+## Decision: `VisualImage` は独立集約のまま維持し、必要に応じて `sense` 参照を持つ
 
-**Rationale**: 学習者は domain 上の所有者として明示したいが、認証方式や credential まで domain に
-持ち込むべきではない。`Learner` が外部 identity を表す `AuthenticationSubject` を保持し、
-認証・セッション管理自体は外部ポートに委ねる方が architecture / tech stack と整合する。
-
-**Alternatives considered**:
-
-- `Learner` を auth provider の実装詳細ごと domain に持ち込む
-- 学習者 identity を domain 外に完全に追い出し、所有境界も external に依存する
-
-## Decision: external responsibility は learner identity を含む port catalog として整理する
-
-**Rationale**: 単語存在確認、重複登録判定、学習者 identity 解決、解説生成、画像生成、アセット保存、
-発音参照はすべて外部依存であり、project-wide domain に実装詳細を持ち込むべきではない。
-ドメインでは入力、出力、保証事項だけを定義し、adapter 実装は後続 feature に委ねる。
+**Rationale**: 画像は非同期生成、保存先参照、再生成履歴の責務を持つため、`Explanation` の
+内部値へ戻すべきではない。ただし意味と画像の対応は domain 上で明示したいので、
+`VisualImage` が `Explanation` と同時に `sense?` を持てるようにする。
+これにより、「この画像はどの意味を描いているか」を示せる。
 
 **Alternatives considered**:
 
-- auth provider や AI vendor 名をドメインサービスへ埋め込む
-- ポート定義を作らず実装時に都度判断する
+- `VisualImage` を `Explanation` の子エンティティとして扱う
+- 画像と意味の対応を持たず、画像説明テキストだけで補う
 
-## Decision: source-of-truth は `learner.md`、`vocabulary-expression.md`、`learning-state.md` を追加して再編する
+## Decision: この phase では `Explanation.currentImage` を単一 current 参照のまま維持する
 
-**Rationale**: 現行 `explanation.md` と `visual.md` だけでは、学習者所有、一意性境界、
-習熟度分離、命名統一を表現しきれない。`Learner`、`VocabularyExpression`、`LearningState`
-を独立した source-of-truth に切り出し、既存文書はそれらとの関係へ再配置する方が、
-後続 feature の task と review 導線を明確にできる。
+**Rationale**: `Sense` の導入目的は、まず意味単位と画像単位の対応関係を明示することであり、
+current image を複数 current image へ拡張することではない。単一 current 参照を維持すると、
+既存の async visibility rule、retry / regenerate rule、UI 表示契約を壊さずに導入できる。
+複数 current image は follow-on scope として、`Sense` の運用が固まってから判断する方が安全である。
 
 **Alternatives considered**:
 
-- 既存 4 文書だけを追記して拡張する
-- `Explanation` 文書内に `Learner` と `VocabularyExpression` と学習進捗を内包する
+- `Explanation.currentImages` を直ちに複数化する
+- 画像 current 参照を廃止し、履歴配列から都度選ぶ
+
+## Decision: 画像枚数より意味対応の明確さを優先する
+
+**Rationale**: 学習体験では画像数の多さより、「どの意味を補助する画像か」が明確であることが
+重要である。`Sense` 導入により、画像を増やす前に meaning-image mapping を安定化できる。
+これにより、意味と無関係な装飾画像や、複数意味を曖昧に代表する画像の乱用を避けられる。
+
+**Alternatives considered**:
+
+- 意味構造を持たずに画像だけ増やす
+- 画像を 1 枚に固定したまま多義語の意味区別を model しない
+
+## Decision: source-of-truth は `explanation.md` と `visual.md` を中心に `common.md` を更新して再編する
+
+**Rationale**: `Sense` は `Explanation` の責務再編であり、既存の `Learner`、
+`VocabularyExpression`、`LearningState` の ownership boundary を変えるものではない。
+そのため正本の中心は `explanation.md` と `visual.md` であり、project-wide 用語差分は
+`common.md` で吸収するのが最小変更である。必要な外部文書整合は `requirements.md` と
+`adr.md` に限定できる。
+
+**Alternatives considered**:
+
+- `sense.md` を独立 source-of-truth として新設する
+- 既存文書を変えず、spec artifacts だけで `Sense` を説明する

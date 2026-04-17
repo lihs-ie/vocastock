@@ -1,8 +1,8 @@
-# Specification Quality Checklist: ドメインモデリング - Sense導入差分
+# Specification Quality Checklist: 会員登録・ログイン・ログアウト設計
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
 **Created**: 2026-04-17  
-**Feature**: [spec.md](/Users/lihs/workspace/vocastock/specs/005-domain-modeling/spec.md)
+**Feature**: [spec.md](/Users/lihs/workspace/vocastock/specs/008-auth-session-design/spec.md)
 
 ## Content Quality
 
@@ -31,7 +31,7 @@
 
 ## Notes
 
-- 2026-04-17 に `005-domain-modeling` を `Sense` 導入差分へ更新し、`plan.md` / `tasks.md` と scope を整合させた
-- `Sense` は `Explanation` 所有の意味単位、`VisualImage` は独立集約維持、`currentImage` は単一参照維持を前提にした
-- 複数 current image の同時公開は後続 feature scope として明記した
-- Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
+- 認証は vocastock のコアドメイン外として扱い、会員登録、ログイン、ログアウトと利用主体解決の責務分離を明記した。
+- `Basic` と `Google` を初期対象、`Apple ID` と `LINE` を条件付き対象として整理し、コスト条件を scope に織り込んだ。
+- Flutter が認証 UI と provider 開始を担い、Firebase Authentication を本人確認基盤とし、backend が Firebase ID token を検証して actor reference を handoff する責務分離を spec に反映した。
+- `Verified Firebase Identity` を主要概念として追加し、provider 条件に Firebase Authentication または承認済み同等経路の前提を明記した。
