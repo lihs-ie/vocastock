@@ -17,9 +17,9 @@
 
 **Purpose**: 新しい source-of-truth 文書の受け皿を作る
 
-- [ ] T001 [P] Create learner source-of-truth skeleton in docs/internal/domain/learner.md
-- [ ] T002 [P] Create vocabulary expression source-of-truth skeleton in docs/internal/domain/vocabulary-expression.md
-- [ ] T003 [P] Create learning state source-of-truth skeleton in docs/internal/domain/learning-state.md
+- [X] T001 [P] Create learner source-of-truth skeleton in docs/internal/domain/learner.md
+- [X] T002 [P] Create vocabulary expression source-of-truth skeleton in docs/internal/domain/vocabulary-expression.md
+- [X] T003 [P] Create learning state source-of-truth skeleton in docs/internal/domain/learning-state.md
 
 ---
 
@@ -29,9 +29,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Define canonical glossary, deprecated-name crosswalk, and naming rules in docs/internal/domain/common.md
-- [ ] T005 Add source-of-truth index and aggregate relationship overview in docs/internal/domain/common.md
-- [ ] T006 Add backlinks from docs/internal/domain/explanation.md, docs/internal/domain/visual.md, and docs/internal/domain/service.md to the new source-of-truth files
+- [X] T004 Define canonical glossary, deprecated-name crosswalk, and naming rules in docs/internal/domain/common.md
+- [X] T005 Add source-of-truth index and aggregate relationship overview in docs/internal/domain/common.md
+- [X] T006 Add backlinks from docs/internal/domain/explanation.md, docs/internal/domain/visual.md, and docs/internal/domain/service.md to the new source-of-truth files
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -45,11 +45,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Define `Learner` aggregate, external identity boundary, and ownership semantics in docs/internal/domain/learner.md
-- [ ] T008 [P] [US1] Define `VocabularyExpression` aggregate, uniqueness scope, `VocabularyExpressionText`, `NormalizedVocabularyExpressionText`, and `currentExplanation` in docs/internal/domain/vocabulary-expression.md
-- [ ] T009 [P] [US1] Define `LearningState` aggregate, `Proficiency` ownership, and relations to `Learner` / `VocabularyExpression` in docs/internal/domain/learning-state.md
-- [ ] T010 [US1] Reframe `Explanation` domain narrative around `VocabularyExpression` references in docs/internal/domain/explanation.md
-- [ ] T011 [US1] Add relationship cross-links across docs/internal/domain/learner.md, docs/internal/domain/vocabulary-expression.md, docs/internal/domain/learning-state.md, and docs/internal/domain/explanation.md
+- [X] T007 [US1] Define `Learner` aggregate, external identity boundary, and ownership semantics in docs/internal/domain/learner.md
+- [X] T008 [P] [US1] Define `VocabularyExpression` aggregate, uniqueness scope, `VocabularyExpressionText`, `NormalizedVocabularyExpressionText`, and `currentExplanation` in docs/internal/domain/vocabulary-expression.md
+- [X] T009 [P] [US1] Define `LearningState` aggregate, `Proficiency` ownership, and relations to `Learner` / `VocabularyExpression` in docs/internal/domain/learning-state.md
+- [X] T010 [US1] Reframe `Explanation` domain narrative around `VocabularyExpression` references in docs/internal/domain/explanation.md
+- [X] T011 [US1] Add relationship cross-links across docs/internal/domain/learner.md, docs/internal/domain/vocabulary-expression.md, docs/internal/domain/learning-state.md, and docs/internal/domain/explanation.md
 
 **Checkpoint**: User Story 1 should be independently understandable and reviewable
 
@@ -63,11 +63,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T012 [P] [US2] Document `VocabularyExpression` explanation-generation lifecycle, retry/regenerate rules, and `currentExplanation` visibility in docs/internal/domain/vocabulary-expression.md
-- [ ] T013 [P] [US2] Document `Explanation` image-generation lifecycle and `currentImage` visibility in docs/internal/domain/explanation.md
-- [ ] T014 [P] [US2] Document `VisualImage` history, `previousImage` chain, and current-image handoff in docs/internal/domain/visual.md
-- [ ] T015 [US2] Align generation, storage, and failure responsibilities with external ports in docs/internal/domain/service.md
-- [ ] T016 [US2] Reconcile async visibility language across docs/internal/domain/vocabulary-expression.md, docs/internal/domain/explanation.md, docs/internal/domain/visual.md, and docs/internal/domain/service.md
+- [X] T012 [P] [US2] Document `VocabularyExpression` explanation-generation lifecycle, retry/regenerate rules, and `currentExplanation` visibility in docs/internal/domain/vocabulary-expression.md
+- [X] T013 [P] [US2] Document `Explanation` image-generation lifecycle and `currentImage` visibility in docs/internal/domain/explanation.md
+- [X] T014 [P] [US2] Document `VisualImage` history, `previousImage` chain, and current-image handoff in docs/internal/domain/visual.md
+- [X] T015 [US2] Align generation, storage, and failure responsibilities with external ports in docs/internal/domain/service.md
+- [X] T016 [US2] Reconcile async visibility language across docs/internal/domain/vocabulary-expression.md, docs/internal/domain/explanation.md, docs/internal/domain/visual.md, and docs/internal/domain/service.md
 
 **Checkpoint**: User Story 2 should be independently reviewable without relying on intermediate generated results
 
@@ -81,12 +81,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T017 [P] [US3] Replace `Entry` terminology with `VocabularyExpression` terms in docs/external/requirements.md
-- [ ] T018 [P] [US3] Replace `Entry` / `EntryLearningState` terminology and port names in docs/external/adr.md
-- [ ] T019 [US3] Add canonical terminology and deprecated synonym guidance in docs/internal/domain/common.md
-- [ ] T020 [US3] Normalize `VocabularyExpressionText` and `NormalizedVocabularyExpressionText` naming in docs/external/requirements.md and docs/external/adr.md
-- [ ] T021 [US3] Add out-of-scope / deferred scope guidance and follow-on feature boundaries in docs/internal/domain/common.md and docs/external/adr.md
-- [ ] T022 [US3] Cross-check terminology consistency and deferred scope alignment across docs/external/requirements.md, docs/external/adr.md, and docs/internal/domain/common.md
+- [X] T017 [P] [US3] Replace `Entry` terminology with `VocabularyExpression` terms in docs/external/requirements.md
+- [X] T018 [P] [US3] Replace `Entry` / `EntryLearningState` terminology and port names in docs/external/adr.md
+- [X] T019 [US3] Add canonical terminology and deprecated synonym guidance in docs/internal/domain/common.md
+- [X] T020 [US3] Normalize `VocabularyExpressionText` and `NormalizedVocabularyExpressionText` naming in docs/external/requirements.md and docs/external/adr.md
+- [X] T021 [US3] Add out-of-scope / deferred scope guidance and follow-on feature boundaries in docs/internal/domain/common.md and docs/external/adr.md
+- [X] T022 [US3] Cross-check terminology consistency and deferred scope alignment across docs/external/requirements.md, docs/external/adr.md, and docs/internal/domain/common.md
 
 **Checkpoint**: User Story 3 should make the external docs and glossary align on the same canonical terms and deferred boundaries
 
@@ -96,8 +96,8 @@
 
 **Purpose**: 最終整合確認と残差分の除去
 
-- [ ] T023 Validate specs/005-domain-modeling/quickstart.md against docs/internal/domain/learner.md, docs/internal/domain/vocabulary-expression.md, docs/internal/domain/learning-state.md, docs/internal/domain/explanation.md, docs/internal/domain/visual.md, docs/internal/domain/service.md, docs/external/requirements.md, and docs/external/adr.md
-- [ ] T024 Remove leftover deprecated-name references beyond the allowed migration note across docs/internal/domain/*.md and docs/external/*.md
+- [X] T023 Validate specs/005-domain-modeling/quickstart.md against docs/internal/domain/learner.md, docs/internal/domain/vocabulary-expression.md, docs/internal/domain/learning-state.md, docs/internal/domain/explanation.md, docs/internal/domain/visual.md, docs/internal/domain/service.md, docs/external/requirements.md, and docs/external/adr.md
+- [X] T024 Remove leftover deprecated-name references beyond the allowed migration note across docs/internal/domain/*.md and docs/external/*.md
 
 ---
 

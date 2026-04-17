@@ -1,203 +1,193 @@
-# 解説ドメインモデル
+# Explanation ドメインモデル
 
-# 値オブジェクト
+## この文書の役割
 
-## 解説識別子
+- `Explanation` を `VocabularyExpression` に紐づく知識集約として定義する
+- `Frequency` と `Sophistication` の所有者を `Explanation` に固定する
+- `currentImage` と `imageGeneration` の責務を明確化する
 
-- 英単語解説を一意に識別する値オブジェクト
-- 英単語そのものを表す
+## 関連文書
 
-### 不変条件
+- [common.md](./common.md)
+- [vocabulary-expression.md](./vocabulary-expression.md)
+- [visual.md](./visual.md)
+- [service.md](./service.md)
 
-- 1文字以上
+## 値オブジェクト
 
-## 頻出レベル (FrequencyLevel)
+### ExplanationIdentifier
 
-- 以下の値を列挙する
-  - よく使う（often）
-  - 使う（sometimes）
-  - あまり使わない（rarely）
-  - 全然使わない（hardlyEver）
+- 解説を一意に識別する値オブジェクト
+- 英語表現そのものではなく、生成済み解説結果を識別する
 
-## 頻出度（Frequency）
+### FrequencyLevel
 
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-|level | 頻出レベル| 1 | |
-| reason | 理由 | 1 | |
+- `often`
+- `sometimes`
+- `rarely`
+- `hardlyEver`
 
-### 不変条件
+### Frequency
 
-- 理由は1文字以上255文字以下
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| level | FrequencyLevel | 1 | 頻出度レベル |
+| reason | 文字列 | 1 | 判定理由 |
 
-## 知的レベル（SophisticationLevel）
+不変条件:
 
-- 以下の値を列挙する
-  - かなり知的（advanced）
-  - 知的（intermediate）
-  - 少し知的（basic）
-  - あまり知的ではない（veryBasic）
+- `reason` は 1 文字以上 255 文字以下
 
-## 知的度（Sophistication）
+### SophisticationLevel
 
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| level | 知的レベル| 1 | |
-| reason | 理由 | 1 | |
+- `advanced`
+- `intermediate`
+- `basic`
+- `veryBasic`
 
-## 習熟度（Proficiency）
+### Sophistication
 
-- 話せる（Fluent）
-- 定着（Internalized）
-- インプット済み（Learned）
-- インプット中（Learning）
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| level | SophisticationLevel | 1 | 知的度レベル |
+| reason | 文字列 | 1 | 判定理由 |
 
-## 意味（meaning）
+不変条件:
 
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| values | 単語の意味のリスト | 1..n| |
-| situation | 使用する状況 | 1 | |
-| nuance | ニュアンス | 1 | |
+- `reason` は 1 文字以上 255 文字以下
 
-### 不変条件
+### Meaning
 
-- 使用する状況は1文字以上255文字以下
-- ニュアンスは1文字以上255文字以下
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| values | 意味の一覧 | 1..n | 主要な意味の列挙 |
+| situation | 文字列 | 1 | 使用する状況 |
+| nuance | 文字列 | 1 | ニュアンス |
 
-## 発音記号（PhoneticSymbols）
+不変条件:
 
-- 米国の発音記号を表す
+- `values` は 1 件以上
+- `situation` は 1 文字以上 255 文字以下
+- `nuance` は 1 文字以上 255 文字以下
 
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| weak | 弱形 | 1| |
-| strong | 強形 | 1 | |
+### PhoneticSymbols
 
-### 不変条件
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| weak | 文字列 | 1 | 弱形 |
+| strong | 文字列 | 1 | 強形 |
 
-- 弱形は1文字以上255文字以下
-- 強形は1文字以上255文字以下
+不変条件:
 
-## 発音（Pronunciation）
+- `weak` は 1 文字以上 255 文字以下
+- `strong` は 1 文字以上 255 文字以下
 
-- 米国の発音を表す
+### Pronunciation
 
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| symbols | 発音記号 | 1| |
-| sample | URL | 1 | 外部リソースの発音動画のリンク |
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| symbols | PhoneticSymbols | 1 | 発音記号 |
+| sample | 参照 | 0..1 | 外部メディア参照 |
 
-## コロケーション（Collocation）
+### Collocation
 
-- 英単語のコロケーションを表す
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| value | 文字列 | 1 | コロケーション |
+| meaning | 文字列 | 1 | 意味 |
 
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| value | コロケーション内容 | 1| |
-| meaning | コロケーションの意味 | 1 | |
+不変条件:
 
-### 不変条件
+- `value` は 1 文字以上 255 文字以下
+- `meaning` は 1 文字以上 255 文字以下
 
-- コロケーション内容は1文字以上255文字以下
-- 意味は1文字以上255文字以下
+### ExampleSentence
 
-## 例文（ExampleSentence）
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| value | 文字列 | 1 | 例文 |
+| meaning | 文字列 | 1 | 日本語説明 |
+| pronunciation | 文字列 | 1 | 例文の発音 |
 
-- 英単語を使った例文を表す
+不変条件:
 
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| value | 例文の値 | 1| |
-| meaning | 例文の意味 | 1 | |
-| pronunciation | 例文の発音（全て弱形） | 1 | |
+- `value` は 1 文字以上 255 文字以下
+- `meaning` は 1 文字以上 255 文字以下
 
-### 不変条件
+### SimilarExpression
 
-- 例文の値は1文字以上255文字以下
-- 意味は1文字以上255文字以下
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| value | 文字列 | 1 | 類似表現 |
+| meaning | 文字列 | 1 | 意味・ニュアンス |
+| comparison | 文字列 | 1 | 元の `VocabularyExpression` との比較 |
 
-## イメージ（Image）
+不変条件:
 
-- 英単語を視覚的に表現する画像を表す
-- 値はURLである
+- `value`、`meaning`、`comparison` は 1 文字以上 255 文字以下
 
-## 類似表現（SimilarExpression）
+### Etymology
 
-- 生成元の英単語の類似表現を表す
+- 1 文字以上 255 文字以下の文字列
 
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| value | 類似表現の値 | 1| |
-| meaning | 類似表現の意味・ニュアンス | 1 | |
-| comparison | 生成元の英単語との比較 | 1 | |
+### ImageGenerationStatus
 
-### 不変条件
+- `pending`
+- `running`
+- `succeeded`
+- `failed`
 
-- 値は1文字以上255文字以下
-- 意味は1文字以上255文字以下
-- 比較は1文字以上255文字以下
+## 集約
 
+### Explanation
 
-## 語源（Etymology）
+- `VocabularyExpression` に紐づく生成済み解説を表す知識集約
+- ユーザーへ表示する本文と、画像生成の current 参照を保持する
 
-- 1文字以上255文字以下の文字列
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| identifier | ExplanationIdentifier | 1 | 解説識別子 |
+| vocabularyExpression | VocabularyExpressionIdentifier | 1 | 元の登録対象 |
+| meaning | Meaning | 1 | 意味のまとまり |
+| pronunciation | Pronunciation | 1 | 発音情報 |
+| frequency | Frequency | 1 | 頻出度 |
+| sophistication | Sophistication | 1 | 知的度 |
+| collocations | Collocation の一覧 | 1..10 | コロケーション |
+| examples | ExampleSentence の一覧 | 1..3 | 例文 |
+| etymology | Etymology | 1 | 語源 |
+| similarities | SimilarExpression の一覧 | 1..5 | 類似表現 |
+| imageGeneration | ImageGenerationStatus | 1 | 画像生成状態 |
+| currentImage | VisualImageIdentifier | 0..1 | 現在表示中の完了済み画像 |
+| timeline | Timeline | 1 | 作成・更新日時 |
 
-# 集約
+不変条件:
 
-## 解説（Explanation）
+- `vocabularyExpression` は常に 1 つの `VocabularyExpression` を参照する
+- `frequency` と `sophistication` は `Explanation` が所有する
+- `Proficiency` を持ってはならない
+- `currentImage` は同じ `Explanation` に属する完了済み `VisualImage` だけを参照できる
+- `currentImage` が未設定でも、`imageGeneration` は状態を保持できる
 
-- 英単語の解説を表す集約
+## 画像生成ライフサイクル
 
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| identifier | 解説識別子 | 1| |
-| meaning | 意味 | 1 | |
-| image | 視覚的イメージ | 0..1 | |
-| pronunciation   | 発音 | 1 | |
-| frequency |頻出度 | 1  | |
-| sophistication | 知的度 | 1  | |
-| collocations| コロケーションのリスト | 1..10  | |
-| examples | 例文のリスト | 1..3  | |
-| etymology| 語源 | 1 | |
-| similarities | 類似表現のリスト | 1..5 | |
-| timeline | タイムライン | 1 | |
+- `pending -> running -> succeeded | failed`
+- `failed -> pending` は retry として許可する
+- `succeeded -> running` は regenerate として許可する
+- regenerate 開始時に `currentImage` を消してはならない
+- 新しい画像が `succeeded` になった時だけ `currentImage` を切り替える
+- `failed` 時は、直前の完了済み `currentImage` があれば継続表示してよい
 
-### 振る舞い
+## 表示ルール
 
-- 画像を生成する（GenerateImage）
-  - 画像生成イベントを発行する
-  - すでに画像を持つ場合は例外を発する
+- ユーザーへ表示してよい画像は完了済みの `currentImage` のみ
+- 画像生成中または失敗中は状態だけを表示できる
+- 未完了画像、不完全 payload、中間結果は表示してはならない
 
-- 画像を再生成する（RegenerateImage）
-  - 画像再生成イベントを発行する
-  - 画像を持たない場合は例外を発する
+## リポジトリ
 
-### リポジトリ
+### ExplanationRepository
 
-解説リポジトリ（ExplanationRepository）
-
-- 識別子で集約を単一取得する（find）
-- 検索条件に合致する集約の一覧を取得する（search）
-- 識別子を指定して集約を破棄する（terminate）
-- 集約を永続化する（persist）
-
-# ドメインイベント
-
-## 画像生成イベント（GeneratedImage）
-
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| identifier | 解説識別子 | 1| |
-| image | 視覚的表現画像識別子 | 1 |
-| occurredAt | 発生日時 | 1 | |
-
-## 画像再生成イベント（RegeneratedImage）
-
-|フィールド名 |種別 |保持数 | 備考|
-|-|-|-|-|
-| identifier | 解説識別子 | 1| |
-| before | 視覚的表現画像識別子 | 1 |
-| after | 視覚的表現画像識別子 | 1 |
-| occurredAt | 発生日時 | 1 | |
-
+- `find(identifier)`
+- `findCurrentByVocabularyExpression(vocabularyExpression)`
+- `listByVocabularyExpression(vocabularyExpression)`
+- `persist(explanation)`
