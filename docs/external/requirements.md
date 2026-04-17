@@ -7,12 +7,15 @@
   - 重複登録判定は同一学習者内の `NormalizedVocabularyExpressionText` で行う
 - 未登録であれば、登録した `VocabularyExpression` に対して解説生成を行う
   - 時間がかかるため非同期で行う
+- 完了済み `Explanation` は 1 件以上の `Sense` を持ち、多義語でも意味単位ごとに説明できる
+  - 例文とコロケーションは explanation 全体ではなく対応する `Sense` に属する
 - ユーザーは完了済み `Explanation` から視覚的イメージ画像を生成できる
   - 時間がかかるため非同期で行う
   - 生成された画像は何らかのストレージサービスに永続化される
+  - 画像は explanation 全体を代表してもよく、必要に応じて特定の `Sense` に対応してもよい
 - ユーザーには解説と画像の完全な生成結果のみを表示する
   - 生成中または失敗中は状態のみを表示し、中間生成結果は表示しない
-- 画像が生成されている解説は `currentImage` を表示に反映する
+- 画像が生成されている解説は単一の `currentImage` を表示に反映する
 
 ## 要件
 
@@ -22,12 +25,16 @@
 - 学習者ごとの定着度は `LearningState.proficiency` として管理する
   - `Frequency` や `Sophistication` とは異なる概念として扱う
 - `RegistrationStatus`、`ExplanationGenerationStatus`、`ImageGenerationStatus` は別概念として管理する
+- `Sense` は `Explanation` が所有する意味単位として管理し、`Meaning.values` を正本概念として再利用しない
+- `VisualImage` は独立集約のまま維持しつつ、必要に応じてどの `Sense` を描写する画像かを示せる
+- `Explanation.currentImage` は `Sense` の数にかかわらず単一参照のままとする
 
 ## Deferred Scope
 
 - 認証、credential、session 管理は auth/session 設計で扱う
 - command 受理、workflow orchestration、dispatch failure は backend command 設計で扱う
 - query model、永続化実装、外部 vendor adapter 実装は別 feature とする
+- 複数 current image の同時公開や meaning gallery は後続 feature で扱う
 
 ## 開発基盤メモ
 

@@ -1,7 +1,7 @@
-# Specification Quality Checklist: ドメインモデリング
+# Specification Quality Checklist: ドメインモデリング - Sense導入差分
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
-**Created**: 2026-04-15  
+**Created**: 2026-04-17  
 **Feature**: [spec.md](/Users/lihs/workspace/vocastock/specs/005-domain-modeling/spec.md)
 
 ## Content Quality
@@ -31,7 +31,7 @@
 
 ## Notes
 
-- 2026-04-16 に clarification を反映し、project-wide scope、`Entry` 概念、`VisualImage` 独立集約を確定した
-- 2026-04-16 に `Domain Models Affected` を更新し、`learner.md`、`vocabulary-expression.md`、`learning-state.md` を対象文書へ追加して `plan.md` / `tasks.md` と整合させた
-- planning に進める状態である
+- 2026-04-17 に `005-domain-modeling` を `Sense` 導入差分へ更新し、`plan.md` / `tasks.md` と scope を整合させた
+- `Sense` は `Explanation` 所有の意味単位、`VisualImage` は独立集約維持、`currentImage` は単一参照維持を前提にした
+- 複数 current image の同時公開は後続 feature scope として明記した
 - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`

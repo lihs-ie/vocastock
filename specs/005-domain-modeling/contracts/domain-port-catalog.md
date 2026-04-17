@@ -34,11 +34,11 @@
 
 ## ImageGenerationPort
 
-**Purpose**: 完了済み `Explanation` に基づく画像生成を依頼し、画像生成状態を返す。
+**Purpose**: 完了済み `Explanation` と必要に応じて対象 `Sense` に基づく画像生成を依頼し、画像生成状態を返す。
 
 | Input | Output | Guarantees |
 |-------|--------|------------|
-| `explanation`, `imagePromptContext` | `requestIdentifier`, `status`, `imagePayload?`, `failureReason?` | 完了時のみ画像成果物を返し、再生成も同じ契約で扱う |
+| `explanation`, `sense?`, `imagePromptContext` | `requestIdentifier`, `status`, `imagePayload?`, `failureReason?` | 完了時のみ画像成果物を返し、意味単位を指定する場合は同一 `Explanation` 配下の `Sense` だけを受理し、再生成も同じ契約で扱う |
 
 ## AssetStoragePort
 
