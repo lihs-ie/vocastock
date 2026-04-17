@@ -63,7 +63,7 @@
 
 | 入力 | 出力 | 保証 |
 |---|---|---|
-| `explanation`, `imagePromptContext` | `requestIdentifier`, `status`, `imagePayload?`, `failureReason?` | 完了時のみ画像成果物を返し、retry / regenerate も同じ契約で扱う |
+| `explanation`, `sense?`, `imagePromptContext` | `requestIdentifier`, `status`, `imagePayload?`, `failureReason?` | `sense` を指定する場合は同じ `Explanation` に属する意味単位だけを受け付け、完了時のみ画像成果物を返し、retry / regenerate も同じ契約で扱う |
 
 ### AssetStoragePort
 
@@ -73,7 +73,7 @@
 
 | 入力 | 出力 | 保証 |
 |---|---|---|
-| `binaryOrAssetPayload`, `metadata` | `image`, `storageReference` | 返却された参照で再取得でき、識別子は一意である |
+| `binaryOrAssetPayload`, `metadata(explanation, sense?)` | `image`, `storageReference` | 返却された参照で再取得でき、識別子は一意であり、必要に応じて explanation 全体画像か特定 `Sense` 画像かを後続で追跡できる |
 
 ### PronunciationMediaPort
 
@@ -90,3 +90,4 @@
 - domain は vendor 名、SDK 型、transport 形式を知らない
 - auth provider の credential / session 管理は外部責務であり、この文書では扱わない
 - generator や storage の実装差し替えは port 契約を崩さずに行える必要がある
+- domain は完了済み結果だけを表示対象とし、中間画像 payload の公開可否は `status` と `Explanation.currentImage` で判断する

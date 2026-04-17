@@ -28,19 +28,33 @@ classDiagram
         <<Aggregate>>
         +ExplanationIdentifier identifier
         +VocabularyExpressionIdentifier vocabularyExpression
-        +Meaning meaning
+        +Sense[] senses
         +Pronunciation pronunciation
         +Frequency frequency
         +Sophistication sophistication
+        +Etymology etymology
+        +SimilarExpression[] similarities
         +ImageGenerationStatus imageGeneration
         +VisualImageIdentifier currentImage
         +Timeline timeline
+    }
+
+    class Sense {
+        <<Entity>>
+        +SenseIdentifier identifier
+        +string label
+        +string situation
+        +string nuance
+        +int order
+        +Collocation[] collocations
+        +ExampleSentence[] examples
     }
 
     class VisualImage {
         <<Aggregate>>
         +VisualImageIdentifier identifier
         +ExplanationIdentifier explanation
+        +SenseIdentifier sense
         +VisualImageIdentifier previousImage
         +StorageReference storageReference
         +Timeline timeline
@@ -95,8 +109,10 @@ classDiagram
     Learner "1" --> "0..*" LearningState : tracks
     VocabularyExpression "1" --> "0..*" Explanation : has history
     VocabularyExpression --> "0..1" Explanation : currentExplanation
+    Explanation "1" --> "1..5" Sense : contains
     Explanation "1" --> "0..*" VisualImage : has history
     Explanation --> "0..1" VisualImage : currentImage
+    VisualImage --> "0..1" Sense : depicts
     VisualImage --> "0..1" VisualImage : previousImage
     LearningState --> "1" VocabularyExpression : vocabularyExpression
     VocabularyExpression --> VocabularyExpressionKind : kind
@@ -106,10 +122,10 @@ classDiagram
     LearningState --> Proficiency : proficiency
 ```
 
-- `VocabularyExpression` は学習者が所有する登録対象で、表示上は `currentExplanation` だけを参照する
-- `Explanation` は解説本文の集約で、表示上は `currentImage` だけを参照する
-- `VisualImage.previousImage` によって、同一解説内の画像履歴を辿る
-- `LearningState` は `Learner` と `VocabularyExpression` の関係上にある習熟度専用の集約
+- `Sense` は `Explanation` が所有する意味単位の内部エンティティである
+- `VisualImage` は `Explanation` と `sense?` の両方を参照できる独立集約である
+- `Explanation.currentImage` はこの phase では単一の current 参照を維持する
+- `Learner`、`VocabularyExpression`、`LearningState` の ownership boundary は変えない
 
 ## Aggregate: Learner
 
@@ -158,18 +174,16 @@ classDiagram
 
 ## Aggregate: Explanation
 
-**Purpose**: `VocabularyExpression` に紐づく生成済み解説を表す知識集約。現在表示中画像の参照を持つ。
+**Purpose**: `VocabularyExpression` に紐づく生成済み解説を表す知識集約。意味単位として `Sense` を持ち、現在表示中画像の参照を持つ。
 
 | Field | Type | Cardinality | Description |
 |-------|------|-------------|-------------|
 | identifier | ExplanationIdentifier | 1 | 解説識別子 |
 | vocabularyExpression | VocabularyExpressionIdentifier | 1 | 元の登録対象 |
-| meaning | Meaning | 1 | 意味のまとまり |
+| senses | Sense[] | 1..5 | 意味単位の一覧 |
 | pronunciation | Pronunciation | 1 | 発音と発音記号 |
 | frequency | Frequency | 1 | 頻出度と理由 |
 | sophistication | Sophistication | 1 | 知的度と理由 |
-| collocations | Collocation[] | 1..10 | コロケーション |
-| examples | ExampleSentence[] | 1..3 | 例文 |
 | etymology | Etymology | 1 | 語源 |
 | similarities | SimilarExpression[] | 1..5 | 類似表現 |
 | imageGeneration | ImageGenerationStatus | 1 | 画像生成状態 |
@@ -179,12 +193,13 @@ classDiagram
 **Validation rules**:
 
 - `vocabularyExpression` は常に 1 つの `VocabularyExpressionIdentifier` を参照する
-- `meaning.values` は 1 件以上
-- `collocations` は 1 件以上 10 件以下
-- `examples` は 1 件以上 3 件以下
-- `similarities` は 1 件以上 5 件以下
+- `senses` は 1 件以上 5 件以下
+- `senses.order` は同一 `Explanation` 内で重複してはならない
+- `senses.identifier` は同一 `Explanation` 内で一意でなければならない
 - `currentImage` は同じ `Explanation` に属する完了済み `VisualImage` だけを参照できる
+- `currentImage` が `sense` を持つ画像を指す場合、その `sense` は同じ `Explanation.senses` のいずれかでなければならない
 - 画像再生成中または再生成失敗時でも、直前の完了済み画像がある場合は `currentImage` を保持してよい
+- `frequency` と `sophistication` は `Explanation` が所有し、`Sense` や `LearningState` へ移してはならない
 
 **State transitions**:
 
@@ -192,14 +207,39 @@ classDiagram
 - `imageGeneration`: `failed -> pending` を retry として許可
 - `imageGeneration`: `succeeded -> running` を regenerate として許可
 
+## Entity: Sense
+
+**Purpose**: `Explanation` が所有する意味単位。意味ごとの説明、状況、ニュアンス、例文、コロケーションをまとめる。
+
+| Field | Type | Cardinality | Description |
+|-------|------|-------------|-------------|
+| identifier | SenseIdentifier | 1 | 同一 `Explanation` 内での意味識別子 |
+| label | string | 1 | 意味を短く表す代表ラベル |
+| situation | string | 1 | 使われる状況 |
+| nuance | string | 1 | ニュアンス |
+| order | positive integer | 1 | 表示順序 |
+| collocations | Collocation[] | 0..5 | その意味に結びつくコロケーション |
+| examples | ExampleSentence[] | 0..3 | その意味に結びつく例文 |
+
+**Validation rules**:
+
+- `label` は 1 文字以上 255 文字以下
+- `situation` は 1 文字以上 255 文字以下
+- `nuance` は 1 文字以上 255 文字以下
+- `order` は 1 以上の整数
+- `collocations` は 5 件以下
+- `examples` は 3 件以下
+- `examples` と `collocations` は `Explanation` 全体ではなく、その `Sense` の意味に対応していなければならない
+
 ## Aggregate: VisualImage
 
-**Purpose**: `Explanation` に基づく視覚的表現を表す画像集約。独立した保存先参照と履歴を持つ。
+**Purpose**: `Explanation` に基づく視覚的表現を表す画像集約。独立した保存先参照と履歴を持ち、必要に応じて特定の `Sense` を描写する。
 
 | Field | Type | Cardinality | Description |
 |-------|------|-------------|-------------|
 | identifier | VisualImageIdentifier | 1 | 画像識別子 |
 | explanation | ExplanationIdentifier | 1 | 生成元解説 |
+| sense | SenseIdentifier | 0..1 | 画像が描写する意味単位 |
 | previousImage | VisualImageIdentifier | 0..1 | 同一解説内の直前画像履歴 |
 | storageReference | StorageReference | 1 | 永続化先の再取得参照 |
 | timeline | Timeline | 1 | 作成・更新日時 |
@@ -209,7 +249,9 @@ classDiagram
 - `storageReference` は安定した取得参照でなければならない
 - 同一 `identifier` は 1 つの保存先だけを指す
 - `previousImage` を持つ場合、その `VisualImage` は同じ `Explanation` に属していなければならない
+- `sense` を持つ場合、その `Sense` は同じ `Explanation` に属していなければならない
 - `previousImage` の循環参照を作ってはならない
+- `previousImage` が `sense` を持つ画像で、現在画像も `sense` を持つ場合、両者は同じ `Sense` を指していなければならない
 
 ## Aggregate: LearningState
 
@@ -258,119 +300,10 @@ classDiagram
 ### Existing value objects retained
 
 - `AuthenticationSubject`
-- `VocabularyExpressionText`
-- `NormalizedVocabularyExpressionText`
-- `Frequency`
-- `FrequencyLevel`
-- `Sophistication`
-- `SophisticationLevel`
-- `Meaning`
-- `PhoneticSymbols`
 - `Pronunciation`
+- `Frequency`
+- `Sophistication`
 - `Collocation`
 - `ExampleSentence`
 - `SimilarExpression`
 - `Etymology`
-- `Proficiency`
-- `Timeline`
-- `StorageReference`
-
-## Relationships
-
-- `Learner` 1 : n `VocabularyExpression`
-- `Learner` 1 : n `LearningState`
-- `VocabularyExpression` 1 : n `Explanation`, ただし `currentExplanation` は 0..1
-- `Explanation` 1 : n `VisualImage`, ただし `currentImage` は 0..1
-- `LearningState` は `Learner` と `VocabularyExpression` の関係上でのみ存在できる
-- `VisualImage.previousImage` は同一 `Explanation` の履歴を辿る
-
-## Domain Events
-
-### VocabularyExpressionRegistered
-
-| Field | Type | Description |
-|-------|------|-------------|
-| learner | LearnerIdentifier | 所有学習者 |
-| vocabularyExpression | VocabularyExpressionIdentifier | 登録された表現 |
-| occurredAt | DateTime | 発生日時 |
-
-### ExplanationGenerated
-
-| Field | Type | Description |
-|-------|------|-------------|
-| learner | LearnerIdentifier | 所有学習者 |
-| vocabularyExpression | VocabularyExpressionIdentifier | 対象登録表現 |
-| explanation | ExplanationIdentifier | 完了した解説 |
-| occurredAt | DateTime | 発生日時 |
-
-### ExplanationGenerationFailed
-
-| Field | Type | Description |
-|-------|------|-------------|
-| learner | LearnerIdentifier | 所有学習者 |
-| vocabularyExpression | VocabularyExpressionIdentifier | 対象登録表現 |
-| reason | FailureReason | 失敗理由 |
-| occurredAt | DateTime | 発生日時 |
-
-### ExplanationRegenerated
-
-| Field | Type | Description |
-|-------|------|-------------|
-| learner | LearnerIdentifier | 所有学習者 |
-| vocabularyExpression | VocabularyExpressionIdentifier | 対象登録表現 |
-| beforeExplanation | ExplanationIdentifier | 以前の解説 |
-| afterExplanation | ExplanationIdentifier | 新しい解説 |
-| occurredAt | DateTime | 発生日時 |
-
-### ImageGenerated
-
-| Field | Type | Description |
-|-------|------|-------------|
-| explanation | ExplanationIdentifier | 対象解説 |
-| image | VisualImageIdentifier | 完了した画像 |
-| occurredAt | DateTime | 発生日時 |
-
-### ImageRegenerated
-
-| Field | Type | Description |
-|-------|------|-------------|
-| explanation | ExplanationIdentifier | 対象解説 |
-| beforeImage | VisualImageIdentifier | 以前の画像 |
-| afterImage | VisualImageIdentifier | 新しい画像 |
-| occurredAt | DateTime | 発生日時 |
-
-### ProficiencyChanged
-
-| Field | Type | Description |
-|-------|------|-------------|
-| learner | LearnerIdentifier | 対象学習者 |
-| vocabularyExpression | VocabularyExpressionIdentifier | 対象登録表現 |
-| before | Proficiency | 変更前の習熟度 |
-| after | Proficiency | 変更後の習熟度 |
-| occurredAt | DateTime | 発生日時 |
-
-## Repository Contracts
-
-- `LearnerRepository`
-  - `find(identifier)`
-  - `findByAuthenticationSubject(authenticationSubject)`
-  - `persist(learner)`
-- `VocabularyExpressionRepository`
-  - `find(identifier)`
-  - `findByLearnerAndNormalizedText(learner, normalizedText)`
-  - `listByLearner(learner)`
-  - `persist(vocabularyExpression)`
-  - `archive(identifier)`
-- `ExplanationRepository`
-  - `find(identifier)`
-  - `findCurrentByVocabularyExpression(vocabularyExpression)`
-  - `listByVocabularyExpression(vocabularyExpression)`
-  - `persist(explanation)`
-- `VisualImageRepository`
-  - `find(identifier)`
-  - `findCurrentByExplanation(explanation)`
-  - `listByExplanation(explanation)`
-  - `persist(image)`
-- `LearningStateRepository`
-  - `findByLearnerAndVocabularyExpression(learner, vocabularyExpression)`
-  - `persist(state)`
