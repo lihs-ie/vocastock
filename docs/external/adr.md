@@ -256,3 +256,40 @@
 - vendor SDK detail は後続実装で具体化する
 - protected feature の command semantics は `specs/007-backend-command-design/` を正本とする
 - auth / account / session lifecycle は `specs/008-auth-session-design/` を正本とする
+
+## コマンド I/O 契約
+
+### Canonical Command Set
+
+- canonical command は `registerVocabularyExpression`、`requestExplanationGeneration`、`requestImageGeneration`、`retryGeneration` の 4 つに固定する
+- 011 は 007 の command semantics を transport 非依存の canonical I/O contract へ落とし込む境界であり、command catalog 自体を置き換えない
+
+### Request Envelope Rules
+
+- すべての command request は `command`、`actor`、`idempotencyKey`、`body` を共有する
+- `actor` は completed actor handoff input とし、少なくとも `actor`、`authAccount`、`session`、`sessionState` を含む
+- request は Firebase ID token、refresh token、provider credential、password、session secret を含めてはならない
+- `idempotencyKey` は actor 単位で一意に扱う
+- `registerVocabularyExpression` だけが `startExplanation = false` を許可する
+- `requestImageGeneration` は `Explanation` を主 target とし、必要時だけ `Sense` を補助参照で受ける
+- `retryGeneration` は `targetKind`、`target`、`mode` を必須とし、`mode` は `retry` と `regenerate` を明示的に区別する
+
+### Success Response Rules
+
+- success response は `acceptance`、`target`、`state`、必須 `message`、`replayedByIdempotency`、必要時の `duplicateReuse` を返す
+- duplicate registration は error ではなく `reused-existing` response として返す
+- success response は未完了解説本文、未完了画像 payload、asset URL、provider detail、dispatch detail を返してはならない
+
+### Error And Replay Rules
+
+- canonical error は `validation-failed`、`ownership-mismatch`、`target-missing`、`target-not-ready`、`idempotency-conflict`、`dispatch-failed`、`internal-failure` を区別する
+- error response も success response と同様に必須の user-facing `message` を返す
+- same-request replay では新しい dispatch を行ってはならない
+- 同じ actor に対して同じ `idempotencyKey` で正規化 request が異なる場合は `idempotency-conflict` を返す
+- `dispatch-failed` は success envelope と両立してはならず、見かけ上の `pending` 確定を返してはならない
+
+### Boundary And Deferred Scope
+
+- 007 は command semantics、008 は actor handoff、009 は command intake placement、010 は subscription / entitlement visibility の正本とする
+- command response は `pending-sync` を状態表示してよいが、premium unlock 確定情報として返してはならない
+- HTTP / GraphQL / RPC schema、workflow payload schema、query response schema、provider 固有 error payload、persistence schema は deferred scope とする

@@ -23,6 +23,9 @@ Auto-generated from all feature plans. Last updated: 2026-04-19
 - Git-managed repository files、設計上で参照する抽象的な command state store、query read store、asset store、auth/session boundary outputs (010-component-boundaries)
 - Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/service.md`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/` (010-component-boundaries)
 - Git-managed repository files、設計上で参照する抽象的な subscription state store、purchase state store、entitlement store、usage metering store、store purchase artifact / notification ingest store (010-component-boundaries)
+- Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/`、`specs/010-subscription-component-boundaries/` (011-api-command-io-design)
+- Git-managed repository files、設計上で参照する抽象的な actor handoff output、command request log、idempotency store、workflow state store (011-api-command-io-design)
+- Git-managed repository files、設計上で参照する抽象的な actor handoff output、command request log、actor-scoped idempotency store、workflow state store (011-api-command-io-design)
 
 - Markdown 1.x, YAML, JSON + Spec Kit workflow, existing domain documents, requirements memo, ADR memo (001-complete-domain-model)
 
@@ -65,8 +68,9 @@ an aggregate's own identifier field must be `identifier`, and related identifier
 fields must use concept names such as `bank`, `entry`, or `image`.
 
 ## Recent Changes
+- 011-api-command-io-design: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/`、`specs/010-subscription-component-boundaries/`
+- 011-api-command-io-design: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/`、`specs/010-subscription-component-boundaries/`
 - 010-component-boundaries: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/service.md`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/`
-- 010-component-boundaries: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`
 
 
 <!-- MANUAL ADDITIONS START -->
