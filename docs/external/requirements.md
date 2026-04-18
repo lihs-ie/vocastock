@@ -40,6 +40,7 @@
 
 - コンポーネント境界、top-level responsibility、canonical component catalog の正本は `docs/external/adr.md` の「コンポーネント」節とする
 - サブスクリプション境界、authoritative subscription state、purchase state、entitlement、feature gate、quota gate の正本は `docs/external/adr.md` の「サブスクリプションコンポーネント」節と `specs/010-subscription-component-boundaries/` とする
+- API / command I/O の canonical request / response envelope、actor handoff input、error code、idempotency rule、deferred scope の正本は `docs/external/adr.md` の「コマンド I/O 契約」節と `specs/011-api-command-io-design/` とする
 - domain terminology の正本は `docs/internal/domain/*.md` とし、component 定義はそれらの意味論を変更しない
 - auth/session の責務境界と actor handoff の behavioral contract は `specs/008-auth-session-design/` を正本とする
 - command 受理、retry / regenerate、dispatch rule の behavioral contract は `specs/007-backend-command-design/` を正本とする
