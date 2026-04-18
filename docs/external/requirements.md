@@ -36,6 +36,14 @@
 - query model、永続化実装、外部 vendor adapter 実装は別 feature とする
 - 複数 current image の同時公開や meaning gallery は後続 feature で扱う
 
+## 設計正本メモ
+
+- コンポーネント境界、top-level responsibility、canonical component catalog の正本は `docs/external/adr.md` の「コンポーネント」節とする
+- domain terminology の正本は `docs/internal/domain/*.md` とし、component 定義はそれらの意味論を変更しない
+- auth/session の責務境界と actor handoff の behavioral contract は `specs/008-auth-session-design/` を正本とする
+- command 受理、retry / regenerate、dispatch rule の behavioral contract は `specs/007-backend-command-design/` を正本とする
+- query model schema / persistence と vendor-specific adapter 実装は後続 feature の正本へ委ねる
+
 ## 開発基盤メモ
 
 - 開発時の host baseline、CI runner 境界、version governance は `docs/development/*.md` と `tooling/versions/approved-components.md` を正とする
