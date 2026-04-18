@@ -1,6 +1,6 @@
 # vocastock Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-18
+Auto-generated from all feature plans. Last updated: 2026-04-19
 
 ## Active Technologies
 - Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/development/*.md` (003-architecture-design)
@@ -21,6 +21,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-18
 - Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/` (009-sense-modeling)
 - Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/` (010-component-boundaries)
 - Git-managed repository files、設計上で参照する抽象的な command state store、query read store、asset store、auth/session boundary outputs (010-component-boundaries)
+- Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/service.md`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/` (010-component-boundaries)
+- Git-managed repository files、設計上で参照する抽象的な subscription state store、purchase state store、entitlement store、usage metering store、store purchase artifact / notification ingest store (010-component-boundaries)
 
 - Markdown 1.x, YAML, JSON + Spec Kit workflow, existing domain documents, requirements memo, ADR memo (001-complete-domain-model)
 
@@ -63,9 +65,8 @@ an aggregate's own identifier field must be `identifier`, and related identifier
 fields must use concept names such as `bank`, `entry`, or `image`.
 
 ## Recent Changes
+- 010-component-boundaries: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/service.md`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/`
 - 010-component-boundaries: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`
-- 010-component-boundaries: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`
-- 009-sense-modeling: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`
 
 
 <!-- MANUAL ADDITIONS START -->

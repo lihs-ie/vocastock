@@ -183,3 +183,76 @@
 - query model schema / persistence implementation は後続 feature を正本とする
 - vendor-specific adapter implementation は後続実装で具体化する
 - multiple current image / meaning gallery は follow-on scope とし、現時点では単一 `Explanation.currentImage` 前提を維持する
+
+## サブスクリプションコンポーネント
+
+### Top-Level Responsibilities
+
+#### `Presentation`
+
+- `Subscription Paywall UI` は購入導線、upsell、purchase pending の状態表示を担う
+- `Subscription Status UI` は subscription state、entitlement、usage allowance の表示を担う
+- `Presentation` は authoritative subscription state を保持せず、同期済み mirror だけを参照する
+
+#### `Actor/Auth Boundary`
+
+- `Actor Session Handoff` は auth/session 境界の completed output を subscription 判定用 actor reference へ handoff する
+- auth lifecycle、token verification、session invalidation detail は 008 の正本を再定義しない
+
+#### `Command Intake`
+
+- `Purchase Result Intake` は storefront 完了後の purchase artifact 提出受付を担う
+- `Restore Purchase Intake` は restore 要求の受理を担う
+- `Subscription Status Refresh Intake` は manual refresh と cross-device 再同期の起点を担う
+- `Command Intake` は premium unlock の最終確定を持たない
+
+#### `Query Read`
+
+- `Subscription Status Reader` は authoritative subscription state の app-facing read を担う
+- `Entitlement Reader` は synced entitlement mirror を返す
+- `Usage Allowance Reader` は quota 状態を返す
+- `Subscription Feature Gate Reader` は feature gate result を返す
+
+#### `Async Subscription Reconciliation`
+
+- `Purchase Verification Workflow` は purchase artifact の照合と state 更新を担う
+- `Store Notification Reconciliation Workflow` は store notification による state / entitlement 再計算を担う
+- reconciliation workflow は UI 表示責務を持たない
+
+#### `External Adapters`
+
+- `Mobile Storefront Adapter` は App Store / Google Play などの購入接続を担う
+- `Purchase Verification Adapter` は receipt / token 検証接続を担う
+- `Store Notification Adapter` は store notification の受信と正規化を担う
+- `External Adapters` は entitlement policy や unlock 判定を最終決定してはならない
+
+### Inner Policy Components
+
+- `Entitlement Policy` は authoritative subscription state と plan から entitlement を導出する
+- `Subscription Feature Gate` は entitlement と feature key から allow / limited / deny を決定する
+- `Usage Metering / Quota Gate` は利用回数、無料枠、期間上限を評価する
+- entitlement の付与と quota 消費判定は同じ責務へ潰してはならない
+
+### Authority And State Rules
+
+- 課金状態の最終正本は backend authoritative subscription state が持つ
+- app core と UI は authoritative backend source から同期済みの entitlement mirror だけを参照する
+- authoritative subscription state は `active`、`grace`、`expired`、`pending-sync`、`revoked` を区別する
+- `grace` は通常の paid entitlement を維持する
+- `pending-sync` は状態表示してよいが premium unlock の根拠にしてはならない
+- purchase state は `initiated`、`submitted`、`verifying`、`verified`、`rejected` を区別し、subscription state と混同しない
+- `verified` 以前の purchase state は premium unlock の根拠にしてはならない
+
+### Reconciliation And Resilience Rules
+
+- purchase / restore / refresh は command intake を起点とし、verification / notification 反映は async reconciliation で扱う
+- `Mobile Storefront Adapter` の timeout では purchase state を `initiated` または `submitted` のまま保持し、retry 導線だけを返す
+- `Purchase Verification Adapter` の timeout では purchase state を `verifying` に留め、authoritative subscription state を新規 paid へ進めない
+- `Store Notification Adapter` の障害では既存 mirror を維持してよいが、新しい paid entitlement を付与してはならない
+
+### Deferred Scope
+
+- pricing catalog、tax、refund policy、store-specific dashboard setup は mobile storefront / business policy / operational policy を正本とする
+- vendor SDK detail は後続実装で具体化する
+- protected feature の command semantics は `specs/007-backend-command-design/` を正本とする
+- auth / account / session lifecycle は `specs/008-auth-session-design/` を正本とする
