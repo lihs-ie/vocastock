@@ -1,6 +1,6 @@
 # vocastock Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-17
+Auto-generated from all feature plans. Last updated: 2026-04-18
 
 ## Active Technologies
 - Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/development/*.md` (003-architecture-design)
@@ -19,6 +19,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-17
 - Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`、Flutter client auth UI、Firebase Authentication、Firebase ID token verification on backend (008-auth-session-design)
 - Git-managed repository files、設計上で参照する抽象的な auth account store、external identity link store、session store、actor / learner resolution store、Firebase Authentication user records (008-auth-session-design)
 - Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/` (009-sense-modeling)
+- Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/` (010-component-boundaries)
+- Git-managed repository files、設計上で参照する抽象的な command state store、query read store、asset store、auth/session boundary outputs (010-component-boundaries)
 
 - Markdown 1.x, YAML, JSON + Spec Kit workflow, existing domain documents, requirements memo, ADR memo (001-complete-domain-model)
 
@@ -61,9 +63,9 @@ an aggregate's own identifier field must be `identifier`, and related identifier
 fields must use concept names such as `bank`, `entry`, or `image`.
 
 ## Recent Changes
+- 010-component-boundaries: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`
+- 010-component-boundaries: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/learner.md`、`docs/internal/domain/vocabulary-expression.md`、`docs/internal/domain/learning-state.md`、`docs/internal/domain/explanation.md`、`docs/internal/domain/visual.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`、`specs/007-backend-command-design/`、`specs/008-auth-session-design/`
 - 009-sense-modeling: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/001-complete-domain-model/`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`
-- 008-auth-session-design: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`、Flutter client auth UI、Firebase Authentication、Firebase ID token verification on backend
-- 008-auth-session-design: Added Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/internal/domain/common.md`、`docs/internal/domain/service.md`、`specs/003-architecture-design/`、`specs/004-tech-stack-definition/`
 
 
 <!-- MANUAL ADDITIONS START -->
