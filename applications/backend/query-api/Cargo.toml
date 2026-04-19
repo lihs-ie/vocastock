@@ -13,11 +13,11 @@ shared-auth = { path = "../../../packages/rust/shared-auth" }
 shared-runtime = { path = "../../../packages/rust/shared-runtime" }
 
 [lib]
-path = "src/query_catalog_read.rs"
+path = "src/query_catalog_read/mod.rs"
 
 [[bin]]
 name = "query-api"
-path = "src/main.rs"
+path = "src/server/main.rs"
 
 [[test]]
 name = "unit"

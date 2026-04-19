@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use shared_auth::VerifiedActorContext;
 
-use crate::catalog_model::WorkflowState;
+use super::model::WorkflowState;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ProjectionSourceRecord {

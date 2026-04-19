@@ -74,7 +74,12 @@ fn route_request_covers_catalog_success_and_auth_failures() {
     assert_eq!(success.status, "200 OK");
     assert!(success.body.contains("\"collectionState\":\"populated\""));
 
-    let missing = route_request(&request("GET", "/vocabulary-catalog"), "/readyz", &verifier, &source);
+    let missing = route_request(
+        &request("GET", "/vocabulary-catalog"),
+        "/readyz",
+        &verifier,
+        &source,
+    );
     assert_eq!(missing.status, "401 Unauthorized");
     assert!(missing.body.contains("missing bearer token"));
 

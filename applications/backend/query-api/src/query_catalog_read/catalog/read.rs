@@ -1,10 +1,10 @@
 use shared_auth::{self, TokenVerificationPort, VerifiedActorContext};
 
-use crate::catalog_model::{
+use super::model::{
     CatalogReadResponse, CatalogVisibility, CollectionState, ProjectionFreshness,
     VocabularyCatalogItem,
 };
-use crate::catalog_source::{CatalogProjectionSource, ProjectionSourceRecord};
+use super::source::{CatalogProjectionSource, ProjectionSourceRecord};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CatalogReadError {

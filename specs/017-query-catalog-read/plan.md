@@ -83,13 +83,22 @@ applications/
     └── query-api/
         ├── Cargo.toml
         ├── src/
-            ├── query_catalog_read.rs
-            ├── catalog_model.rs
-            ├── catalog_read.rs
-            ├── catalog_source.rs
-            ├── service_contract.rs
-            ├── stub_token_verifier.rs
-            └── main.rs
+            ├── query_catalog_read/
+            │   ├── mod.rs
+            │   ├── catalog/
+            │   │   ├── mod.rs
+            │   │   ├── model.rs
+            │   │   ├── read.rs
+            │   │   └── source.rs
+            │   ├── http/
+            │   │   ├── mod.rs
+            │   │   └── endpoint.rs
+            │   └── runtime/
+            │       ├── mod.rs
+            │       ├── service_contract.rs
+            │       └── stub_token_verifier.rs
+            └── server/
+                └── main.rs
         └── tests/
             ├── feature.rs
             ├── feature/
@@ -97,7 +106,19 @@ applications/
             ├── support/
             │   ├── feature.rs
             │   └── unit.rs
-            └── unit.rs
+            ├── unit.rs
+            └── unit/
+                └── query_catalog_read/
+                    ├── mod.rs
+                    ├── catalog/
+                    │   ├── model.rs
+                    │   ├── read.rs
+                    │   └── source.rs
+                    ├── http/
+                    │   └── endpoint.rs
+                    └── runtime/
+                        ├── service_contract.rs
+                        └── stub_token_verifier.rs
 
 packages/
 └── rust/
@@ -129,12 +150,13 @@ specs/
 └── 017-query-catalog-read/
 ```
 
-**Structure Decision**: 実装は `applications/backend/query-api/` に閉じ、`src/query_catalog_read.rs`
-を責務名付き crate root とし、`catalog_model.rs`、`catalog_read.rs`、`catalog_source.rs`、
-`service_contract.rs`、`stub_token_verifier.rs` へ catalog read の定義を分割する。`src/main.rs` に
-`query-api` 内部 route である `GET /vocabulary-catalog` と auth/session 入口を置く。
-`tests/unit.rs` と `tests/feature.rs` を Rust test harness とし、`tests/unit/*`、
-`tests/feature/*`、`tests/support/*` を正本テスト配置とする。feature テストは Rust の
+**Structure Decision**: 実装は `applications/backend/query-api/` に閉じ、`src/query_catalog_read/`
+を責務名付き crate root ディレクトリとし、`catalog/`、`http/`、`runtime/` の下へ catalog read の
+定義を分割する。`src/server/main.rs` に `query-api` 内部 route である `GET /vocabulary-catalog` と
+auth/session 入口を置く。
+`tests/unit.rs` と `tests/feature.rs` を Rust test harness とし、`tests/unit/` は
+`src/query_catalog_read/` を mirror する配置、`tests/feature/*` と `tests/support/*` を
+正本テスト配置とする。feature テストは Rust の
 integration test から Docker compose と Firebase emulator を起動・接続して検証する。`shared-auth` は
 `VerifiedActorContext` を含む既存 contract の再利用に留める。`shared-runtime` の readiness /
 dependency probe はそのまま維持する。runtime / Docker の正本は 016 を引き継ぐため、必要が
