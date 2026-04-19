@@ -293,3 +293,31 @@
 - 007 は command semantics、008 は actor handoff、009 は command intake placement、010 は subscription / entitlement visibility の正本とする
 - command response は `pending-sync` を状態表示してよいが、premium unlock 確定情報として返してはならない
 - HTTP / GraphQL / RPC schema、workflow payload schema、query response schema、provider 固有 error payload、persistence schema は deferred scope とする
+
+## 永続化 / Read Model と非同期 Workflow
+
+### Authoritative Persistence Allocation
+
+- write-side の正本は `Learner`、`VocabularyExpression`、`LearningState`、`Explanation`、`VisualImage`、authoritative subscription state、purchase state、entitlement snapshot、usage allowance、idempotency record、workflow attempt、dead-letter review に分割する
+- `VocabularyExpression.currentExplanation` と `Explanation.currentImage` だけが current pointer を持ち、projection は独自に current 判定してはならない
+- ownership、一意制約、主要 index、ordering rule の正本は `specs/012-persistence-workflow-design/` の allocation / data model / contracts とする
+
+### Read Projection Rules
+
+- app-facing projection は `VocabularyCatalogProjection`、`ExplanationDetailProjection`、`ImageDetailProjection`、`SubscriptionStatusProjection`、`UsageAllowanceProjection` に分ける
+- completed payload は authoritative current pointer または同期済み snapshot が確定した後にのみ公開する
+- `pending`、`running`、`retry-scheduled`、`timed-out`、`failed-final`、`dead-lettered` は status-only として扱い、未完了生成物や未確認 premium unlock を completed projection として返してはならない
+- projection refresh は eventual でよいが、authoritative write より先に completed と見せてはならない
+
+### Workflow Runtime Rules
+
+- explanation generation、image generation、purchase verification、restore、notification reconciliation は runtime state machine を持ち、少なくとも `queued`、`running`、`retry-scheduled`、`timed-out`、`succeeded`、`failed-final`、`dead-lettered` を区別する
+- timeout は成功確定ではなく、既存 completed result または mirror を fallback として維持できても、新しい completed result を合成してはならない
+- partial success は completed とみなしてはならない。特に image asset 保存失敗や verification 未完了は status-only のまま扱う
+- retry exhaustion 後は `DeadLetterReviewUnit` を作り、operator review 用終端として扱う
+- purchase state と authoritative subscription state は別 state model とし、`verified` 以前の purchase state を premium unlock の根拠にしてはならない
+
+### Deferred Scope
+
+- 物理 DB / queue / cache 製品、deployment topology、wire schema、provider payload detail、vendor SDK detail、operator tooling UI はこの ADR 節では固定しない
+- これらの詳細実装は後続 feature または実装設計へ委ね、logical allocation / projection / runtime rule の正本は `specs/012-persistence-workflow-design/` とする
