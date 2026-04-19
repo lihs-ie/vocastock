@@ -2,6 +2,33 @@
 
 Auto-generated from all feature plans. Last updated: 2026-04-19
 
+# Development Style
+
+TDD で開発する（探索 → Red → Green → Refactoring）。
+KPI やカバレッジ目標が与えられたら、達成するまで試行する。
+不明瞭な指示は質問して明確にする。
+
+## Test Rules
+
+- インラインテストではなく `tests` ディレクトリ配下に書く
+- ユニットテストは `tests/unit/*`、統合テストは `tests/feature/*`、テストヘルパーは `tests/support/*` に配置する
+- ユニットテストは実コードのファイルごとに対応するファイルを用意する。例: `src/sample1.rs` に対して `tests/unit/sample1.rs`
+- feature テストは Rust のコードで、Firebase エミュレータと Docker コンテナを使ったテストとして作成する
+- テストカバレッジは unit / feature 共通で 90% 以上を絶対条件とする
+
+## Rust File Rules
+
+- アプリケーション実装コードでは抽象的な `lib.rs` というファイル名を禁止する
+- Rust の crate root は Cargo の `[lib].path` で責務が分かる名前にする
+- 既存の `lib.rs` に集まった定義は、責務ごとに分割して意味のあるファイル名へ移す
+
+# Code Specification
+
+- 関心の分離を保つ
+- 状態とロジックを分離する
+- 可読性と保守性を重視する
+- 静的検査可能なルールはプロンプトではなく、その環境の linterで記述する
+
 ## Active Technologies
 - Markdown 1.x, YAML/JSON reference documents + 憲章、`docs/internal/domain/*.md`、`docs/external/requirements.md`、`docs/external/adr.md`、`docs/development/*.md` (003-architecture-design)
 - Git-managed repository files、設計上で参照する抽象的な永続化ストアとアセットストア (003-architecture-design)
@@ -37,6 +64,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-19
 - Dockerfile syntax 1.x、Docker Compose specification、Bash、Rust 2021 workspace manifests、Markdown 1.x documentation artifacts + Docker-compatible runtime、Docker Compose、Cargo workspace (`/Users/lihs/workspace/vocastock/Cargo.toml`)、`applications/backend/*`、`packages/rust/shared-auth`、`docker/firebase/`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/004-tech-stack-definition/`、`specs/011-api-command-io-design/`、`specs/012-persistence-workflow-design/`、`specs/015-command-query-topology/` (016-application-docker-env)
 - Git-managed repository files、container image layers、local compose network、application env files、existing repository-wide local dependency stack (016-application-docker-env)
 - Dockerfile syntax 1.x、Docker Compose specification、Bash、Rust 2021 workspace manifests、Markdown 1.x documentation artifacts + Docker-compatible runtime、Docker Compose、Cargo workspace (`/Users/lihs/workspace/vocastock/Cargo.toml`)、`/Users/lihs/workspace/vocastock/applications/backend/*`、`/Users/lihs/workspace/vocastock/packages/rust/shared-auth`、`/Users/lihs/workspace/vocastock/docker/firebase/`、`/Users/lihs/workspace/vocastock/docs/external/requirements.md`、`/Users/lihs/workspace/vocastock/docs/external/adr.md`、`/Users/lihs/workspace/vocastock/specs/004-tech-stack-definition/`、`/Users/lihs/workspace/vocastock/specs/011-api-command-io-design/`、`/Users/lihs/workspace/vocastock/specs/012-persistence-workflow-design/`、`/Users/lihs/workspace/vocastock/specs/015-command-query-topology/` (016-application-docker-env)
+- Rust 2021 workspace、Markdown 1.x、Bash + Cargo workspace root (`/Users/lihs/workspace/vocastock/Cargo.toml`)、`/Users/lihs/workspace/vocastock/applications/backend/query-api/`、`/Users/lihs/workspace/vocastock/packages/rust/shared-auth/`、`/Users/lihs/workspace/vocastock/packages/rust/shared-runtime/`、Rust standard library HTTP skeleton、JSON serialization helper crate、`docs/external/adr.md`、`docs/external/requirements.md`、`specs/008-auth-session-design/`、`specs/012-persistence-workflow-design/`、`specs/013-flutter-ui-state-design/`、`specs/015-command-query-topology/`、`specs/016-application-docker-env/` (017-query-catalog-read)
+- in-memory / stub read projection source for initial slice、Git-managed repository files、existing readiness / runtime env configuration (017-query-catalog-read)
 
 - Markdown 1.x, YAML, JSON + Spec Kit workflow, existing domain documents, requirements memo, ADR memo (001-complete-domain-model)
 
@@ -79,9 +108,9 @@ an aggregate's own identifier field must be `identifier`, and related identifier
 fields must use concept names such as `bank`, `entry`, or `image`.
 
 ## Recent Changes
+- 017-query-catalog-read: Added Rust 2021 workspace、Markdown 1.x、Bash + Cargo workspace root (`/Users/lihs/workspace/vocastock/Cargo.toml`)、`/Users/lihs/workspace/vocastock/applications/backend/query-api/`、`/Users/lihs/workspace/vocastock/packages/rust/shared-auth/`、`/Users/lihs/workspace/vocastock/packages/rust/shared-runtime/`、Rust standard library HTTP skeleton、JSON serialization helper crate、`docs/external/adr.md`、`docs/external/requirements.md`、`specs/008-auth-session-design/`、`specs/012-persistence-workflow-design/`、`specs/013-flutter-ui-state-design/`、`specs/015-command-query-topology/`、`specs/016-application-docker-env/`
 - 016-application-docker-env: Added Dockerfile syntax 1.x、Docker Compose specification、Bash、Rust 2021 workspace manifests、Markdown 1.x documentation artifacts + Docker-compatible runtime、Docker Compose、Cargo workspace (`/Users/lihs/workspace/vocastock/Cargo.toml`)、`/Users/lihs/workspace/vocastock/applications/backend/*`、`/Users/lihs/workspace/vocastock/packages/rust/shared-auth`、`/Users/lihs/workspace/vocastock/docker/firebase/`、`/Users/lihs/workspace/vocastock/docs/external/requirements.md`、`/Users/lihs/workspace/vocastock/docs/external/adr.md`、`/Users/lihs/workspace/vocastock/specs/004-tech-stack-definition/`、`/Users/lihs/workspace/vocastock/specs/011-api-command-io-design/`、`/Users/lihs/workspace/vocastock/specs/012-persistence-workflow-design/`、`/Users/lihs/workspace/vocastock/specs/015-command-query-topology/`
 - 016-application-docker-env: Added Dockerfile syntax 1.x、Docker Compose specification、Bash、Rust 2021 workspace manifests、Markdown 1.x documentation artifacts + Docker-compatible runtime、Docker Compose、Cargo workspace (`/Users/lihs/workspace/vocastock/Cargo.toml`)、`applications/backend/*`、`packages/rust/shared-auth`、`docker/firebase/`、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/004-tech-stack-definition/`、`specs/011-api-command-io-design/`、`specs/012-persistence-workflow-design/`、`specs/015-command-query-topology/`
-- 015-command-query-topology: Added Markdown 1.x, YAML, JSON documentation artifacts + 憲章、`docs/external/requirements.md`、`docs/external/adr.md`、`specs/004-tech-stack-definition/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/`、`specs/010-subscription-component-boundaries/`、`specs/011-api-command-io-design/`、`specs/012-persistence-workflow-design/`、`specs/013-flutter-ui-state-design/`、`specs/014-billing-entitlement-policy/`
 
 
 <!-- MANUAL ADDITIONS START -->
