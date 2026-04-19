@@ -321,3 +321,33 @@
 
 - 物理 DB / queue / cache 製品、deployment topology、wire schema、provider payload detail、vendor SDK detail、operator tooling UI はこの ADR 節では固定しない
 - これらの詳細実装は後続 feature または実装設計へ委ね、logical allocation / projection / runtime rule の正本は `specs/012-persistence-workflow-design/` とする
+
+## モバイル画面遷移 / UI 状態
+
+### Route Topology
+
+- mobile client の top-level route group は `Auth`、`AppShell`、`Paywall`、`Restricted` に固定する
+- `Auth`、`Paywall`、`Restricted` は full-screen route group とし、通常利用は `AppShell` 配下で扱う
+- `AppShell` へは login 完了かつ actor handoff completed 後にのみ入れる
+- tab 構成は `AppShell` 内部の deferred implementation choice とし、この ADR 節では固定しない
+
+### Screen Roles And Visibility
+
+- `VocabularyExpressionDetail` は generation status 集約画面とし、未完了 explanation / image payload を表示してはならない
+- completed explanation 本文は `ExplanationDetail`、completed current image は `ImageDetail` でのみ表示する
+- `SubscriptionStatus` は通常利用側の canonical 状態画面とし、subscription state、entitlement、usage allowance、gate result、restore progress state を表示する
+- `pending-sync` は状態表示してよいが premium unlock の根拠にしてはならない
+- stale read 中は loading または status-only に倒してよいが、authoritative write より先に completed と見せてはならない
+
+### Subscription Access And Recovery
+
+- `grace` は paid entitlement を維持し、通常利用を継続できる
+- `expired` は completed result 閲覧を維持するが、premium 操作や生成系操作は `Paywall` へ戻す
+- `revoked` は hard stop とし、通常利用 shell ではなく `Restricted` へ送る
+- paywall と restricted access は recovery 導線を持てるが、restore と状態説明の canonical surface は `SubscriptionStatus` に集約する
+
+### Source Of Truth And Deferred Scope
+
+- 画面責務、route group、reader / gate / command binding、state variant の正本は `specs/013-flutter-ui-state-design/` とする
+- auth/session の behavioral contract は `specs/008-auth-session-design/`、subscription authority は `specs/010-subscription-component-boundaries/`、command acceptance と message は `specs/011-api-command-io-design/`、completed visibility と stale read は `specs/012-persistence-workflow-design/` を正本とする
+- router package 選定、widget tree、state management library、animation curve、visual token、tablet / foldable 最適化、push notification entry point はこの ADR 節では固定しない
