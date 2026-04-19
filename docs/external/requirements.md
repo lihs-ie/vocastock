@@ -45,6 +45,7 @@
 - authoritative persistence allocation、read projection assembly、workflow runtime state machine の正本は `docs/external/adr.md` の「永続化 / Read Model と非同期 Workflow」節と `specs/012-persistence-workflow-design/` とする
 - Flutter 画面遷移、`AppShell` / `Auth` / `Paywall` / `Restricted` の route group、screen-to-source-of-truth mapping、subscription recovery 導線の正本は `docs/external/adr.md` の「モバイル画面遷移 / UI 状態」節と `specs/013-flutter-ui-state-design/` とする
 - 課金 product catalog、entitlement bundle、quota profile、feature gate matrix、subscription state effect の正本は `docs/external/adr.md` の「課金 Product / Entitlement Policy」節と `specs/014-billing-entitlement-policy/` とする
+- `graphql-gateway`、`command-api`、`query-api`、worker 配置、durable state handoff、source-of-truth update map の正本は `docs/external/adr.md` の「デプロイメントトポロジ」節と `specs/015-command-query-topology/` とする
 - `Learner`、`VocabularyExpression`、`LearningState`、`Explanation`、`VisualImage`、subscription authority、purchase state、entitlement snapshot、usage allowance、idempotency record、workflow attempt、dead-letter review の保存責務は 012 の allocation と ordering rule に従う
 - app-facing read model は completed result と status-only 情報を分離し、projection refresh が遅延しても authoritative write より先に completed と見せない
 - explanation / image / purchase verification / restore / notification reconciliation の runtime state、retry、timeout、fallback、dead-letter、partial success 非許容は 012 の state machine を正本とする
@@ -59,6 +60,7 @@
 - `free`、`standard-monthly`、`pro-monthly` の catalog、`free-basic` / `premium-generation` bundle、`free-monthly` safe fallback、`grace` / `pending-sync` / `expired` / `revoked` の state effect は 014 の policy package に従う
 - purchase / restore の受付状態は `initiated`、`submitted`、`verifying`、`verified`、`rejected` の canonical purchase state model に従い、`verified` になるまで premium unlock の根拠にしない
 - pricing catalog、tax、refund policy、vendor SDK detail は subscription component boundary の対象外とし、mobile storefront または後続実装を正本とする
+- unified endpoint を保ったまま内部 deployment を command/query 分離し、projection catch-up までは status-only を返す visible guarantee は 015 の topology package に従う
 
 ## 開発基盤メモ
 

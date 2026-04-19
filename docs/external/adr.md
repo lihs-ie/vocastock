@@ -382,3 +382,33 @@
 - pricing amount、currency、tax、refund policy、coupon、intro offer、family plan、store dashboard setup は business / operational policy を正本とする
 - vendor SDK detail と runtime workflow ordering は 010 / 012 の boundary と state machine を正本とする
 - product catalog、entitlement bundle、quota profile、feature gate matrix、subscription state effect の詳細 contract は `specs/014-billing-entitlement-policy/` を正本とする
+
+## デプロイメントトポロジ
+
+### Canonical Deployment Units
+
+- client-facing endpoint は `graphql-gateway` が提供する unified GraphQL endpoint 1 つに固定する
+- MVP から `Command Intake` は `command-api`、`Query Read` は `query-api` という別 Cloud Run deployment unit に分離する
+- explanation / image / subscription reconciliation はそれぞれ `explanation-worker`、`image-worker`、`billing-worker` の独立 worker に配置する
+- managed service として `Firebase Authentication`、`Cloud Firestore`、`Pub/Sub`、`Google Drive` を利用してよい
+
+### Allocation Rules
+
+- `graphql-gateway` は routing と request correlation を担うが、domain write、projection read ownership、workflow 実行は担ってはならない
+- `command-api` は command acceptance、idempotency、authoritative write、workflow dispatch 起点を担う
+- `query-api` は completed result、status-only、subscription read、entitlement mirror、usage allowance、feature gate result を担う
+- `command-api` と `query-api` はそれぞれ backend で token verification と actor handoff を行い、shared behavioral contract を再利用する
+- `Entitlement Policy`、`Subscription Feature Gate`、`Usage Metering / Quota Gate` は独立 deployment unit とせず、backend service / worker の内部 policy として扱う
+
+### Visibility And Handoff Rules
+
+- `command-api` は completed result payload を返さず、`accepted` と `status handle` を返す
+- `command-api` から `query-api` への情報伝播は direct call ではなく durable state handoff を前提とする
+- `query-api` は projection 反映前は status-only を返してよいが、provisional completed payload を返してはならない
+- worker は user-facing completed result を直接返してはならず、常に `query-api` 経由の read へ委ねる
+
+### Source Of Truth And Deferred Scope
+
+- product-wide の topology 正本はこの ADR 節と `docs/external/requirements.md` に置き、詳細な update map は `specs/015-command-query-topology/` を参照する
+- 015 の再同期対象は少なくとも `specs/004-tech-stack-definition/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/`、`specs/010-subscription-component-boundaries/`、`specs/011-api-command-io-design/`、`specs/012-persistence-workflow-design/`、`specs/013-flutter-ui-state-design/`、`specs/014-billing-entitlement-policy/` とする
+- GraphQL schema detail、gateway 実装方式、service 内 module layout、scaling / budget / alert policy はこの ADR 節では固定しない
