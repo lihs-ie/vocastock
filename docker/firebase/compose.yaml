@@ -1,3 +1,5 @@
+name: vocastock-firebase
+
 services:
   firebase-emulators:
     build:

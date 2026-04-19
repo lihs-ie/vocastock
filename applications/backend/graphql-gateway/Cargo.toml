@@ -1,0 +1,17 @@
+[package]
+name = "graphql-gateway"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "vocastock unified GraphQL gateway skeleton with readiness endpoint"
+default-run = "graphql-gateway"
+
+[dependencies]
+shared-runtime = { path = "../../../packages/rust/shared-runtime" }
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "graphql-gateway"
+path = "src/main.rs"

@@ -27,6 +27,13 @@ VOCAS_FIREBASE_EMULATOR_SERVICES="auth,firestore,storage,hosting,ui"
 VOCAS_LOCAL_SETUP_BUDGET_SECONDS="3600"
 VOCAS_EMULATOR_READY_BUDGET_SECONDS="300"
 VOCAS_CI_RUNTIME_BUDGET_SECONDS="1800"
+VOCAS_APPLICATION_READY_BUDGET_SECONDS="120"
+VOCAS_APPLICATION_WORKER_STABLE_RUN_SECONDS="10"
+VOCAS_APPLICATION_WORKER_POLL_INTERVAL_SECONDS="30"
+VOCAS_DEFAULT_GRAPHQL_GATEWAY_PORT="18180"
+VOCAS_DEFAULT_COMMAND_API_PORT="18181"
+VOCAS_DEFAULT_QUERY_API_PORT="18182"
+VOCAS_FIREBASE_DEPENDENCY_PATH="/dependencies/firebase"
 
 vocas_repo_root() {
   local script_dir
@@ -138,6 +145,180 @@ vocas_load_local_env() {
   set -a
   source "$env_file"
   set +a
+}
+
+vocas_load_env_file() {
+  local env_file="$1"
+  set -a
+  source "$env_file"
+  set +a
+}
+
+vocas_application_compose_file() {
+  printf "%s/docker/applications/compose.yaml\n" "$(vocas_repo_root)"
+}
+
+vocas_application_env_template() {
+  printf "%s/docker/applications/env/.env.example\n" "$(vocas_repo_root)"
+}
+
+vocas_application_env_file() {
+  printf "%s/docker/applications/env/.env\n" "$(vocas_repo_root)"
+}
+
+vocas_application_service_names() {
+  printf "%s\n" \
+    "graphql-gateway" \
+    "command-api" \
+    "query-api" \
+    "explanation-worker" \
+    "image-worker" \
+    "billing-worker"
+}
+
+vocas_application_api_services() {
+  printf "%s\n" \
+    "graphql-gateway" \
+    "command-api" \
+    "query-api"
+}
+
+vocas_application_worker_services() {
+  printf "%s\n" \
+    "explanation-worker" \
+    "image-worker" \
+    "billing-worker"
+}
+
+vocas_prepare_application_env_file() {
+  local template env_file
+  template="$(vocas_application_env_template)"
+  env_file="$(vocas_application_env_file)"
+
+  if [[ ! -f "$env_file" ]]; then
+    cp "$template" "$env_file"
+    vocas_log "created docker/applications/env/.env from example" >&2
+  fi
+
+  printf "%s\n" "$env_file"
+}
+
+vocas_load_application_env() {
+  local env_file
+  env_file="$(vocas_prepare_application_env_file)"
+  vocas_load_env_file "$env_file"
+}
+
+vocas_have_listening_port() {
+  local port="$1"
+
+  if ! vocas_have_command lsof; then
+    return 1
+  fi
+
+  lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1
+}
+
+vocas_next_available_port() {
+  local port="$1"
+
+  while vocas_have_listening_port "$port"; do
+    port="$((port + 1))"
+  done
+
+  printf "%s\n" "$port"
+}
+
+vocas_application_smoke_env_file() {
+  printf "%s/.artifacts/ci/logs/application-container-smoke.env\n" "$(vocas_repo_root)"
+}
+
+vocas_prepare_application_smoke_env_file() {
+  local base_env_file="$1"
+  local smoke_env_file gateway_port command_port query_port
+  local firestore_override storage_override auth_override pubsub_override
+
+  firestore_override="${FIRESTORE_EMULATOR_HOST:-}"
+  storage_override="${STORAGE_EMULATOR_HOST:-}"
+  auth_override="${FIREBASE_AUTH_EMULATOR_HOST:-}"
+  pubsub_override="${PUBSUB_EMULATOR_HOST:-}"
+
+  smoke_env_file="$(vocas_application_smoke_env_file)"
+  cp "$base_env_file" "$smoke_env_file"
+
+  vocas_load_env_file "$base_env_file"
+
+  gateway_port="$(vocas_next_available_port "${GRAPHQL_GATEWAY_PORT:-$VOCAS_DEFAULT_GRAPHQL_GATEWAY_PORT}")"
+  command_port="$(vocas_next_available_port "${COMMAND_API_PORT:-$VOCAS_DEFAULT_COMMAND_API_PORT}")"
+  while [[ "$command_port" == "$gateway_port" ]]; do
+    command_port="$(vocas_next_available_port "$((command_port + 1))")"
+  done
+
+  query_port="$(vocas_next_available_port "${QUERY_API_PORT:-$VOCAS_DEFAULT_QUERY_API_PORT}")"
+  while [[ "$query_port" == "$gateway_port" || "$query_port" == "$command_port" ]]; do
+    query_port="$(vocas_next_available_port "$((query_port + 1))")"
+  done
+
+  cat >> "$smoke_env_file" <<EOF
+GRAPHQL_GATEWAY_PORT=$gateway_port
+COMMAND_API_PORT=$command_port
+QUERY_API_PORT=$query_port
+VOCAS_COMMAND_UPSTREAM_BASE_URL=http://command-api:$command_port
+VOCAS_QUERY_UPSTREAM_BASE_URL=http://query-api:$query_port
+EOF
+
+  if [[ -n "$firestore_override" ]]; then
+    printf "FIRESTORE_EMULATOR_HOST=%s\n" "$firestore_override" >> "$smoke_env_file"
+  fi
+  if [[ -n "$storage_override" ]]; then
+    printf "STORAGE_EMULATOR_HOST=%s\n" "$storage_override" >> "$smoke_env_file"
+  fi
+  if [[ -n "$auth_override" ]]; then
+    printf "FIREBASE_AUTH_EMULATOR_HOST=%s\n" "$auth_override" >> "$smoke_env_file"
+  fi
+  if [[ -n "$pubsub_override" ]]; then
+    printf "PUBSUB_EMULATOR_HOST=%s\n" "$pubsub_override" >> "$smoke_env_file"
+  fi
+
+  if [[ "${GRAPHQL_GATEWAY_PORT:-$VOCAS_DEFAULT_GRAPHQL_GATEWAY_PORT}" != "$gateway_port" || "${COMMAND_API_PORT:-$VOCAS_DEFAULT_COMMAND_API_PORT}" != "$command_port" || "${QUERY_API_PORT:-$VOCAS_DEFAULT_QUERY_API_PORT}" != "$query_port" ]]; then
+    vocas_warn "application smoke adjusted host ports to avoid local conflicts: gateway=${gateway_port} command=${command_port} query=${query_port}"
+  fi
+
+  printf "%s\n" "$smoke_env_file"
+}
+
+vocas_application_port_for() {
+  local service_name="$1"
+
+  case "$service_name" in
+    graphql-gateway)
+      printf "%s\n" "${GRAPHQL_GATEWAY_PORT:-$VOCAS_DEFAULT_GRAPHQL_GATEWAY_PORT}"
+      ;;
+    command-api)
+      printf "%s\n" "${COMMAND_API_PORT:-$VOCAS_DEFAULT_COMMAND_API_PORT}"
+      ;;
+    query-api)
+      printf "%s\n" "${QUERY_API_PORT:-$VOCAS_DEFAULT_QUERY_API_PORT}"
+      ;;
+    *)
+      vocas_die "unknown API service: $service_name"
+      ;;
+  esac
+}
+
+vocas_application_readiness_url() {
+  local service_name="$1"
+  local readiness_path="${VOCAS_READINESS_PATH:-/readyz}"
+  printf "http://127.0.0.1:%s%s\n" \
+    "$(vocas_application_port_for "$service_name")" \
+    "$readiness_path"
+}
+
+vocas_application_firebase_dependency_url() {
+  local service_name="$1"
+  printf "http://127.0.0.1:%s%s\n" \
+    "$(vocas_application_port_for "$service_name")" \
+    "${VOCAS_FIREBASE_DEPENDENCY_PATH}"
 }
 
 vocas_pubsub_fallback_fixture() {
