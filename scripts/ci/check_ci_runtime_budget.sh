@@ -19,6 +19,7 @@ total_seconds=0
 for duration_file in "${duration_files[@]}"; do
   seconds="$(tr -d ' \n' < "$duration_file")"
   [[ "$seconds" =~ ^[0-9]+$ ]] || vocas_die "invalid duration value in $duration_file"
+  vocas_log "duration ${duration_file}: ${seconds}s"
   total_seconds=$((total_seconds + seconds))
 done
 

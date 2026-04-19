@@ -10,6 +10,10 @@
 - セットアップ手順: [docs/development/flutter-environment.md](/Users/lihs/workspace/vocastock/docs/development/flutter-environment.md)
 - CI / ruleset / runner 境界: [docs/development/ci-policy.md](/Users/lihs/workspace/vocastock/docs/development/ci-policy.md)
 - version governance: [tooling/versions/approved-components.md](/Users/lihs/workspace/vocastock/tooling/versions/approved-components.md), [docs/development/security-version-review.md](/Users/lihs/workspace/vocastock/docs/development/security-version-review.md)
+- backend 実装 skeleton: `applications/backend/graphql-gateway/`, `applications/backend/command-api/`, `applications/backend/query-api/`, `packages/rust/shared-auth/`
+- backend container contract: [docs/development/backend-container-environment.md](/Users/lihs/workspace/vocastock/docs/development/backend-container-environment.md)
+- application container validation: `bash scripts/bootstrap/validate_application_containers.sh`
+- application container smoke: `bash scripts/ci/run_application_container_smoke.sh`
 - host baseline 検証: `bash scripts/bootstrap/verify_macos_toolchain.sh`
 - local setup 検証: `bash scripts/bootstrap/validate_local_setup.sh`
 - ドメイン境界を変更する実装では、対象ドメイン文書の更新を必須とする
@@ -17,3 +21,20 @@
 - 識別子型は `XxxIdentifier` と命名し、`id` / `ID` / `xxxId` は使用しない
 - 集約自身の識別子フィールド名は `identifier`、他概念の識別子フィールド名は
   `xxxIdentifier` ではなく `xxx` を使う
+
+## Backend Containers
+
+- Docker 関連ファイルは `docker/applications/<application>/` を正本とする
+- API の既定 host port は `18180-18182` とし、Firebase emulator の `18080` 競合を避ける
+- local / CI は同じ Dockerfile / target / entry contract を使い、生成済み image artifact の共有は必須にしない
+- API service の canonical success signal は `HTTP readiness endpoint`
+- worker の canonical success signal は `long-running consumer` の stable-run
+- `run_application_container_smoke.sh` は API host port が埋まっている場合、一時 env を生成して空きポートへ自動退避する
+- `run_local_stack_smoke.sh --with-application-containers` は Firebase emulator を起動した上で、API の `/dependencies/firebase` と worker の起動前疎通確認で接続検証する
+- application container scope は backend / worker のみで、`docker/firebase/` は repository-wide shared dependency stack として別管理する
+
+主要コマンド:
+
+- contract validate: `bash scripts/bootstrap/validate_application_containers.sh`
+- application smoke: `bash scripts/ci/run_application_container_smoke.sh`
+- firebase + application smoke: `bash scripts/bootstrap/validate_local_stack.sh --with-application-containers`

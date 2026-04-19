@@ -65,3 +65,5 @@
 ## 開発基盤メモ
 
 - 開発時の host baseline、CI runner 境界、version governance は `docs/development/*.md` と `tooling/versions/approved-components.md` を正とする
+- backend / worker application container contract の正本は `docs/external/adr.md` の「アプリケーションコンテナ環境」節と `specs/016-application-docker-env/` とする
+- `docker/applications/<application>/` 配下の Docker assets、API readiness endpoint、worker stable-run、shared dependency stack 境界、local / CI 共通 Dockerfile contract は 016 の policy package に従う
