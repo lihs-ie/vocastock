@@ -19,6 +19,7 @@
 
 - `Sense` が `Explanation` 所有の内部エンティティとして定義されているか確認する
 - `Learner`、`VocabularyExpression`、`LearningState` の ownership boundary が `Sense` 導入で変わっていないか確認する
+- `LearningStateIdentifier` が `learner + vocabularyExpression` を表す複合識別子として整理されているか確認する
 - `Frequency`、`Sophistication`、`Proficiency`、登録状態、生成状態が `Sense` と混同されていないか確認する
 - 例文とコロケーションが explanation 全体ではなく対応する `Sense` に結びついているか確認する
 - `VisualImage.sense` が同一 `Explanation` 配下の意味だけを指せるか確認する

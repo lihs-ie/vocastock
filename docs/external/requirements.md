@@ -24,6 +24,7 @@
 - `Learner` は自分が所有する `VocabularyExpression` を管理できる
 - 学習者ごとの定着度は `LearningState.proficiency` として管理する
   - `Frequency` や `Sophistication` とは異なる概念として扱う
+  - `LearningStateIdentifier` は `learner + vocabularyExpression` を表す複合識別子とし、`LearningState` 本体へ同じ参照を重複保持しない
 - `RegistrationStatus`、`ExplanationGenerationStatus`、`ImageGenerationStatus` は別概念として管理する
 - `Sense` は `Explanation` が所有する意味単位として管理し、`Meaning.values` を正本概念として再利用しない
 - `VisualImage` は独立集約のまま維持しつつ、必要に応じてどの `Sense` を描写する画像かを示せる

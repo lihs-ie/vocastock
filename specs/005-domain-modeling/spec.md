@@ -49,17 +49,21 @@
 
 ### User Story 3 - 差分導入の境界を周辺文書へ反映する (Priority: P3)
 
-レビュー担当者として、`Sense` 導入が既存の 005 全体設計を壊さず、どこまでが今回の対象で、
-どこからが後続 scope かを周辺文書から一貫して確認したい。
+レビュー担当者として、`Sense` 導入と `LearningStateIdentifier` の複合識別子化が既存の 005
+全体設計を壊さず、どこまでが今回の対象で、どこからが後続 scope かを周辺文書から一貫して
+確認したい。
 
 **Why this priority**: `Sense` 導入差分と既存 005 全体スコープの境界が曖昧だと、plan と tasks が spec とずれ続けるため。
 
-**Independent Test**: 要件文書、ADR、共通 glossary を横断して、`Sense` 導入、meaning-to-image mapping、後続 scope が矛盾なく説明できれば成立する。
+**Independent Test**: 要件文書、ADR、共通 glossary、`learning-state.md` を横断して、`Sense`
+導入、`LearningStateIdentifier` の複合識別子化、meaning-to-image mapping、後続 scope が
+矛盾なく説明できれば成立する。
 
 **Acceptance Scenarios**:
 
 1. **Given** 要件文書とドメイン文書を比較する, **When** `Sense`、`Meaning`、画像対応を確認する, **Then** 用語差分と移行方針が矛盾なく説明できる
 2. **Given** ADR とドメイン文書を比較する, **When** 単一 `currentImage` の維持と複数 current image の後続 scope を確認する, **Then** 今回の対象範囲と後続範囲が一貫している
+3. **Given** `learning-state.md` と識別契約を比較する, **When** `LearningStateIdentifier` を確認する, **Then** `learner + vocabularyExpression` を表す複合識別子として定義され、`LearningState` 本体に同じ参照が重複保持されていない
 
 ---
 
@@ -71,14 +75,15 @@
 - `Meaning.values` の旧表現が残り、`Sense` と explanation-wide meaning の二重管理になる場合
 - `Sense` を導入したことにより、`Frequency`、`Sophistication`、`Proficiency` が意味単位へ吸収されたように誤読される場合
 - `currentImage` を複数 current image と誤解し、完了済み結果のみ表示する rule が崩れる場合
+- `LearningStateIdentifier` を複合識別子へ変更した後も、`LearningState` 本体に `learner` と `vocabularyExpression` を重複保持したままにしてしまう場合
 
 ## Domain & Async Impact *(mandatory when applicable)*
 
-- **Domain Models Affected**: `docs/internal/domain/common.md`, `docs/internal/domain/explanation.md`, `docs/internal/domain/service.md`, `docs/internal/domain/visual.md`
-- **Invariants / Terminology**: `Sense` は `Explanation` 所有の意味単位であり、頻出度、知的度、習熟度、登録状態、解説生成状態、画像生成状態とは別概念として保つ。`ExampleSentence` と `Collocation` は `Sense` に属し、`Frequency` と `Sophistication` は引き続き `Explanation` に属する。`currentImage` は単一参照のままとする
+- **Domain Models Affected**: `docs/internal/domain/common.md`, `docs/internal/domain/learning-state.md`, `docs/internal/domain/explanation.md`, `docs/internal/domain/service.md`, `docs/internal/domain/visual.md`
+- **Invariants / Terminology**: `Sense` は `Explanation` 所有の意味単位であり、頻出度、知的度、習熟度、登録状態、解説生成状態、画像生成状態とは別概念として保つ。`ExampleSentence` と `Collocation` は `Sense` に属し、`Frequency` と `Sophistication` は引き続き `Explanation` に属する。`currentImage` は単一参照のままとする。`LearningStateIdentifier` は `learner + vocabularyExpression` を表す複合識別子とし、`LearningState` 本体へ同じ参照を重複保持しない
 - **Async Lifecycle**: 解説生成と画像生成は少なくとも `pending`、`running`、`succeeded`、`failed` を持ち、再試行と再生成は冪等性を壊さない前提で定義する。`Sense` を導入しても、画像生成は新しい成功時だけ `currentImage` を切り替える
 - **User Visibility Rule**: ユーザーに見せる生成物は完了済みの `currentExplanation` と `currentImage` のみとし、生成中・失敗時は状態のみを表示対象とする。`Explanation` が複数の `Sense` を持っていても、今回の current image は 1 件のみ表示対象とする
-- **Identifier Naming Rule**: 識別子型は `XxxIdentifier`、集約自身の識別子フィールドは `identifier`、関連識別子フィールドは概念名で定義し、`id`、`ID`、`xxxId`、`xxxIdentifier` は使わない。`Sense` を導入する場合は `SenseIdentifier` を使う
+- **Identifier Naming Rule**: 識別子型は `XxxIdentifier`、集約自身の識別子フィールドは `identifier`、関連識別子フィールドは概念名で定義し、`id`、`ID`、`xxxId`、`xxxIdentifier` は使わない。`Sense` を導入する場合は `SenseIdentifier` を使い、`LearningStateIdentifier` は複合識別子として `learner` と `vocabularyExpression` を内包する
 - **External Ports / Adapters**: 解説生成、画像生成、アセット保存、外部発音リソース参照をドメイン外責務として整理する。画像生成は必要に応じて対象 `Sense` を指定できるが、ベンダー固有実装は持ち込まない
 
 ## Requirements *(mandatory)*
@@ -95,7 +100,8 @@
 - **FR-007**: 成果物は、`Sense` を導入した後も、ユーザーに見せてよい生成物と内部状態を区別し、中間生成結果を表示しないルールを維持しなければならない
 - **FR-008**: 成果物は、sense-aware な画像生成と保存の責務をドメイン内概念と区別し、外部ポート越しに扱う前提を定義しなければならない
 - **FR-009**: 成果物は、`Meaning` から `Sense` への用語差分と移行メモを整理し、要件、ADR、既存ドメイン文書でどの用語を正として採用するかを示さなければならない
-- **FR-010**: 成果物は、`Learner`、`VocabularyExpression`、`LearningState` の既存 ownership boundary を再定義せず、今回の差分が `Explanation` / `VisualImage` 中心の変更であることを明示しなければならない
+- **FR-010**: 成果物は、`Learner`、`VocabularyExpression`、`LearningState` の既存 ownership boundary を再定義せず、今回の差分が `Explanation` / `VisualImage` 中心の変更でありつつ、`LearningStateIdentifier` の複合識別子化を含むことを明示しなければならない
+- **FR-010a**: 成果物は、`LearningStateIdentifier` を `learner + vocabularyExpression` を表す複合識別子として定義し、`LearningState` 本体に同じ参照を重複保持しない rule を示さなければならない
 - **FR-011**: 成果物は、今回扱わない論点として「複数 current image を同時に公開する設計」を明示し、後続 feature へ委ねる範囲を示さなければならない
 
 ### Key Entities *(include if feature involves data)*
@@ -104,6 +110,7 @@
 - **Sense**: `Explanation` が所有する意味単位であり、意味ラベル、状況、ニュアンス、意味ごとの例文、意味ごとのコロケーションを担う
 - **VisualImage**: 解説に対応する視覚的表現を表す独立集約であり、画像生成状態、保存先参照、再生成後の履歴保持、必要に応じた `Sense` 参照の責務境界を持つ
 - **Meaning-to-Image Mapping**: どの画像が explanation 全体を代表するか、またはどの `Sense` を補助するかを表す関係概念であり、単一 `currentImage` を維持したまま意味対応を説明する判断基準になる
+- **LearningStateIdentifier**: `Learner` と `VocabularyExpression` の関係を表す複合識別子であり、`LearningState` の一意性と参照境界を集約本体から分離して示す
 
 ## Success Criteria *(mandatory)*
 
@@ -116,8 +123,8 @@
 
 ## Assumptions
 
-- 005 の既存 docs-first 実装は完了しており、今回はそのうち `Explanation` / `VisualImage` / glossary 周辺の差分更新を行う
-- `Learner`、`VocabularyExpression`、`LearningState` の ownership boundary と命名統一は既存 005 の成果物を正本として再利用する
+- 005 の既存 docs-first 実装は完了しており、今回はそのうち `Explanation` / `VisualImage` / glossary 周辺に加え、`LearningStateIdentifier` の識別表現差分を更新する
+- `Learner`、`VocabularyExpression`、`LearningState` の ownership boundary 自体は既存 005 の成果物を正本として再利用しつつ、`LearningStateIdentifier` を複合識別子として明文化する
 - 完了済み結果のみをユーザーに表示するルールは前提として維持する
 - 外部サービスの具体製品選定や API 詳細は扱わず、sense-aware な業務責務とポート境界のみを整理対象とする
 - 複数 current image の同時公開は今回の scope 外であり、`Sense` 導入後の follow-on feature で扱う

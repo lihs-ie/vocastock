@@ -33,5 +33,6 @@
 
 - 2026-04-17 に `005-domain-modeling` を `Sense` 導入差分へ更新し、`plan.md` / `tasks.md` と scope を整合させた
 - `Sense` は `Explanation` 所有の意味単位、`VisualImage` は独立集約維持、`currentImage` は単一参照維持を前提にした
+- `LearningStateIdentifier` を `learner + vocabularyExpression` の複合識別子として scope に追加し、`LearningState` 本体へ同じ参照を重複保持しない方針を明記した
 - 複数 current image の同時公開は後続 feature scope として明記した
 - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`

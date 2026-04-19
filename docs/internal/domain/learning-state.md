@@ -15,7 +15,18 @@
 
 ### LearningStateIdentifier
 
-- 学習状態を一意に識別する値オブジェクト
+- 学習状態を一意に識別する複合値オブジェクト
+- `Learner` と `VocabularyExpression` の関係そのものを識別子として表す
+
+| フィールド名 | 種別 | 保持数 | 備考 |
+|---|---|---:|---|
+| learner | LearnerIdentifier | 1 | 対象学習者 |
+| vocabularyExpression | VocabularyExpressionIdentifier | 1 | 対象登録表現 |
+
+不変条件:
+
+- 同じ `learner` と `vocabularyExpression` の組み合わせは同じ `LearningStateIdentifier` を表す
+- `vocabularyExpression` は `learner` が所有する登録対象でなければならない
 
 ### Proficiency
 
@@ -34,15 +45,13 @@
 | フィールド名 | 種別 | 保持数 | 備考 |
 |---|---|---:|---|
 | identifier | LearningStateIdentifier | 1 | 学習状態識別子 |
-| learner | LearnerIdentifier | 1 | 対象学習者 |
-| vocabularyExpression | VocabularyExpressionIdentifier | 1 | 対象登録表現 |
 | proficiency | Proficiency | 1 | 習熟度 |
 | timeline | Timeline | 1 | 作成・更新日時 |
 
 不変条件:
 
-- `learner + vocabularyExpression` は一意でなければならない
-- `vocabularyExpression` は同じ `learner` が所有する `VocabularyExpression` でなければならない
+- `identifier` は `learner` と `vocabularyExpression` の組み合わせで一意でなければならない
+- `identifier.vocabularyExpression` は同じ `identifier.learner` が所有する `VocabularyExpression` でなければならない
 - `proficiency` は `Learning`、`Learned`、`Internalized`、`Fluent` のいずれか
 - `Frequency` と `Sophistication` を持ってはならない
 
@@ -56,5 +65,10 @@
 
 ### LearningStateRepository
 
+- `find(identifier)`
 - `findByLearnerAndVocabularyExpression(learner, vocabularyExpression)`
 - `persist(state)`
+
+補足:
+
+- `findByLearnerAndVocabularyExpression(learner, vocabularyExpression)` は、`LearningStateIdentifier(learner, vocabularyExpression)` を構築して検索する convenience operation とみなしてよい

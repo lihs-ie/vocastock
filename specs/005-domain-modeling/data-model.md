@@ -63,10 +63,14 @@ classDiagram
     class LearningState {
         <<Aggregate>>
         +LearningStateIdentifier identifier
-        +LearnerIdentifier learner
-        +VocabularyExpressionIdentifier vocabularyExpression
         +Proficiency proficiency
         +Timeline timeline
+    }
+
+    class LearningStateIdentifier {
+        <<ValueObject>>
+        +LearnerIdentifier learner
+        +VocabularyExpressionIdentifier vocabularyExpression
     }
 
     class VocabularyExpressionKind {
@@ -114,12 +118,14 @@ classDiagram
     Explanation --> "0..1" VisualImage : currentImage
     VisualImage --> "0..1" Sense : depicts
     VisualImage --> "0..1" VisualImage : previousImage
-    LearningState --> "1" VocabularyExpression : vocabularyExpression
     VocabularyExpression --> VocabularyExpressionKind : kind
     VocabularyExpression --> RegistrationStatus : status
     VocabularyExpression --> ExplanationGenerationStatus : generation
     Explanation --> ImageGenerationStatus : generation
     LearningState --> Proficiency : proficiency
+    LearningState --> LearningStateIdentifier : identifier
+    LearningStateIdentifier --> Learner : learner
+    LearningStateIdentifier --> VocabularyExpression : vocabularyExpression
 ```
 
 - `Sense` は `Explanation` が所有する意味単位の内部エンティティである
@@ -260,18 +266,23 @@ classDiagram
 | Field | Type | Cardinality | Description |
 |-------|------|-------------|-------------|
 | identifier | LearningStateIdentifier | 1 | 学習状態識別子 |
-| learner | LearnerIdentifier | 1 | 対象学習者 |
-| vocabularyExpression | VocabularyExpressionIdentifier | 1 | 対象登録表現 |
 | proficiency | Proficiency | 1 | 習熟度 |
 | timeline | Timeline | 1 | 作成・更新日時 |
 
 **Validation rules**:
 
-- `learner + vocabularyExpression` は一意でなければならない
-- `vocabularyExpression` は必ず同じ `learner` が所有する `VocabularyExpression` でなければならない
+- `identifier` は `learner + vocabularyExpression` の組み合わせを表す複合識別子でなければならない
+- `identifier.vocabularyExpression` は必ず同じ `identifier.learner` が所有する `VocabularyExpression` でなければならない
 - `proficiency` は `Learning`、`Learned`、`Internalized`、`Fluent` のいずれか
 
 ## Value Objects
+
+### LearningStateIdentifier
+
+- `learner: LearnerIdentifier`
+- `vocabularyExpression: VocabularyExpressionIdentifier`
+- `LearningState` を一意に識別する複合値オブジェクトとして扱う
+- `LearningState` 集約本体へ同じ参照を重複保持しない
 
 ### VocabularyExpressionKind
 

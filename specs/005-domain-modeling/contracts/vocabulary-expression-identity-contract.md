@@ -20,7 +20,7 @@
 | `Explanation` | `ExplanationIdentifier` | `identifier` | `vocabularyExpression`, `currentImage` |
 | `Sense` | `SenseIdentifier` | `identifier` | none |
 | `VisualImage` | `VisualImageIdentifier` | `identifier` | `explanation`, `sense`, `previousImage` |
-| `LearningState` | `LearningStateIdentifier` | `identifier` | `learner`, `vocabularyExpression` |
+| `LearningState` | `LearningStateIdentifier` | `identifier` | none (`learner`, `vocabularyExpression` は複合識別子に内包する) |
 
 ## VocabularyExpression Kind
 
@@ -34,6 +34,7 @@
 | Scope | Uniqueness Rule | Notes |
 |------|------------------|-------|
 | Same `Learner` | `normalizedVocabularyExpressionText` は一意 | 重複登録は拒否または更新判断の対象になる |
+| Same `Learner` + `VocabularyExpression` | `LearningStateIdentifier` は一意 | `LearningState` は関係集約なので複合識別子で特定する |
 | Same `Explanation` | `Sense.identifier` と `Sense.order` は一意 | 意味単位は explanation 内だけで識別する |
 | Different `Learner` | 同じ表現でも共存可能 | 学習者間で `VocabularyExpression` を共有しない |
 
@@ -45,3 +46,4 @@
 - `ExplanationIdentifier` や `VisualImageIdentifier` を登録対象の識別子として使わない
 - `VisualImage` は `Explanation` の内部値ではなく独立集約として扱う
 - `LearningState` は `Frequency` や `Sophistication` を持たず、習熟度のみを扱う
+- `LearningStateIdentifier` は `learner` と `vocabularyExpression` を持つ複合識別子として扱う

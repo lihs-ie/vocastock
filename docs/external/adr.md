@@ -14,6 +14,7 @@
 ### Domain Core
 
 - `Learner`、`VocabularyExpression`、`LearningState`、`Explanation`、`VisualImage`、`Sense` の用語と不変条件を保持する
+- `LearningStateIdentifier` は `Learner` と `VocabularyExpression` の関係を表す複合識別子とし、`LearningState` 本体へ同じ参照を重複保持しない
 - UI、auth/session detail、vendor API detail は持たない
 
 ### Application Coordination
