@@ -42,9 +42,13 @@
 - サブスクリプション境界、authoritative subscription state、purchase state、entitlement、feature gate、quota gate の正本は `docs/external/adr.md` の「サブスクリプションコンポーネント」節と `specs/010-subscription-component-boundaries/` とする
 - API / command I/O の canonical request / response envelope、actor handoff input、error code、idempotency rule、deferred scope の正本は `docs/external/adr.md` の「コマンド I/O 契約」節と `specs/011-api-command-io-design/` とする
 - authoritative persistence allocation、read projection assembly、workflow runtime state machine の正本は `docs/external/adr.md` の「永続化 / Read Model と非同期 Workflow」節と `specs/012-persistence-workflow-design/` とする
+- Flutter 画面遷移、`AppShell` / `Auth` / `Paywall` / `Restricted` の route group、screen-to-source-of-truth mapping、subscription recovery 導線の正本は `docs/external/adr.md` の「モバイル画面遷移 / UI 状態」節と `specs/013-flutter-ui-state-design/` とする
 - `Learner`、`VocabularyExpression`、`LearningState`、`Explanation`、`VisualImage`、subscription authority、purchase state、entitlement snapshot、usage allowance、idempotency record、workflow attempt、dead-letter review の保存責務は 012 の allocation と ordering rule に従う
 - app-facing read model は completed result と status-only 情報を分離し、projection refresh が遅延しても authoritative write より先に completed と見せない
 - explanation / image / purchase verification / restore / notification reconciliation の runtime state、retry、timeout、fallback、dead-letter、partial success 非許容は 012 の state machine を正本とする
+- 通常利用の canonical route は `AppShell` とし、`Auth`、`Paywall`、`Restricted` は full-screen route group として分離する
+- `VocabularyExpressionDetail` は status 集約画面とし、completed explanation は `ExplanationDetail`、completed image は `ImageDetail` でのみ表示する
+- `SubscriptionStatus` は通常利用側の canonical 状態画面とし、restore progress はその内部 state として扱う
 - domain terminology の正本は `docs/internal/domain/*.md` とし、component 定義はそれらの意味論を変更しない
 - auth/session の責務境界と actor handoff の behavioral contract は `specs/008-auth-session-design/` を正本とする
 - command 受理、retry / regenerate、dispatch rule の behavioral contract は `specs/007-backend-command-design/` を正本とする
