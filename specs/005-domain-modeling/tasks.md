@@ -24,12 +24,12 @@
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-**Purpose**: すべての user story で共有する用語、識別子、mapping 前提を固める
+**Purpose**: すべての user story で共有する用語、識別子、mapping、複合識別子前提を固める
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [X] T003 Define canonical `Sense` terminology, `Meaning` migration note, and project-wide mapping rules in /Users/lihs/workspace/vocastock/docs/internal/domain/common.md
-- [X] T004 [P] Align `SenseIdentifier` naming, ownership language, and related-field naming across /Users/lihs/workspace/vocastock/docs/internal/domain/common.md, /Users/lihs/workspace/vocastock/docs/internal/domain/explanation.md, and /Users/lihs/workspace/vocastock/docs/internal/domain/visual.md
+- [X] T003 Define canonical `Sense` terminology, `Meaning` migration note, project-wide mapping rules, and `LearningStateIdentifier` composite-identity baseline in /Users/lihs/workspace/vocastock/docs/internal/domain/common.md
+- [X] T004 [P] Align `SenseIdentifier` / `LearningStateIdentifier` naming, ownership language, and related-field naming across /Users/lihs/workspace/vocastock/docs/internal/domain/learning-state.md, /Users/lihs/workspace/vocastock/docs/internal/domain/explanation.md, /Users/lihs/workspace/vocastock/docs/internal/domain/visual.md, /Users/lihs/workspace/vocastock/specs/005-domain-modeling/data-model.md, and /Users/lihs/workspace/vocastock/specs/005-domain-modeling/contracts/vocabulary-expression-identity-contract.md
 - [X] T005 [P] Document the single-current-image rule and meaning-to-image mapping baseline in /Users/lihs/workspace/vocastock/docs/internal/domain/common.md
 - [X] T006 Add `Sense`-aware image generation and storage port vocabulary in /Users/lihs/workspace/vocastock/docs/internal/domain/service.md
 
@@ -74,18 +74,18 @@
 
 ## Phase 5: User Story 3 - 文書横断で用語と deferred scope を統一する (Priority: P3)
 
-**Goal**: 要件、ADR、共通 glossary を `Sense` 前提へ揃え、複数 current image を後続 scope として明示する
+**Goal**: 要件、ADR、共通 glossary、識別契約を `Sense` と `LearningStateIdentifier` 前提へ揃え、複数 current image を後続 scope として明示する
 
-**Independent Test**: /Users/lihs/workspace/vocastock/docs/external/requirements.md、/Users/lihs/workspace/vocastock/docs/external/adr.md、/Users/lihs/workspace/vocastock/docs/internal/domain/common.md を横断して、`Sense` 導入、meaning-to-image mapping、follow-on scope が矛盾なく説明できること
+**Independent Test**: /Users/lihs/workspace/vocastock/docs/external/requirements.md、/Users/lihs/workspace/vocastock/docs/external/adr.md、/Users/lihs/workspace/vocastock/docs/internal/domain/common.md、/Users/lihs/workspace/vocastock/docs/internal/domain/learning-state.md を横断して、`Sense` 導入、`LearningStateIdentifier` の複合識別子化、meaning-to-image mapping、follow-on scope が矛盾なく説明できること
 
 ### Implementation for User Story 3
 
 - [X] T016 [P] [US3] Add `Sense` terminology and meaning-unit language to /Users/lihs/workspace/vocastock/docs/external/requirements.md
 - [X] T017 [P] [US3] Add `Sense` boundary, single-current-image decision, and follow-on scope notes to /Users/lihs/workspace/vocastock/docs/external/adr.md
 - [X] T018 [US3] Update deferred-scope guidance for multi-image-per-explanation follow-on work in /Users/lihs/workspace/vocastock/docs/internal/domain/common.md
-- [X] T019 [US3] Cross-check `Sense`, `Meaning`, and image mapping terminology across /Users/lihs/workspace/vocastock/docs/external/requirements.md, /Users/lihs/workspace/vocastock/docs/external/adr.md, and /Users/lihs/workspace/vocastock/docs/internal/domain/common.md
+- [X] T019 [US3] Cross-check `Sense`, `Meaning`, `LearningStateIdentifier`, and image mapping terminology across /Users/lihs/workspace/vocastock/docs/external/requirements.md, /Users/lihs/workspace/vocastock/docs/external/adr.md, /Users/lihs/workspace/vocastock/docs/internal/domain/common.md, and /Users/lihs/workspace/vocastock/docs/internal/domain/learning-state.md
 
-**Checkpoint**: User Story 3 should make external docs and glossary align on `Sense` and follow-on boundaries
+**Checkpoint**: User Story 3 should make external docs, glossary, and identity docs align on `Sense`, `LearningStateIdentifier`, and follow-on boundaries
 
 ---
 
@@ -93,8 +93,8 @@
 
 **Purpose**: 最終整合確認と旧表現の残差分除去
 
-- [X] T020 Validate /Users/lihs/workspace/vocastock/specs/005-domain-modeling/quickstart.md and /Users/lihs/workspace/vocastock/specs/005-domain-modeling/contracts/sense-image-mapping-contract.md against /Users/lihs/workspace/vocastock/docs/internal/domain/common.md, /Users/lihs/workspace/vocastock/docs/internal/domain/explanation.md, /Users/lihs/workspace/vocastock/docs/internal/domain/visual.md, /Users/lihs/workspace/vocastock/docs/internal/domain/service.md, /Users/lihs/workspace/vocastock/docs/external/requirements.md, and /Users/lihs/workspace/vocastock/docs/external/adr.md
-- [X] T021 Remove leftover explanation-wide `Meaning.values` wording and ambiguous multi-image wording beyond intentional migration notes across /Users/lihs/workspace/vocastock/docs/internal/domain/*.md and /Users/lihs/workspace/vocastock/docs/external/*.md
+- [X] T020 Validate /Users/lihs/workspace/vocastock/specs/005-domain-modeling/quickstart.md, /Users/lihs/workspace/vocastock/specs/005-domain-modeling/contracts/sense-image-mapping-contract.md, and /Users/lihs/workspace/vocastock/specs/005-domain-modeling/contracts/vocabulary-expression-identity-contract.md against /Users/lihs/workspace/vocastock/docs/internal/domain/common.md, /Users/lihs/workspace/vocastock/docs/internal/domain/learning-state.md, /Users/lihs/workspace/vocastock/docs/internal/domain/explanation.md, /Users/lihs/workspace/vocastock/docs/internal/domain/visual.md, /Users/lihs/workspace/vocastock/docs/internal/domain/service.md, /Users/lihs/workspace/vocastock/docs/external/requirements.md, and /Users/lihs/workspace/vocastock/docs/external/adr.md
+- [X] T021 Remove leftover explanation-wide `Meaning.values` wording, duplicated `LearningState` reference wording, and ambiguous multi-image wording beyond intentional migration notes across /Users/lihs/workspace/vocastock/docs/internal/domain/*.md and /Users/lihs/workspace/vocastock/docs/external/*.md
 
 ---
 

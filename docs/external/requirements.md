@@ -24,6 +24,7 @@
 - `Learner` は自分が所有する `VocabularyExpression` を管理できる
 - 学習者ごとの定着度は `LearningState.proficiency` として管理する
   - `Frequency` や `Sophistication` とは異なる概念として扱う
+  - `LearningStateIdentifier` は `learner + vocabularyExpression` を表す複合識別子とし、`LearningState` 本体へ同じ参照を重複保持しない
 - `RegistrationStatus`、`ExplanationGenerationStatus`、`ImageGenerationStatus` は別概念として管理する
 - `Sense` は `Explanation` が所有する意味単位として管理し、`Meaning.values` を正本概念として再利用しない
 - `VisualImage` は独立集約のまま維持しつつ、必要に応じてどの `Sense` を描写する画像かを示せる
@@ -41,13 +42,25 @@
 - コンポーネント境界、top-level responsibility、canonical component catalog の正本は `docs/external/adr.md` の「コンポーネント」節とする
 - サブスクリプション境界、authoritative subscription state、purchase state、entitlement、feature gate、quota gate の正本は `docs/external/adr.md` の「サブスクリプションコンポーネント」節と `specs/010-subscription-component-boundaries/` とする
 - API / command I/O の canonical request / response envelope、actor handoff input、error code、idempotency rule、deferred scope の正本は `docs/external/adr.md` の「コマンド I/O 契約」節と `specs/011-api-command-io-design/` とする
+- authoritative persistence allocation、read projection assembly、workflow runtime state machine の正本は `docs/external/adr.md` の「永続化 / Read Model と非同期 Workflow」節と `specs/012-persistence-workflow-design/` とする
+- Flutter 画面遷移、`AppShell` / `Auth` / `Paywall` / `Restricted` の route group、screen-to-source-of-truth mapping、subscription recovery 導線の正本は `docs/external/adr.md` の「モバイル画面遷移 / UI 状態」節と `specs/013-flutter-ui-state-design/` とする
+- 課金 product catalog、entitlement bundle、quota profile、feature gate matrix、subscription state effect の正本は `docs/external/adr.md` の「課金 Product / Entitlement Policy」節と `specs/014-billing-entitlement-policy/` とする
+- `graphql-gateway`、`command-api`、`query-api`、worker 配置、durable state handoff、source-of-truth update map の正本は `docs/external/adr.md` の「デプロイメントトポロジ」節と `specs/015-command-query-topology/` とする
+- `Learner`、`VocabularyExpression`、`LearningState`、`Explanation`、`VisualImage`、subscription authority、purchase state、entitlement snapshot、usage allowance、idempotency record、workflow attempt、dead-letter review の保存責務は 012 の allocation と ordering rule に従う
+- app-facing read model は completed result と status-only 情報を分離し、projection refresh が遅延しても authoritative write より先に completed と見せない
+- explanation / image / purchase verification / restore / notification reconciliation の runtime state、retry、timeout、fallback、dead-letter、partial success 非許容は 012 の state machine を正本とする
+- 通常利用の canonical route は `AppShell` とし、`Auth`、`Paywall`、`Restricted` は full-screen route group として分離する
+- `VocabularyExpressionDetail` は status 集約画面とし、completed explanation は `ExplanationDetail`、completed image は `ImageDetail` でのみ表示する
+- `SubscriptionStatus` は通常利用側の canonical 状態画面とし、restore progress はその内部 state として扱う
 - domain terminology の正本は `docs/internal/domain/*.md` とし、component 定義はそれらの意味論を変更しない
 - auth/session の責務境界と actor handoff の behavioral contract は `specs/008-auth-session-design/` を正本とする
 - command 受理、retry / regenerate、dispatch rule の behavioral contract は `specs/007-backend-command-design/` を正本とする
 - query model schema / persistence と vendor-specific adapter 実装は後続 feature の正本へ委ねる
 - 課金状態の最終正本は backend authoritative subscription state とし、app core と UI は同期済み entitlement mirror のみを参照する
+- `free`、`standard-monthly`、`pro-monthly` の catalog、`free-basic` / `premium-generation` bundle、`free-monthly` safe fallback、`grace` / `pending-sync` / `expired` / `revoked` の state effect は 014 の policy package に従う
 - purchase / restore の受付状態は `initiated`、`submitted`、`verifying`、`verified`、`rejected` の canonical purchase state model に従い、`verified` になるまで premium unlock の根拠にしない
 - pricing catalog、tax、refund policy、vendor SDK detail は subscription component boundary の対象外とし、mobile storefront または後続実装を正本とする
+- unified endpoint を保ったまま内部 deployment を command/query 分離し、projection catch-up までは status-only を返す visible guarantee は 015 の topology package に従う
 
 ## 開発基盤メモ
 

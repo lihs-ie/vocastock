@@ -1,8 +1,8 @@
-# Specification Quality Checklist: ドメインモデリング - Sense導入差分
+# Specification Quality Checklist: Command/Query Deployment Topology
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
-**Created**: 2026-04-17  
-**Feature**: [spec.md](/Users/lihs/workspace/vocastock/specs/005-domain-modeling/spec.md)
+**Created**: 2026-04-19  
+**Feature**: [spec.md](/Users/lihs/workspace/vocastock/specs/015-command-query-topology/spec.md)
 
 ## Content Quality
 
@@ -31,8 +31,7 @@
 
 ## Notes
 
-- 2026-04-17 に `005-domain-modeling` を `Sense` 導入差分へ更新し、`plan.md` / `tasks.md` と scope を整合させた
-- `Sense` は `Explanation` 所有の意味単位、`VisualImage` は独立集約維持、`currentImage` は単一参照維持を前提にした
-- `LearningStateIdentifier` を `learner + vocabularyExpression` の複合識別子として scope に追加し、`LearningState` 本体へ同じ参照を重複保持しない方針を明記した
-- 複数 current image の同時公開は後続 feature scope として明記した
+- `Command Intake` と `Query Read` を MVP から別 deployment unit に分離する topology を主題とした
+- source-of-truth 更新箇所一覧を同じ feature scope に含め、`ADR` / `requirements` / 関連 spec package の反映先を明示した
+- Cloud Run などの具体 stack への写像は assumption と後続 planning で扱い、spec 本文では deployment unit と責務分離を中心に整理した
 - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`

@@ -14,6 +14,7 @@
 ### Domain Core
 
 - `Learner`、`VocabularyExpression`、`LearningState`、`Explanation`、`VisualImage`、`Sense` の用語と不変条件を保持する
+- `LearningStateIdentifier` は `Learner` と `VocabularyExpression` の関係を表す複合識別子とし、`LearningState` 本体へ同じ参照を重複保持しない
 - UI、auth/session detail、vendor API detail は持たない
 
 ### Application Coordination
@@ -293,3 +294,121 @@
 - 007 は command semantics、008 は actor handoff、009 は command intake placement、010 は subscription / entitlement visibility の正本とする
 - command response は `pending-sync` を状態表示してよいが、premium unlock 確定情報として返してはならない
 - HTTP / GraphQL / RPC schema、workflow payload schema、query response schema、provider 固有 error payload、persistence schema は deferred scope とする
+
+## 永続化 / Read Model と非同期 Workflow
+
+### Authoritative Persistence Allocation
+
+- write-side の正本は `Learner`、`VocabularyExpression`、`LearningState`、`Explanation`、`VisualImage`、authoritative subscription state、purchase state、entitlement snapshot、usage allowance、idempotency record、workflow attempt、dead-letter review に分割する
+- `VocabularyExpression.currentExplanation` と `Explanation.currentImage` だけが current pointer を持ち、projection は独自に current 判定してはならない
+- ownership、一意制約、主要 index、ordering rule の正本は `specs/012-persistence-workflow-design/` の allocation / data model / contracts とする
+
+### Read Projection Rules
+
+- app-facing projection は `VocabularyCatalogProjection`、`ExplanationDetailProjection`、`ImageDetailProjection`、`SubscriptionStatusProjection`、`UsageAllowanceProjection` に分ける
+- completed payload は authoritative current pointer または同期済み snapshot が確定した後にのみ公開する
+- `pending`、`running`、`retry-scheduled`、`timed-out`、`failed-final`、`dead-lettered` は status-only として扱い、未完了生成物や未確認 premium unlock を completed projection として返してはならない
+- projection refresh は eventual でよいが、authoritative write より先に completed と見せてはならない
+
+### Workflow Runtime Rules
+
+- explanation generation、image generation、purchase verification、restore、notification reconciliation は runtime state machine を持ち、少なくとも `queued`、`running`、`retry-scheduled`、`timed-out`、`succeeded`、`failed-final`、`dead-lettered` を区別する
+- timeout は成功確定ではなく、既存 completed result または mirror を fallback として維持できても、新しい completed result を合成してはならない
+- partial success は completed とみなしてはならない。特に image asset 保存失敗や verification 未完了は status-only のまま扱う
+- retry exhaustion 後は `DeadLetterReviewUnit` を作り、operator review 用終端として扱う
+- purchase state と authoritative subscription state は別 state model とし、`verified` 以前の purchase state を premium unlock の根拠にしてはならない
+
+### Deferred Scope
+
+- 物理 DB / queue / cache 製品、deployment topology、wire schema、provider payload detail、vendor SDK detail、operator tooling UI はこの ADR 節では固定しない
+- これらの詳細実装は後続 feature または実装設計へ委ね、logical allocation / projection / runtime rule の正本は `specs/012-persistence-workflow-design/` とする
+
+## モバイル画面遷移 / UI 状態
+
+### Route Topology
+
+- mobile client の top-level route group は `Auth`、`AppShell`、`Paywall`、`Restricted` に固定する
+- `Auth`、`Paywall`、`Restricted` は full-screen route group とし、通常利用は `AppShell` 配下で扱う
+- `AppShell` へは login 完了かつ actor handoff completed 後にのみ入れる
+- tab 構成は `AppShell` 内部の deferred implementation choice とし、この ADR 節では固定しない
+
+### Screen Roles And Visibility
+
+- `VocabularyExpressionDetail` は generation status 集約画面とし、未完了 explanation / image payload を表示してはならない
+- completed explanation 本文は `ExplanationDetail`、completed current image は `ImageDetail` でのみ表示する
+- `SubscriptionStatus` は通常利用側の canonical 状態画面とし、subscription state、entitlement、usage allowance、gate result、restore progress state を表示する
+- `pending-sync` は状態表示してよいが premium unlock の根拠にしてはならない
+- stale read 中は loading または status-only に倒してよいが、authoritative write より先に completed と見せてはならない
+
+### Subscription Access And Recovery
+
+- `grace` は paid entitlement を維持し、通常利用を継続できる
+- `expired` は completed result 閲覧を維持するが、premium 操作や生成系操作は `Paywall` へ戻す
+- `revoked` は hard stop とし、通常利用 shell ではなく `Restricted` へ送る
+- paywall と restricted access は recovery 導線を持てるが、restore と状態説明の canonical surface は `SubscriptionStatus` に集約する
+
+### Source Of Truth And Deferred Scope
+
+- 画面責務、route group、reader / gate / command binding、state variant の正本は `specs/013-flutter-ui-state-design/` とする
+- auth/session の behavioral contract は `specs/008-auth-session-design/`、subscription authority は `specs/010-subscription-component-boundaries/`、command acceptance と message は `specs/011-api-command-io-design/`、completed visibility と stale read は `specs/012-persistence-workflow-design/` を正本とする
+- router package 選定、widget tree、state management library、animation curve、visual token、tablet / foldable 最適化、push notification entry point はこの ADR 節では固定しない
+
+## 課金 Product / Entitlement Policy
+
+### Canonical Catalog
+
+- canonical plan catalog は `free`、`standard-monthly`、`pro-monthly` の 3 つに固定する
+- store product reference は `standard-monthly` が `vocastock.standard.monthly`、`pro-monthly` が `vocastock.pro.monthly` を使う
+- `free` は store product reference を持たない
+
+### Bundle And Quota Policy
+
+- `free` は `free-basic` bundle と `free-monthly` quota profile を使う
+- `standard-monthly` と `pro-monthly` は同じ `premium-generation` bundle を共有する
+- paid plan 間の差分は feature entitlement ではなく quota profile のみとする
+- 月次 quota は `free-monthly` が explanation 10 / image 3、`standard-monthly` が explanation 100 / image 30、`pro-monthly` が explanation 300 / image 100 とする
+- feature gate key は `catalog-viewing`、`vocabulary-registration`、`explanation-generation`、`image-generation`、`completed-result-viewing`、`subscription-status-access`、`restore-access` に固定する
+
+### State Effect Rules
+
+- `active` は plan に紐づく bundle と quota profile を適用する
+- `grace` は paid bundle と paid quota profile を維持する
+- `pending-sync` は状態表示してよいが premium unlock の根拠にせず、`free-monthly` へ safe fallback する
+- `expired` は `free-basic` と `free-monthly` へ戻し、completed result 閲覧は維持しつつ premium 操作は upsell / restore 導線へ戻す
+- `revoked` は hard-stop とし、通常利用を止めて recovery section のみ許可する
+
+### Deferred Scope
+
+- pricing amount、currency、tax、refund policy、coupon、intro offer、family plan、store dashboard setup は business / operational policy を正本とする
+- vendor SDK detail と runtime workflow ordering は 010 / 012 の boundary と state machine を正本とする
+- product catalog、entitlement bundle、quota profile、feature gate matrix、subscription state effect の詳細 contract は `specs/014-billing-entitlement-policy/` を正本とする
+
+## デプロイメントトポロジ
+
+### Canonical Deployment Units
+
+- client-facing endpoint は `graphql-gateway` が提供する unified GraphQL endpoint 1 つに固定する
+- MVP から `Command Intake` は `command-api`、`Query Read` は `query-api` という別 Cloud Run deployment unit に分離する
+- explanation / image / subscription reconciliation はそれぞれ `explanation-worker`、`image-worker`、`billing-worker` の独立 worker に配置する
+- managed service として `Firebase Authentication`、`Cloud Firestore`、`Pub/Sub`、`Google Drive` を利用してよい
+
+### Allocation Rules
+
+- `graphql-gateway` は routing と request correlation を担うが、domain write、projection read ownership、workflow 実行は担ってはならない
+- `command-api` は command acceptance、idempotency、authoritative write、workflow dispatch 起点を担う
+- `query-api` は completed result、status-only、subscription read、entitlement mirror、usage allowance、feature gate result を担う
+- `command-api` と `query-api` はそれぞれ backend で token verification と actor handoff を行い、shared behavioral contract を再利用する
+- `Entitlement Policy`、`Subscription Feature Gate`、`Usage Metering / Quota Gate` は独立 deployment unit とせず、backend service / worker の内部 policy として扱う
+
+### Visibility And Handoff Rules
+
+- `command-api` は completed result payload を返さず、`accepted` と `status handle` を返す
+- `command-api` から `query-api` への情報伝播は direct call ではなく durable state handoff を前提とする
+- `query-api` は projection 反映前は status-only を返してよいが、provisional completed payload を返してはならない
+- worker は user-facing completed result を直接返してはならず、常に `query-api` 経由の read へ委ねる
+
+### Source Of Truth And Deferred Scope
+
+- product-wide の topology 正本はこの ADR 節と `docs/external/requirements.md` に置き、詳細な update map は `specs/015-command-query-topology/` を参照する
+- 015 の再同期対象は少なくとも `specs/004-tech-stack-definition/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/`、`specs/010-subscription-component-boundaries/`、`specs/011-api-command-io-design/`、`specs/012-persistence-workflow-design/`、`specs/013-flutter-ui-state-design/`、`specs/014-billing-entitlement-policy/` とする
+- GraphQL schema detail、gateway 実装方式、service 内 module layout、scaling / budget / alert policy はこの ADR 節では固定しない

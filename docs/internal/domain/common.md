@@ -6,7 +6,7 @@
 |---|---|---|
 | [learner.md](./learner.md) | `Learner`、`AuthenticationSubject` | 学習者の所有境界と外部 identity 境界 |
 | [vocabulary-expression.md](./vocabulary-expression.md) | `VocabularyExpression`、`VocabularyExpressionText`、`NormalizedVocabularyExpressionText` | 学習者が所有する登録対象と解説生成状態 |
-| [learning-state.md](./learning-state.md) | `LearningState`、`Proficiency` | 学習進捗と習熟度 |
+| [learning-state.md](./learning-state.md) | `LearningState`、`LearningStateIdentifier`、`Proficiency` | 学習進捗と習熟度 |
 | [explanation.md](./explanation.md) | `Explanation`、`Sense`、`Frequency`、`Sophistication` | 解説本文、意味単位、画像生成状態 |
 | [visual.md](./visual.md) | `VisualImage`、`StorageReference` | 画像アセット、意味対応、履歴 |
 | [service.md](./service.md) | external port catalog | 外部責務の境界 |
@@ -29,6 +29,7 @@ classDiagram
     class Sense
     class VisualImage
     class LearningState
+    class LearningStateIdentifier
 
     Learner --> VocabularyExpression : owns
     Learner --> LearningState : tracks
@@ -37,7 +38,9 @@ classDiagram
     Explanation --> VisualImage : currentImage
     VisualImage --> Sense : depicts
     VisualImage --> VisualImage : previousImage
-    LearningState --> VocabularyExpression : vocabularyExpression
+    LearningState --> LearningStateIdentifier : identifier
+    LearningStateIdentifier --> Learner : learner
+    LearningStateIdentifier --> VocabularyExpression : vocabularyExpression
 ```
 
 - `Learner` は所有境界であり、認証方式そのものは保持しない
@@ -45,7 +48,7 @@ classDiagram
 - `Explanation` は `VocabularyExpression` の完了済み解説結果を表し、1 件以上の `Sense` を持つ
 - `Sense` は意味、状況、ニュアンス、例文、コロケーションを束ねる `Explanation` 配下の意味単位である
 - `VisualImage` は `Explanation` に属する独立集約で、必要に応じて特定の `Sense` を描写しつつ履歴を保持する
-- `LearningState` は `Learner` と `VocabularyExpression` の関係上にある習熟度専用集約である
+- `LearningState` は `Learner` と `VocabularyExpression` の関係上にある習熟度専用集約であり、`LearningStateIdentifier` はその関係を表す複合識別子である
 
 ## 正規用語と移行メモ
 
@@ -70,6 +73,7 @@ classDiagram
 - 派生命名は `VocabularyExpression*` / `LearningState*` に統一する
 - 文字列表現の値オブジェクト名は `VocabularyExpressionText` と `NormalizedVocabularyExpressionText` を採用する
 - `Sense` の識別子は `SenseIdentifier` とし、関連参照フィールド名は `sense` を使う
+- 複合識別子が必要な場合も `XxxIdentifier` に閉じ込め、集約本体へ同じ参照フィールドを重複保持しない
 
 ## 概念分離
 
