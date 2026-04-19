@@ -351,3 +351,33 @@
 - 画面責務、route group、reader / gate / command binding、state variant の正本は `specs/013-flutter-ui-state-design/` とする
 - auth/session の behavioral contract は `specs/008-auth-session-design/`、subscription authority は `specs/010-subscription-component-boundaries/`、command acceptance と message は `specs/011-api-command-io-design/`、completed visibility と stale read は `specs/012-persistence-workflow-design/` を正本とする
 - router package 選定、widget tree、state management library、animation curve、visual token、tablet / foldable 最適化、push notification entry point はこの ADR 節では固定しない
+
+## 課金 Product / Entitlement Policy
+
+### Canonical Catalog
+
+- canonical plan catalog は `free`、`standard-monthly`、`pro-monthly` の 3 つに固定する
+- store product reference は `standard-monthly` が `vocastock.standard.monthly`、`pro-monthly` が `vocastock.pro.monthly` を使う
+- `free` は store product reference を持たない
+
+### Bundle And Quota Policy
+
+- `free` は `free-basic` bundle と `free-monthly` quota profile を使う
+- `standard-monthly` と `pro-monthly` は同じ `premium-generation` bundle を共有する
+- paid plan 間の差分は feature entitlement ではなく quota profile のみとする
+- 月次 quota は `free-monthly` が explanation 10 / image 3、`standard-monthly` が explanation 100 / image 30、`pro-monthly` が explanation 300 / image 100 とする
+- feature gate key は `catalog-viewing`、`vocabulary-registration`、`explanation-generation`、`image-generation`、`completed-result-viewing`、`subscription-status-access`、`restore-access` に固定する
+
+### State Effect Rules
+
+- `active` は plan に紐づく bundle と quota profile を適用する
+- `grace` は paid bundle と paid quota profile を維持する
+- `pending-sync` は状態表示してよいが premium unlock の根拠にせず、`free-monthly` へ safe fallback する
+- `expired` は `free-basic` と `free-monthly` へ戻し、completed result 閲覧は維持しつつ premium 操作は upsell / restore 導線へ戻す
+- `revoked` は hard-stop とし、通常利用を止めて recovery section のみ許可する
+
+### Deferred Scope
+
+- pricing amount、currency、tax、refund policy、coupon、intro offer、family plan、store dashboard setup は business / operational policy を正本とする
+- vendor SDK detail と runtime workflow ordering は 010 / 012 の boundary と state machine を正本とする
+- product catalog、entitlement bundle、quota profile、feature gate matrix、subscription state effect の詳細 contract は `specs/014-billing-entitlement-policy/` を正本とする
