@@ -14,8 +14,11 @@ node_modules
 .dart_tool
 .firebase
 .artifacts
+target
 .env
 .env.local
 .env.*
 Dockerfile*
 *.log
+docker/applications/env/.env
+docker/applications/*.override.yaml

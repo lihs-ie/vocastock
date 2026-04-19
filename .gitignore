@@ -121,3 +121,9 @@ app.*.symbols
 # Local CI / emulator artifacts
 .artifacts/
 _build/
+target/
+
+# Application container local overrides
+docker/applications/env/.env
+docker/applications/env/.env.local
+docker/applications/*.override.yaml

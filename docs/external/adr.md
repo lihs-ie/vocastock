@@ -412,3 +412,23 @@
 - product-wide の topology 正本はこの ADR 節と `docs/external/requirements.md` に置き、詳細な update map は `specs/015-command-query-topology/` を参照する
 - 015 の再同期対象は少なくとも `specs/004-tech-stack-definition/`、`specs/008-auth-session-design/`、`specs/009-component-boundaries/`、`specs/010-subscription-component-boundaries/`、`specs/011-api-command-io-design/`、`specs/012-persistence-workflow-design/`、`specs/013-flutter-ui-state-design/`、`specs/014-billing-entitlement-policy/` とする
 - GraphQL schema detail、gateway 実装方式、service 内 module layout、scaling / budget / alert policy はこの ADR 節では固定しない
+
+## アプリケーションコンテナ環境
+
+### Canonical Runtime Profiles
+
+- backend / worker application の container scope は `graphql-gateway`、`command-api`、`query-api`、`explanation-worker`、`image-worker`、`billing-worker` に固定する
+- Docker 関連ファイルの正本は `docker/applications/<application>/` とする
+- local orchestration の正本は `docker/applications/compose.yaml`、shared env template の正本は `docker/applications/env/.env.example` とする
+
+### Success Signal Rules
+
+- `graphql-gateway`、`command-api`、`query-api` は `HTTP readiness endpoint` を canonical success signal とする
+- worker 群は `long-running consumer` の stable-run を canonical success signal とし、外向き HTTP endpoint を必須にしない
+- local / CI は同じ Dockerfile / target / entry contract を使うが、生成済み image artifact の共有までは必須にしない
+
+### Boundary Rules
+
+- `docker/firebase/` は repository-wide shared dependency stack として扱い、application-owned container profile と混同してはならない
+- local stack validation は firebase smoke と application container smoke を順番に再利用してよいが、ownership は統合してはならない
+- troubleshooting、required / optional input、secret boundary、failure stage の正本は `specs/016-application-docker-env/` と `docs/development/backend-container-environment.md` を参照する

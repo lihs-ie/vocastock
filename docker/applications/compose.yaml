@@ -1,0 +1,121 @@
+name: vocastock-applications
+
+x-api-build: &api-build
+  context: ../..
+
+x-api-environment: &api-environment
+  VOCAS_SERVICE_HOST: 0.0.0.0
+  VOCAS_READINESS_PATH: ${VOCAS_READINESS_PATH:-/readyz}
+  RUST_LOG: ${RUST_LOG:-info}
+  FIRESTORE_EMULATOR_HOST: ${FIRESTORE_EMULATOR_HOST:-}
+  STORAGE_EMULATOR_HOST: ${STORAGE_EMULATOR_HOST:-}
+  FIREBASE_AUTH_EMULATOR_HOST: ${FIREBASE_AUTH_EMULATOR_HOST:-}
+
+x-worker-environment: &worker-environment
+  VOCAS_WORKER_STABLE_RUN_SECONDS: ${VOCAS_WORKER_STABLE_RUN_SECONDS:-10}
+  VOCAS_WORKER_POLL_INTERVAL_SECONDS: ${VOCAS_WORKER_POLL_INTERVAL_SECONDS:-30}
+  RUST_LOG: ${RUST_LOG:-info}
+  FIRESTORE_EMULATOR_HOST: ${FIRESTORE_EMULATOR_HOST:-}
+  STORAGE_EMULATOR_HOST: ${STORAGE_EMULATOR_HOST:-}
+  FIREBASE_AUTH_EMULATOR_HOST: ${FIREBASE_AUTH_EMULATOR_HOST:-}
+  PUBSUB_EMULATOR_HOST: ${PUBSUB_EMULATOR_HOST:-}
+
+services:
+  graphql-gateway:
+    build:
+      <<: *api-build
+      dockerfile: docker/applications/graphql-gateway/Dockerfile
+    environment:
+      <<: *api-environment
+      VOCAS_SERVICE_NAME: graphql-gateway
+      VOCAS_SERVICE_PORT: ${GRAPHQL_GATEWAY_PORT:-18180}
+      VOCAS_COMMAND_UPSTREAM_BASE_URL: ${VOCAS_COMMAND_UPSTREAM_BASE_URL:-http://command-api:18181}
+      VOCAS_QUERY_UPSTREAM_BASE_URL: ${VOCAS_QUERY_UPSTREAM_BASE_URL:-http://query-api:18182}
+    ports:
+      - "${GRAPHQL_GATEWAY_PORT:-18180}:${GRAPHQL_GATEWAY_PORT:-18180}"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          curl -fsS http://127.0.0.1:${GRAPHQL_GATEWAY_PORT:-18180}${VOCAS_READINESS_PATH:-/readyz} >/dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    networks:
+      - applications
+
+  command-api:
+    build:
+      <<: *api-build
+      dockerfile: docker/applications/command-api/Dockerfile
+    environment:
+      <<: *api-environment
+      VOCAS_SERVICE_NAME: command-api
+      VOCAS_SERVICE_PORT: ${COMMAND_API_PORT:-18181}
+    ports:
+      - "${COMMAND_API_PORT:-18181}:${COMMAND_API_PORT:-18181}"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          curl -fsS http://127.0.0.1:${COMMAND_API_PORT:-18181}${VOCAS_READINESS_PATH:-/readyz} >/dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    networks:
+      - applications
+
+  query-api:
+    build:
+      <<: *api-build
+      dockerfile: docker/applications/query-api/Dockerfile
+    environment:
+      <<: *api-environment
+      VOCAS_SERVICE_NAME: query-api
+      VOCAS_SERVICE_PORT: ${QUERY_API_PORT:-18182}
+    ports:
+      - "${QUERY_API_PORT:-18182}:${QUERY_API_PORT:-18182}"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          curl -fsS http://127.0.0.1:${QUERY_API_PORT:-18182}${VOCAS_READINESS_PATH:-/readyz} >/dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    networks:
+      - applications
+
+  explanation-worker:
+    build:
+      context: ../..
+      dockerfile: docker/applications/explanation-worker/Dockerfile
+    environment:
+      <<: *worker-environment
+      VOCAS_WORKER_NAME: explanation-worker
+    networks:
+      - applications
+
+  image-worker:
+    build:
+      context: ../..
+      dockerfile: docker/applications/image-worker/Dockerfile
+    environment:
+      <<: *worker-environment
+      VOCAS_WORKER_NAME: image-worker
+    networks:
+      - applications
+
+  billing-worker:
+    build:
+      context: ../..
+      dockerfile: docker/applications/billing-worker/Dockerfile
+    environment:
+      <<: *worker-environment
+      VOCAS_WORKER_NAME: billing-worker
+    networks:
+      - applications
+
+networks:
+  applications:
+    name: vocastock-applications

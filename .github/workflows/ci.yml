@@ -64,6 +64,24 @@ jobs:
           path: .artifacts/ci
           if-no-files-found: ignore
 
+  application-container-smoke:
+    name: application-container-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: toolchain-validate
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Validate application container contract
+        run: bash scripts/bootstrap/validate_application_containers.sh
+      - name: Run application container smoke
+        run: bash scripts/ci/run_application_container_smoke.sh
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ success() || failure() }}
+        with:
+          name: ci-metrics-application-container-smoke
+          path: .artifacts/ci
+          if-no-files-found: ignore
+
   android-build-smoke:
     name: android-build-smoke
     runs-on: ubuntu-24.04
@@ -120,6 +138,7 @@ jobs:
     needs:
       - flutter-static-checks
       - emulator-smoke
+      - application-container-smoke
       - android-build-smoke
       - vulnerability-scan
     steps:
