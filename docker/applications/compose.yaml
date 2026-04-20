@@ -11,6 +11,10 @@ x-api-environment: &api-environment
   STORAGE_EMULATOR_HOST: ${STORAGE_EMULATOR_HOST:-}
   FIREBASE_AUTH_EMULATOR_HOST: ${FIREBASE_AUTH_EMULATOR_HOST:-}
 
+x-host-gateway: &host-gateway
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
 x-worker-environment: &worker-environment
   VOCAS_WORKER_STABLE_RUN_SECONDS: ${VOCAS_WORKER_STABLE_RUN_SECONDS:-10}
   VOCAS_WORKER_POLL_INTERVAL_SECONDS: ${VOCAS_WORKER_POLL_INTERVAL_SECONDS:-30}
@@ -25,6 +29,7 @@ services:
     build:
       <<: *api-build
       dockerfile: docker/applications/graphql-gateway/Dockerfile
+    <<: *host-gateway
     environment:
       <<: *api-environment
       VOCAS_SERVICE_NAME: graphql-gateway
@@ -48,6 +53,7 @@ services:
     build:
       <<: *api-build
       dockerfile: docker/applications/command-api/Dockerfile
+    <<: *host-gateway
     environment:
       <<: *api-environment
       VOCAS_SERVICE_NAME: command-api
@@ -69,6 +75,7 @@ services:
     build:
       <<: *api-build
       dockerfile: docker/applications/query-api/Dockerfile
+    <<: *host-gateway
     environment:
       <<: *api-environment
       VOCAS_SERVICE_NAME: query-api
@@ -90,6 +97,7 @@ services:
     build:
       context: ../..
       dockerfile: docker/applications/explanation-worker/Dockerfile
+    <<: *host-gateway
     environment:
       <<: *worker-environment
       VOCAS_WORKER_NAME: explanation-worker
@@ -100,6 +108,7 @@ services:
     build:
       context: ../..
       dockerfile: docker/applications/image-worker/Dockerfile
+    <<: *host-gateway
     environment:
       <<: *worker-environment
       VOCAS_WORKER_NAME: image-worker
@@ -110,6 +119,7 @@ services:
     build:
       context: ../..
       dockerfile: docker/applications/billing-worker/Dockerfile
+    <<: *host-gateway
     environment:
       <<: *worker-environment
       VOCAS_WORKER_NAME: billing-worker

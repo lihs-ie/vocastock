@@ -432,3 +432,5 @@
 - `docker/firebase/` は repository-wide shared dependency stack として扱い、application-owned container profile と混同してはならない
 - local stack validation は firebase smoke と application container smoke を順番に再利用してよいが、ownership は統合してはならない
 - troubleshooting、required / optional input、secret boundary、failure stage の正本は `specs/016-application-docker-env/` と `docs/development/backend-container-environment.md` を参照する
+- Rust backend quality gate の正本は `.github/workflows/ci.yml` の `rust-quality` job と `specs/019-rust-quality-ci/` とする
+- `rust-quality` は Rust path 非該当時の no-op success、`fmt` / `clippy` / unit / feature segment、`.artifacts/ci/logs/rust-quality.*` の artifact を canonical contract とする

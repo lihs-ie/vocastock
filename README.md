@@ -14,6 +14,8 @@
 - backend container contract: [docs/development/backend-container-environment.md](/Users/lihs/workspace/vocastock/docs/development/backend-container-environment.md)
 - application container validation: `bash scripts/bootstrap/validate_application_containers.sh`
 - application container smoke: `bash scripts/ci/run_application_container_smoke.sh`
+- rust change detection: `bash scripts/ci/detect_rust_changes.sh --base origin/main --head HEAD`
+- rust quality gate: `bash scripts/ci/run_rust_quality_checks.sh --mode full`
 - host baseline 検証: `bash scripts/bootstrap/verify_macos_toolchain.sh`
 - local setup 検証: `bash scripts/bootstrap/validate_local_setup.sh`
 - ドメイン境界を変更する実装では、対象ドメイン文書の更新を必須とする
@@ -31,6 +33,7 @@
 - worker の canonical success signal は `long-running consumer` の stable-run
 - `run_application_container_smoke.sh` は API host port が埋まっている場合、一時 env を生成して空きポートへ自動退避する
 - `run_local_stack_smoke.sh --with-application-containers` は Firebase emulator を起動した上で、API の `/dependencies/firebase` と worker の起動前疎通確認で接続検証する
+- `rust-quality` は Rust path 非該当時に no-op success を返し、該当時は `fmt -> clippy -> query-api unit -> command-api unit -> feature-all` を実行する
 - application container scope は backend / worker のみで、`docker/firebase/` は repository-wide shared dependency stack として別管理する
 
 主要コマンド:

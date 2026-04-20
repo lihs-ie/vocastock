@@ -9,9 +9,7 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::thread::sleep;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use serde_json::Value;
-
-const COMMAND_API_SERVICE: &str = "command-api";
+const GRAPHQL_GATEWAY_SERVICE: &str = "graphql-gateway";
 const EMULATOR_CONTAINER_NAME: &str = "vocastock-firebase-emulators";
 const DEFAULT_GRAPHQL_GATEWAY_PORT: u16 = 18180;
 const DEFAULT_COMMAND_API_PORT: u16 = 18181;
@@ -22,8 +20,6 @@ const DEFAULT_AUTH_PORT: u16 = 19099;
 const DEFAULT_READINESS_PATH: &str = "/readyz";
 const DEFAULT_READY_BUDGET_SECONDS: u64 = 120;
 const DEFAULT_EMULATOR_READY_BUDGET_SECONDS: &str = "300";
-const FEATURE_REUSE_ENV: &str = "VOCAS_FEATURE_REUSE_RUNNING";
-const FEATURE_SKIP_BUILD_ENV: &str = "VOCAS_FEATURE_SKIP_BUILD";
 
 struct ApplicationPorts {
     gateway: u16,
@@ -40,12 +36,12 @@ pub struct FeatureRuntime {
     compose_file: PathBuf,
     env_file: PathBuf,
     readiness_path: String,
-    command_port: u16,
+    gateway_port: u16,
     firestore_port: u16,
     storage_port: u16,
     auth_port: u16,
     started_emulators: bool,
-    started_command_api: bool,
+    started_gateway: bool,
 }
 
 pub struct HttpResponse {
@@ -113,21 +109,21 @@ impl FeatureRuntime {
             compose_file,
             env_file,
             readiness_path,
-            command_port,
+            gateway_port,
             firestore_port,
             storage_port,
             auth_port,
             started_emulators: false,
-            started_command_api: false,
+            started_gateway: false,
         };
 
         if !runtime.should_reuse_running_emulators() {
             runtime.start_emulators();
         }
 
-        runtime.remove_stale_command_api_container();
-        runtime.start_command_api();
-        runtime.wait_for_command_api_ready(readiness_budget);
+        runtime.remove_stale_gateway_container();
+        runtime.start_gateway();
+        runtime.wait_for_gateway_ready(readiness_budget);
         runtime
     }
 
@@ -143,39 +139,12 @@ impl FeatureRuntime {
         self.auth_port
     }
 
-    pub fn get(&self, path: &str, authorization: Option<&str>) -> HttpResponse {
-        self.request("GET", path, authorization, None)
-    }
-
-    pub fn post_json(
-        &self,
-        path: &str,
-        authorization: Option<&str>,
-        payload: &Value,
-    ) -> HttpResponse {
-        let body = payload.to_string();
-        self.request("POST", path, authorization, Some(body.as_str()))
-    }
-
-    pub fn request(
-        &self,
-        method: &str,
-        path: &str,
-        authorization: Option<&str>,
-        body: Option<&str>,
-    ) -> HttpResponse {
-        http_request(
-            "127.0.0.1",
-            self.command_port,
-            method,
-            path,
-            authorization,
-            body,
-        )
+    pub fn get(&self, path: &str) -> HttpResponse {
+        http_request("127.0.0.1", self.gateway_port, "GET", path)
     }
 
     fn should_reuse_running_emulators(&self) -> bool {
-        env_flag(FEATURE_REUSE_ENV)
+        env_flag("VOCAS_FEATURE_REUSE_RUNNING")
             || emulator_container_running(&self.repo_root)
             || self.firebase_ports_are_listening()
     }
@@ -201,41 +170,39 @@ impl FeatureRuntime {
         self.started_emulators = true;
     }
 
-    fn remove_stale_command_api_container(&self) {
+    fn remove_stale_gateway_container(&self) {
         run_command(
             &self.repo_root,
             "docker",
             &compose_args(
                 &self.env_file,
                 &self.compose_file,
-                &["rm", "-sf", COMMAND_API_SERVICE],
+                &["rm", "-sf", GRAPHQL_GATEWAY_SERVICE],
             ),
         );
     }
 
-    fn start_command_api(&mut self) {
+    fn start_gateway(&mut self) {
         let mut args = compose_args(&self.env_file, &self.compose_file, &["up", "-d"]);
-        if !env_flag(FEATURE_SKIP_BUILD_ENV) {
+        if !env_flag("VOCAS_FEATURE_SKIP_BUILD") {
             args.push("--build".to_owned());
         }
-        args.push(COMMAND_API_SERVICE.to_owned());
+        args.push(GRAPHQL_GATEWAY_SERVICE.to_owned());
 
         run_command(&self.repo_root, "docker", &args);
-        self.started_command_api = true;
+        self.started_gateway = true;
     }
 
-    fn wait_for_command_api_ready(&self, budget: Duration) {
+    fn wait_for_gateway_ready(&self, budget: Duration) {
         let deadline = Instant::now() + budget;
 
         loop {
             if let Ok(response) = std::panic::catch_unwind(|| {
                 http_request(
                     "127.0.0.1",
-                    self.command_port,
+                    self.gateway_port,
                     "GET",
                     self.readiness_path.as_str(),
-                    None,
-                    None,
                 )
             }) {
                 if response.status == 200 {
@@ -244,7 +211,7 @@ impl FeatureRuntime {
             }
 
             if Instant::now() >= deadline {
-                panic!("command-api readiness did not become healthy in time");
+                panic!("graphql-gateway readiness did not become healthy in time");
             }
 
             sleep(Duration::from_secs(2));
@@ -260,14 +227,14 @@ impl FeatureRuntime {
 
 impl Drop for FeatureRuntime {
     fn drop(&mut self) {
-        if self.started_command_api {
+        if self.started_gateway {
             let _ = try_run_command(
                 &self.repo_root,
                 "docker",
                 &compose_args(
                     &self.env_file,
                     &self.compose_file,
-                    &["stop", COMMAND_API_SERVICE],
+                    &["stop", GRAPHQL_GATEWAY_SERVICE],
                 ),
             );
         }
@@ -290,13 +257,6 @@ pub fn assert_contains(haystack: &str, needle: &str, label: &str) {
     assert!(
         haystack.contains(needle),
         "expected {label} to contain {needle}, actual body: {haystack}"
-    );
-}
-
-pub fn assert_not_contains(haystack: &str, needle: &str, label: &str) {
-    assert!(
-        !haystack.contains(needle),
-        "expected {label} to not contain {needle}, actual body: {haystack}"
     );
 }
 
@@ -409,7 +369,7 @@ fn write_application_smoke_env_file(
         .expect("system clock before unix epoch")
         .as_nanos();
     let env_file = logs_dir.join(format!(
-        "command-api-feature-{unique_suffix}-{}.env",
+        "graphql-gateway-feature-{unique_suffix}-{}.env",
         std::process::id()
     ));
 
@@ -518,14 +478,7 @@ fn env_flag(key: &str) -> bool {
         .unwrap_or(false)
 }
 
-fn http_request(
-    host: &str,
-    port: u16,
-    method: &str,
-    path: &str,
-    authorization: Option<&str>,
-    body: Option<&str>,
-) -> HttpResponse {
+fn http_request(host: &str, port: u16, method: &str, path: &str) -> HttpResponse {
     let mut stream = TcpStream::connect((host, port))
         .unwrap_or_else(|error| panic!("failed to connect to {host}:{port}: {error}"));
     stream
@@ -535,19 +488,8 @@ fn http_request(
         .set_write_timeout(Some(Duration::from_secs(5)))
         .expect("write timeout should be configurable");
 
-    let payload = body.unwrap_or_default();
-    let mut request =
-        format!("{method} {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n");
-    if let Some(value) = authorization {
-        request.push_str(&format!("Authorization: {value}\r\n"));
-    }
-    if !payload.is_empty() {
-        request.push_str("Content-Type: application/json\r\n");
-        request.push_str(&format!("Content-Length: {}\r\n", payload.len()));
-    }
-    request.push_str("\r\n");
-    request.push_str(payload);
-
+    let request =
+        format!("{method} {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n\r\n");
     stream
         .write_all(request.as_bytes())
         .expect("request write should succeed");
@@ -561,15 +503,18 @@ fn http_request(
 }
 
 fn parse_http_response(raw_response: String) -> HttpResponse {
-    let mut parts = raw_response.splitn(2, "\r\n\r\n");
-    let headers = parts.next().unwrap_or_default();
-    let body = parts.next().unwrap_or_default().to_owned();
-    let status = headers
+    let (head, body) = raw_response
+        .split_once("\r\n\r\n")
+        .unwrap_or((raw_response.as_str(), ""));
+    let status = head
         .lines()
         .next()
-        .and_then(|line| line.split_whitespace().nth(1))
-        .and_then(|code| code.parse::<u16>().ok())
-        .unwrap_or(0);
+        .and_then(|status_line| status_line.split_whitespace().nth(1))
+        .and_then(|status| status.parse::<u16>().ok())
+        .unwrap_or(500);
 
-    HttpResponse { status, body }
+    HttpResponse {
+        status,
+        body: body.to_owned(),
+    }
 }

@@ -20,6 +20,8 @@ const DEFAULT_AUTH_PORT: u16 = 19099;
 const DEFAULT_READINESS_PATH: &str = "/readyz";
 const DEFAULT_READY_BUDGET_SECONDS: u64 = 120;
 const DEFAULT_EMULATOR_READY_BUDGET_SECONDS: &str = "300";
+const FEATURE_REUSE_ENV: &str = "VOCAS_FEATURE_REUSE_RUNNING";
+const FEATURE_SKIP_BUILD_ENV: &str = "VOCAS_FEATURE_SKIP_BUILD";
 
 struct ApplicationPorts {
     gateway: u16,
@@ -152,7 +154,7 @@ impl FeatureRuntime {
     }
 
     fn should_reuse_running_emulators(&self) -> bool {
-        env_flag("VOCAS_FEATURE_REUSE_RUNNING")
+        env_flag(FEATURE_REUSE_ENV)
             || emulator_container_running(&self.repo_root)
             || self.firebase_ports_are_listening()
     }
@@ -192,7 +194,7 @@ impl FeatureRuntime {
 
     fn start_query_api(&mut self) {
         let mut args = compose_args(&self.env_file, &self.compose_file, &["up", "-d"]);
-        if !env_flag("VOCAS_FEATURE_SKIP_BUILD") {
+        if !env_flag(FEATURE_SKIP_BUILD_ENV) {
             args.push("--build".to_owned());
         }
         args.push(QUERY_API_SERVICE.to_owned());

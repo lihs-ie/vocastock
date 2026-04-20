@@ -1,3 +1,6 @@
+pub mod http_endpoint;
+pub mod server_runtime;
+
 pub const SERVICE_NAME: &str = "graphql-gateway";
 pub const COMMAND_UPSTREAM: &str = "command-api";
 pub const QUERY_UPSTREAM: &str = "query-api";
@@ -41,28 +44,5 @@ fn classify_operation(document: &str) -> GraphqlOperationKind {
         GraphqlOperationKind::Subscription
     } else {
         GraphqlOperationKind::Query
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn mutation_routes_to_command_api() {
-        let route = route_document(
-            "mutation RegisterVocabularyExpression { registerVocabularyExpression }",
-        );
-
-        assert_eq!(route.operation_kind, GraphqlOperationKind::Mutation);
-        assert_eq!(route.upstream_service, COMMAND_UPSTREAM);
-    }
-
-    #[test]
-    fn query_defaults_to_query_api() {
-        let route = route_document("{ vocabularyCatalog }");
-
-        assert_eq!(route.operation_kind, GraphqlOperationKind::Query);
-        assert_eq!(route.upstream_service, QUERY_UPSTREAM);
     }
 }

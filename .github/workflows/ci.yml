@@ -82,6 +82,33 @@ jobs:
           path: .artifacts/ci
           if-no-files-found: ignore
 
+  rust-quality:
+    name: rust-quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    needs: toolchain-validate
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Detect Rust quality execution mode
+        id: rust-changes
+        env:
+          VOCAS_RUST_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          VOCAS_RUST_HEAD_SHA: ${{ github.sha }}
+        run: bash scripts/ci/detect_rust_changes.sh --base "${VOCAS_RUST_BASE_SHA}" --head "${VOCAS_RUST_HEAD_SHA}"
+      - name: Install and verify toolchains
+        if: ${{ steps.rust-changes.outputs.execution_mode == 'full' }}
+        run: bash scripts/ci/install_toolchains.sh
+      - name: Run Rust quality checks
+        run: bash scripts/ci/run_rust_quality_checks.sh --mode "${{ steps.rust-changes.outputs.execution_mode }}"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ success() || failure() }}
+        with:
+          name: ci-metrics-rust-quality
+          path: .artifacts/ci
+          if-no-files-found: ignore
+
   android-build-smoke:
     name: android-build-smoke
     runs-on: ubuntu-24.04
@@ -139,6 +166,7 @@ jobs:
       - flutter-static-checks
       - emulator-smoke
       - application-container-smoke
+      - rust-quality
       - android-build-smoke
       - vulnerability-scan
     steps:
