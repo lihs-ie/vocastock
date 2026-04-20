@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
 use std::io::{BufRead, Write};
 
 use serde::Serialize;
@@ -13,6 +14,7 @@ use crate::runtime::{
 };
 
 const FIREBASE_DEPENDENCIES_PATH: &str = "/dependencies/firebase";
+const MAX_REQUEST_BODY_BYTES: usize = 16 * 1024;
 const ROOT_PATH: &str = "/";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -30,7 +32,35 @@ pub struct RenderedResponse {
     pub body: String,
 }
 
-pub fn read_request(reader: &mut impl BufRead) -> std::io::Result<Request> {
+#[derive(Debug)]
+pub enum RequestReadError {
+    Io(std::io::Error),
+    PayloadTooLarge {
+        declared_length: usize,
+        max_length: usize,
+    },
+}
+
+impl Display for RequestReadError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Io(error) => Display::fmt(error, f),
+            Self::PayloadTooLarge { max_length, .. } => {
+                write!(f, "request body exceeds maximum size of {max_length} bytes")
+            }
+        }
+    }
+}
+
+impl std::error::Error for RequestReadError {}
+
+impl From<std::io::Error> for RequestReadError {
+    fn from(error: std::io::Error) -> Self {
+        Self::Io(error)
+    }
+}
+
+pub fn read_request(reader: &mut impl BufRead) -> Result<Request, RequestReadError> {
     let mut request_line = String::new();
     let mut headers = HashMap::new();
     reader.read_line(&mut request_line)?;
@@ -51,6 +81,12 @@ pub fn read_request(reader: &mut impl BufRead) -> std::io::Result<Request> {
         .get("content-length")
         .and_then(|value| value.parse::<usize>().ok())
         .unwrap_or(0);
+    if content_length > MAX_REQUEST_BODY_BYTES {
+        return Err(RequestReadError::PayloadTooLarge {
+            declared_length: content_length,
+            max_length: MAX_REQUEST_BODY_BYTES,
+        });
+    }
     let mut body_bytes = vec![0; content_length];
     if content_length > 0 {
         reader.read_exact(&mut body_bytes)?;
@@ -111,20 +147,20 @@ fn register_command_response(
         verifier,
     ) {
         Ok(actor_context) => actor_context,
-        Err(failure) => return json_response(failure.http_status(), &failure),
+        Err(failure) => return render_command_failure(&failure),
     };
 
     let command = match parse_register_command(&request.body, &actor_context) {
         Ok(command) => command,
         Err(error) => {
             let failure = validation_failure(&error);
-            return json_response(failure.http_status(), &failure);
+            return render_command_failure(&failure);
         }
     };
 
     match accept_register_command(&command, store, dispatcher) {
         Ok(result) => json_response("202 Accepted", &result),
-        Err(failure) => json_response(failure.http_status(), &failure),
+        Err(failure) => render_command_failure(&failure),
     }
 }
 
@@ -198,6 +234,10 @@ fn request_method(request_line: &str) -> &str {
 
 fn request_path(request_line: &str) -> &str {
     request_line.split_whitespace().nth(1).unwrap_or(ROOT_PATH)
+}
+
+pub fn render_command_failure(failure: &CommandFailure) -> RenderedResponse {
+    json_response(failure.http_status(), failure)
 }
 
 fn json_response(status: &'static str, payload: &impl Serialize) -> RenderedResponse {

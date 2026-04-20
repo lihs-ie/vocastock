@@ -1,6 +1,5 @@
 use crate::runtime::{
-    status_handle_for, InMemoryCommandStore, InMemoryDispatchPort, EXPLANATION_STATE_NOT_STARTED,
-    REGISTERED_STATE, REGISTER_VOCABULARY_EXPRESSION_PATH, STATUS_HANDLE_PREFIX,
+    status_handle_for, InMemoryCommandStore, InMemoryDispatchPort, REGISTERED_STATE,
 };
 
 use super::request::RegisterVocabularyExpressionCommand;
@@ -104,15 +103,9 @@ pub fn accept_register_command(
 
 fn accepted_message(start_explanation: bool) -> String {
     if start_explanation {
-        format!(
-            "{} accepted and queued for explanation dispatch",
-            REGISTER_VOCABULARY_EXPRESSION_PATH
-        )
+        "registration accepted and queued for explanation dispatch".to_owned()
     } else {
-        format!(
-            "{} accepted without explanation dispatch",
-            REGISTER_VOCABULARY_EXPRESSION_PATH
-        )
+        "registration accepted without explanation dispatch".to_owned()
     }
 }
 
@@ -122,9 +115,4 @@ fn reused_existing_message(restarted: bool) -> String {
     } else {
         "existing registration reused without explanation restart".to_owned()
     }
-}
-
-#[allow(dead_code)]
-fn _coverage_anchor() -> (&'static str, &'static str) {
-    (STATUS_HANDLE_PREFIX, EXPLANATION_STATE_NOT_STARTED)
 }

@@ -193,11 +193,23 @@ fn fingerprint_for(command: &RegisterVocabularyExpressionCommand) -> RequestFing
 }
 
 fn scoped_registration_key(actor_reference: &str, normalized_text: &str) -> String {
-    format!("{actor_reference}:{normalized_text}")
+    scoped_key(actor_reference, normalized_text)
 }
 
 fn scoped_idempotency_key(actor_reference: &str, idempotency_key: &str) -> String {
-    format!("{actor_reference}:{idempotency_key}")
+    scoped_key(actor_reference, idempotency_key)
+}
+
+fn scoped_key(actor_reference: &str, value: &str) -> String {
+    format!(
+        "{}|{}",
+        length_prefixed(actor_reference),
+        length_prefixed(value)
+    )
+}
+
+fn length_prefixed(value: &str) -> String {
+    format!("{}:{value}", value.len())
 }
 
 fn duplicate_reuse_plan(

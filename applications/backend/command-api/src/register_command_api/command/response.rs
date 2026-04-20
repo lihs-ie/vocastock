@@ -135,6 +135,14 @@ impl CommandFailure {
         )
     }
 
+    pub fn payload_too_large(max_length: usize) -> Self {
+        Self::new(
+            "payload-too-large",
+            format!("request body exceeds maximum size of {max_length} bytes"),
+            false,
+        )
+    }
+
     pub fn internal_failure(message: impl Into<String>) -> Self {
         Self::new("internal-failure", message, true)
     }
@@ -145,6 +153,7 @@ impl CommandFailure {
             "reauth-required" | "ownership-mismatch" => "403 Forbidden",
             "validation-failed" => "400 Bad Request",
             "idempotency-conflict" => "409 Conflict",
+            "payload-too-large" => "413 Payload Too Large",
             "dispatch-failed" => "503 Service Unavailable",
             _ => "500 Internal Server Error",
         }

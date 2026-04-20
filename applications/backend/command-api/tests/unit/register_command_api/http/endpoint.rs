@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use command_api::{
     read_request, route_request, write_response, InMemoryCommandStore, InMemoryDispatchPort,
-    RenderedResponse, StubTokenVerifier,
+    RenderedResponse, RequestReadError, StubTokenVerifier,
 };
 
 use crate::support::{active_actor, env_lock, register_command_json, request};
@@ -30,6 +30,28 @@ fn read_request_parses_method_path_headers_and_body() {
         Some("value")
     );
     assert_eq!(request.body, "{\"body\":\"ok\"}");
+}
+
+#[test]
+fn read_request_rejects_oversized_body_before_allocation() {
+    let oversized_length = 16 * 1024 + 1;
+    let raw = format!(
+        "POST /commands/register-vocabulary-expression HTTP/1.1\r\nContent-Length: {oversized_length}\r\n\r\n"
+    );
+    let mut reader = Cursor::new(raw.into_bytes());
+
+    let error = read_request(&mut reader).expect_err("oversized request should fail");
+
+    match error {
+        RequestReadError::PayloadTooLarge {
+            declared_length,
+            max_length,
+        } => {
+            assert_eq!(declared_length, oversized_length);
+            assert!(max_length < declared_length);
+        }
+        other => panic!("unexpected error: {other:?}"),
+    }
 }
 
 #[test]

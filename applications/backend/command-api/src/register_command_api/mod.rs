@@ -8,7 +8,10 @@ pub use command::{
     RegisterVocabularyCommandEnvelope, RegisterVocabularyExpressionCommand, RequestValidationError,
     StateSummary, TargetReference,
 };
-pub use http::{read_request, route_request, write_response, RenderedResponse, Request};
+pub use http::{
+    read_request, render_command_failure, route_request, write_response, RenderedResponse, Request,
+    RequestReadError,
+};
 pub use runtime::{
     bind_listener, handle_connection, run_accept_loop, run_server, serve_incoming_stream,
     startup_message, status_handle_for, vocabulary_expression_for, DispatchOutcome, DispatchPlan,

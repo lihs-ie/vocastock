@@ -147,3 +147,69 @@ fn duplicate_reuse_restart_matrix_matches_contract() {
         other => panic!("unexpected reuse decision: {:?}", other),
     }
 }
+
+#[test]
+fn scoped_keys_do_not_collide_when_actor_or_value_contains_delimiters() {
+    let actor_with_delimiter = crate::support::actor("actor:team");
+    let actor_without_delimiter = crate::support::actor("actor");
+    let store = InMemoryCommandStore::default();
+
+    let first = command(&actor_with_delimiter, "member", "topic", true);
+    let first_result = AcceptedCommandResult::new(
+        AcceptanceOutcome::Accepted,
+        AcceptedCommandFields {
+            target: TargetReference {
+                vocabulary_expression: "vocabulary:topic".to_owned(),
+            },
+            state: StateSummary {
+                registration: "registered".to_owned(),
+                explanation: EXPLANATION_STATE_QUEUED.to_owned(),
+            },
+            status_handle: "status:actor:team:vocabulary:topic".to_owned(),
+            message: "accepted".to_owned(),
+            replayed_by_idempotency: false,
+            duplicate_reuse: None,
+        },
+    );
+    let first_plan = match store.plan(&first) {
+        StoreDecision::AcceptNew(plan) => plan,
+        other => panic!("unexpected decision: {:?}", other),
+    };
+    store.commit_new(&first, &first_plan, &first_result);
+
+    let second = command(&actor_without_delimiter, "team:member", "topic", true);
+    let second_result = AcceptedCommandResult::new(
+        AcceptanceOutcome::Accepted,
+        AcceptedCommandFields {
+            target: TargetReference {
+                vocabulary_expression: "vocabulary:topic".to_owned(),
+            },
+            state: StateSummary {
+                registration: "registered".to_owned(),
+                explanation: EXPLANATION_STATE_QUEUED.to_owned(),
+            },
+            status_handle: "status:actor:vocabulary:topic".to_owned(),
+            message: "accepted".to_owned(),
+            replayed_by_idempotency: false,
+            duplicate_reuse: None,
+        },
+    );
+    let second_plan = match store.plan(&second) {
+        StoreDecision::AcceptNew(plan) => plan,
+        other => panic!("unexpected decision: {:?}", other),
+    };
+    store.commit_new(&second, &second_plan, &second_result);
+
+    assert!(store
+        .registration_for(actor_with_delimiter.actor().as_str(), "topic")
+        .is_some());
+    assert!(store
+        .registration_for(actor_without_delimiter.actor().as_str(), "topic")
+        .is_some());
+    assert!(store
+        .idempotency_result_for(actor_with_delimiter.actor().as_str(), "member")
+        .is_some());
+    assert!(store
+        .idempotency_result_for(actor_without_delimiter.actor().as_str(), "team:member")
+        .is_some());
+}

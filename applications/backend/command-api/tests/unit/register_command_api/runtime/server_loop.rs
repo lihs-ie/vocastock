@@ -78,6 +78,44 @@ fn handle_connection_serves_readyz_request() {
 }
 
 #[test]
+fn handle_connection_returns_413_for_oversized_request_body() {
+    let listener = TcpListener::bind(("127.0.0.1", 0)).expect("listener should bind");
+    let address = listener
+        .local_addr()
+        .expect("listener address should resolve");
+
+    let server = thread::spawn(move || {
+        let (stream, _) = listener.accept().expect("connection should be accepted");
+        handle_connection(
+            stream,
+            "/readyz",
+            &StubTokenVerifier,
+            &InMemoryCommandStore::default(),
+            &InMemoryDispatchPort::default(),
+        )
+        .expect("connection should be handled");
+    });
+
+    let mut client = TcpStream::connect(address).expect("client should connect");
+    client
+        .write_all(
+            b"POST /commands/register-vocabulary-expression HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 16385\r\n\r\n",
+        )
+        .expect("request should write");
+    client.flush().expect("request should flush");
+
+    let mut response = String::new();
+    client
+        .read_to_string(&mut response)
+        .expect("response should read");
+
+    server.join().expect("server thread should join");
+
+    assert!(response.starts_with("HTTP/1.1 413 Payload Too Large\r\n"));
+    assert!(response.contains("\"code\":\"payload-too-large\""));
+}
+
+#[test]
 fn server_loop_helpers_cover_bind_message_and_error_passthrough() {
     let config = ServerConfig {
         host: "127.0.0.1".to_owned(),

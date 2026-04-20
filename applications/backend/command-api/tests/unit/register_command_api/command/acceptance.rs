@@ -41,7 +41,27 @@ fn accept_new_command_can_skip_dispatch() {
     assert_eq!(result.acceptance, "accepted");
     assert_eq!(result.state.explanation, EXPLANATION_STATE_NOT_STARTED);
     assert!(result.message.contains("without explanation dispatch"));
+    assert!(!result.message.contains("/commands/"));
     assert!(dispatcher.recorded_requests().is_empty());
+}
+
+#[test]
+fn accept_new_command_uses_human_readable_message() {
+    let actor = active_actor();
+    let store = InMemoryCommandStore::default();
+    let dispatcher = InMemoryDispatchPort::default();
+    let request = command(&actor, "req-message", "spoken term", true);
+
+    let result =
+        accept_register_command(&request, &store, &dispatcher).expect("command should be accepted");
+
+    assert_eq!(
+        result.message,
+        "registration accepted and queued for explanation dispatch"
+    );
+    assert!(!result
+        .message
+        .contains("/commands/register-vocabulary-expression"));
 }
 
 #[test]

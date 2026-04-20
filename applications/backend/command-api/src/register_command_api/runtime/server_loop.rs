@@ -2,7 +2,10 @@ use std::env;
 use std::io::BufReader;
 use std::net::{TcpListener, TcpStream};
 
-use crate::http::{read_request, route_request, write_response};
+use crate::command::CommandFailure;
+use crate::http::{
+    read_request, render_command_failure, route_request, write_response, RequestReadError,
+};
 
 use super::{InMemoryCommandStore, InMemoryDispatchPort, StubTokenVerifier, SERVICE_NAME};
 
@@ -102,11 +105,16 @@ pub fn handle_connection(
     store: &InMemoryCommandStore,
     dispatcher: &InMemoryDispatchPort,
 ) -> std::io::Result<()> {
-    let request = {
+    let response = {
         let mut reader = BufReader::new(&mut stream);
-        read_request(&mut reader)?
+        match read_request(&mut reader) {
+            Ok(request) => route_request(&request, readiness_path, verifier, store, dispatcher),
+            Err(RequestReadError::PayloadTooLarge { max_length, .. }) => {
+                render_command_failure(&CommandFailure::payload_too_large(max_length))
+            }
+            Err(RequestReadError::Io(error)) => return Err(error),
+        }
     };
-    let response = route_request(&request, readiness_path, verifier, store, dispatcher);
 
     write_response(&mut stream, &response)
 }
