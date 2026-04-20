@@ -68,13 +68,30 @@ is_rust_related_path() {
     Cargo.toml|Cargo.lock|.github/workflows/ci.yml|scripts/lib/vocastock_env.sh)
       return 0
       ;;
-    applications/backend/*|packages/rust/*|docker/applications/*|docker/firebase/*|scripts/ci/*|scripts/firebase/*)
+    docker/applications/*|docker/firebase/*|scripts/ci/*|scripts/firebase/*)
       return 0
       ;;
     *)
-      return 1
       ;;
   esac
+
+  if [[ "$changed_path" == applications/backend/* ]]; then
+    case "$changed_path" in
+      *.rs|*/Cargo.toml)
+        return 0
+        ;;
+    esac
+  fi
+
+  if [[ "$changed_path" == packages/rust/* ]]; then
+    case "$changed_path" in
+      *.rs|*/Cargo.toml)
+        return 0
+        ;;
+    esac
+  fi
+
+  return 1
 }
 
 resolved_base_ref="$(resolve_base_ref "$base_ref")"

@@ -88,13 +88,18 @@ render_summary() {
 }
 
 cleanup() {
+  local stage_value
+
   if (( started_emulators == 1 )); then
     bash "$SCRIPT_DIR/../firebase/stop_emulators.sh" >/dev/null 2>&1 || true
   fi
 
-  if [[ "$run_result" != "success" ]]; then
-    printf "%s\n" "$current_stage" > "$stage_file"
+  if [[ "$run_result" == "success" ]]; then
+    stage_value="completed"
+  else
+    stage_value="$current_stage"
   fi
+  printf "%s\n" "$stage_value" > "$stage_file"
 
   render_summary
   elapsed="$(( $(date +%s) - start_epoch ))"
