@@ -38,6 +38,8 @@
       owning application boundary; shared packages are limited to sidecar concerns
       such as logging, monitoring, auth/session handoff, request correlation, and
       runtime probes.
+- [ ] Inner layer package or module boundaries for every affected application are
+      defined in the plan, including ownership and allowed dependency direction.
 - [ ] Async generation flows define lifecycle states, idempotent retry behavior, and
       user-visible status rules; incomplete generated results are never exposed to users.
 - [ ] All external AI, storage, media, and validation dependencies are introduced behind

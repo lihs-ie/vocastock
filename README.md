@@ -24,6 +24,8 @@
   coordination を置かない
 - domain model と workflow / use-case coordination は owning application 配下に定義し、
   application 間で shared executable domain package を作らない
+- 設計時点で、各 application の inner layer package / module の名前、配置先、依存方向を
+  `plan.md` に定義してから実装に入る
 - 生成中または失敗中の中間生成結果はユーザーへ表示せず、完了済みの結果のみ表示する
 - 識別子型は `XxxIdentifier` と命名し、`id` / `ID` / `xxxId` は使用しない
 - 集約自身の識別子フィールド名は `identifier`、他概念の識別子フィールド名は
