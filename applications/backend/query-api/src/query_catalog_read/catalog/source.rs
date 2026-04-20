@@ -32,7 +32,10 @@ impl ProjectionSourceRecord {
 }
 
 pub trait CatalogProjectionSource {
-    fn records_for_actor(&self, actor_context: &VerifiedActorContext) -> Vec<ProjectionSourceRecord>;
+    fn records_for_actor(
+        &self,
+        actor_context: &VerifiedActorContext,
+    ) -> Vec<ProjectionSourceRecord>;
 }
 
 #[derive(Clone, Debug)]

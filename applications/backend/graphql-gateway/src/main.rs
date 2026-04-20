@@ -38,7 +38,11 @@ fn main() {
         match stream {
             Ok(stream) => {
                 if let Err(error) = handle_connection(stream, readiness_path.as_str()) {
-                    eprintln!("{} request handling error: {}", graphql_gateway::SERVICE_NAME, error);
+                    eprintln!(
+                        "{} request handling error: {}",
+                        graphql_gateway::SERVICE_NAME,
+                        error
+                    );
                 }
             }
             Err(error) => {
@@ -91,10 +95,7 @@ fn firebase_dependency_response(stream: &mut TcpStream) -> std::io::Result<()> {
 }
 
 fn request_path(request_line: &str) -> &str {
-    request_line
-        .split_whitespace()
-        .nth(1)
-        .unwrap_or("/")
+    request_line.split_whitespace().nth(1).unwrap_or("/")
 }
 
 fn respond(stream: &mut TcpStream, status: &str, body: &str) -> std::io::Result<()> {

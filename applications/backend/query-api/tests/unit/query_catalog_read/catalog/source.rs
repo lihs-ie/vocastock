@@ -1,6 +1,5 @@
 use query_api::{
-    CatalogProjectionSource, InMemoryCatalogProjectionSource, ProjectionSourceRecord,
-    WorkflowState,
+    CatalogProjectionSource, InMemoryCatalogProjectionSource, ProjectionSourceRecord, WorkflowState,
 };
 
 use crate::support::{active_actor, empty_actor, other_actor};

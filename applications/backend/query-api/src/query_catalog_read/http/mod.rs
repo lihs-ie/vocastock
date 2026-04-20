@@ -1,3 +1,3 @@
 mod endpoint;
 
-pub use endpoint::{RenderedResponse, Request, read_request, route_request, write_response};
+pub use endpoint::{read_request, route_request, write_response, RenderedResponse, Request};

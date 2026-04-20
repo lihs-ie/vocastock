@@ -5,8 +5,14 @@ use query_api::{
 
 #[test]
 fn workflow_state_status_reasons_cover_all_variants() {
-    assert_eq!(WorkflowState::Queued.status_reason(false), "explanation is queued");
-    assert_eq!(WorkflowState::Running.status_reason(false), "explanation is running");
+    assert_eq!(
+        WorkflowState::Queued.status_reason(false),
+        "explanation is queued"
+    );
+    assert_eq!(
+        WorkflowState::Running.status_reason(false),
+        "explanation is running"
+    );
     assert_eq!(
         WorkflowState::RetryScheduled.status_reason(false),
         "explanation is waiting for retry"

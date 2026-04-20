@@ -50,7 +50,9 @@ mod tests {
 
     #[test]
     fn mutation_routes_to_command_api() {
-        let route = route_document("mutation RegisterVocabularyExpression { registerVocabularyExpression }");
+        let route = route_document(
+            "mutation RegisterVocabularyExpression { registerVocabularyExpression }",
+        );
 
         assert_eq!(route.operation_kind, GraphqlOperationKind::Mutation);
         assert_eq!(route.upstream_service, COMMAND_UPSTREAM);

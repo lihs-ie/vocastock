@@ -4,9 +4,9 @@ use std::io::{BufRead, Write};
 use serde::Serialize;
 
 use crate::{
-    CatalogReadError, CatalogProjectionSource, InMemoryCatalogProjectionSource, ROOT_MESSAGE,
-    SERVICE_NAME, StubTokenVerifier, VOCABULARY_CATALOG_PATH,
-    read_catalog_from_authorization_header,
+    read_catalog_from_authorization_header, CatalogProjectionSource, CatalogReadError,
+    InMemoryCatalogProjectionSource, StubTokenVerifier, ROOT_MESSAGE, SERVICE_NAME,
+    VOCABULARY_CATALOG_PATH,
 };
 
 const FIREBASE_DEPENDENCIES_PATH: &str = "/dependencies/firebase";
@@ -62,15 +62,12 @@ pub fn route_request(
     source: &InMemoryCatalogProjectionSource,
 ) -> RenderedResponse {
     match (request.method.as_str(), request.path.as_str()) {
-        ("GET", path) if path == readiness_path => text_response(
-            "200 OK",
-            format!("{SERVICE_NAME} ready"),
-        ),
+        ("GET", path) if path == readiness_path => {
+            text_response("200 OK", format!("{SERVICE_NAME} ready"))
+        }
         ("GET", FIREBASE_DEPENDENCIES_PATH) => firebase_dependency_response(),
         ("GET", ROOT_PATH) => text_response("200 OK", ROOT_MESSAGE.to_owned()),
-        ("GET", VOCABULARY_CATALOG_PATH) => {
-            vocabulary_catalog_response(request, verifier, source)
-        }
+        ("GET", VOCABULARY_CATALOG_PATH) => vocabulary_catalog_response(request, verifier, source),
         ("POST" | "PUT" | "PATCH" | "DELETE", VOCABULARY_CATALOG_PATH) => json_response(
             "405 Method Not Allowed",
             &ErrorResponse {
@@ -81,10 +78,7 @@ pub fn route_request(
     }
 }
 
-pub fn write_response(
-    writer: &mut impl Write,
-    response: &RenderedResponse,
-) -> std::io::Result<()> {
+pub fn write_response(writer: &mut impl Write, response: &RenderedResponse) -> std::io::Result<()> {
     write!(
         writer,
         "HTTP/1.1 {}\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",

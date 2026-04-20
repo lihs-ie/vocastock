@@ -21,6 +21,15 @@ const DEFAULT_READINESS_PATH: &str = "/readyz";
 const DEFAULT_READY_BUDGET_SECONDS: u64 = 120;
 const DEFAULT_EMULATOR_READY_BUDGET_SECONDS: &str = "300";
 
+struct ApplicationPorts {
+    gateway: u16,
+    command: u16,
+    query: u16,
+    firestore: u16,
+    storage: u16,
+    auth: u16,
+}
+
 pub struct FeatureRuntime {
     _lock: MutexGuard<'static, ()>,
     repo_root: PathBuf,
@@ -83,16 +92,16 @@ impl FeatureRuntime {
             &[gateway_port, command_port],
         );
 
-        let env_file = write_application_smoke_env_file(
-            &repo_root,
-            &app_env_file,
-            gateway_port,
-            command_port,
-            query_port,
-            firestore_port,
-            storage_port,
-            auth_port,
-        );
+        let ports = ApplicationPorts {
+            gateway: gateway_port,
+            command: command_port,
+            query: query_port,
+            firestore: firestore_port,
+            storage: storage_port,
+            auth: auth_port,
+        };
+
+        let env_file = write_application_smoke_env_file(&repo_root, &app_env_file, &ports);
 
         let mut runtime = Self {
             _lock: lock,
@@ -365,12 +374,7 @@ fn port_is_listening(port: u16) -> bool {
 fn write_application_smoke_env_file(
     repo_root: &Path,
     base_env_file: &Path,
-    gateway_port: u16,
-    command_port: u16,
-    query_port: u16,
-    firestore_port: u16,
-    storage_port: u16,
-    auth_port: u16,
+    ports: &ApplicationPorts,
 ) -> PathBuf {
     let logs_dir = repo_root.join(".artifacts/ci/logs");
     fs::create_dir_all(&logs_dir)
@@ -396,15 +400,23 @@ fn write_application_smoke_env_file(
     }
     contents.push_str(&format!(
         "\
-GRAPHQL_GATEWAY_PORT={gateway_port}
-COMMAND_API_PORT={command_port}
-QUERY_API_PORT={query_port}
-VOCAS_COMMAND_UPSTREAM_BASE_URL=http://command-api:{command_port}
-VOCAS_QUERY_UPSTREAM_BASE_URL=http://query-api:{query_port}
-FIRESTORE_EMULATOR_HOST=host.docker.internal:{firestore_port}
-STORAGE_EMULATOR_HOST=host.docker.internal:{storage_port}
-FIREBASE_AUTH_EMULATOR_HOST=host.docker.internal:{auth_port}
-"
+GRAPHQL_GATEWAY_PORT={}
+COMMAND_API_PORT={}
+QUERY_API_PORT={}
+VOCAS_COMMAND_UPSTREAM_BASE_URL=http://command-api:{}
+VOCAS_QUERY_UPSTREAM_BASE_URL=http://query-api:{}
+FIRESTORE_EMULATOR_HOST=host.docker.internal:{}
+STORAGE_EMULATOR_HOST=host.docker.internal:{}
+FIREBASE_AUTH_EMULATOR_HOST=host.docker.internal:{}
+",
+        ports.gateway,
+        ports.command,
+        ports.query,
+        ports.command,
+        ports.query,
+        ports.firestore,
+        ports.storage,
+        ports.auth
     ));
 
     fs::write(&env_file, contents)
