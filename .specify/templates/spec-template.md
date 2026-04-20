@@ -85,6 +85,12 @@
 - **Domain Models Affected**: [List the `docs/internal/domain/*.md` files to create or update, or state "None"]
 - **Invariants / Terminology**: [Describe how frequency, sophistication, proficiency,
   registration state, explanation state, and image state remain distinct]
+- **Application Ownership Rule**: [Identify which application owns the affected domain
+  model and confirm that shared packages remain limited to sidecar concerns rather than
+  executable domain logic]
+- **Inner Layer Package Plan**: [Describe the inner layer packages or modules that will
+  be defined during design for each affected application, including ownership and
+  dependency direction]
 - **Async Lifecycle**: [Describe pending/running/succeeded/failed states, retry behavior,
   and idempotency expectations]
 - **User Visibility Rule**: [Confirm that only completed generated results are shown to

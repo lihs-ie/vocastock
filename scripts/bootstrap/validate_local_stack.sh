@@ -35,4 +35,14 @@ fi
 
 bash "$SCRIPT_DIR/../ci/run_local_stack_smoke.sh" "${smoke_args[@]}"
 
+if (( with_application_containers == 1 )); then
+  summary_file="$(vocas_application_smoke_summary_file)"
+  [[ -f "$summary_file" ]] || vocas_die "missing application smoke summary: $summary_file"
+
+  while IFS= read -r validation_scenario; do
+    grep -q "^explanation_worker_validation.${validation_scenario}=" "$summary_file" \
+      || vocas_die "missing explanation-worker validation record for ${validation_scenario}"
+  done < <(vocas_explanation_worker_validation_scenarios)
+fi
+
 vocas_log "local stack validation passed"

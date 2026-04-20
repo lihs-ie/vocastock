@@ -1,0 +1,79 @@
+cabal-version: 3.4
+name: explanation-worker
+version: 0.1.0.0
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  exposed-modules:
+      ExplanationWorker.WorkItemContract
+      ExplanationWorker.WorkflowStateMachine
+      ExplanationWorker.GenerationPort
+      ExplanationWorker.ExplanationPersistence
+      ExplanationWorker.CurrentExplanationHandoff
+      ExplanationWorker.FailureSummary
+      ExplanationWorker.RuntimeHttp
+      ExplanationWorker.WorkerRuntime
+  build-depends:
+      base >=4.15 && <5
+    , aeson
+    , servant
+    , servant-server
+    , wai
+    , warp
+  default-language: GHC2021
+
+executable explanation-worker
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends:
+      base >=4.15 && <5
+    , explanation-worker
+  default-language: GHC2021
+
+test-suite unit
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests/unit
+      tests/support
+  other-modules:
+      ExplanationWorker.WorkItemContractSpec
+      ExplanationWorker.WorkflowStateMachineSpec
+      ExplanationWorker.GenerationPortSpec
+      ExplanationWorker.ExplanationPersistenceSpec
+      ExplanationWorker.CurrentExplanationHandoffSpec
+      ExplanationWorker.FailureSummarySpec
+      ExplanationWorker.RuntimeHttpSpec
+      ExplanationWorker.WorkerRuntimeSpec
+      TestSupport
+  build-depends:
+      base >=4.15 && <5
+    , aeson
+    , bytestring
+    , explanation-worker
+    , http-types
+    , text
+    , wai
+    , wai-extra
+  default-language: GHC2021
+
+test-suite feature
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests/feature
+      tests/support
+  other-modules:
+      ExplanationWorker.FeatureSpec
+      FeatureSupport
+      TestSupport
+  build-depends:
+      base >=4.15 && <5
+    , containers
+    , directory
+    , filepath
+    , explanation-worker
+    , process
+    , time
+  default-language: GHC2021

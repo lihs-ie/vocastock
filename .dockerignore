@@ -15,6 +15,7 @@ node_modules
 .firebase
 .artifacts
 target
+dist-newstyle
 .env
 .env.local
 .env.*

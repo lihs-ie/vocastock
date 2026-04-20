@@ -66,12 +66,16 @@ contract, or integration tests.
 Examples of foundational tasks (adjust based on your project):
 
 - [ ] T004 Update impacted domain documents in `docs/internal/domain/`
-- [ ] T005 [P] Normalize identifier naming across aggregates, value objects, and contracts
-- [ ] T006 [P] Define async job states, retry policy, and idempotent command handling
-- [ ] T007 [P] Introduce ports/adapters for AI, storage, media, or validation dependencies
-- [ ] T008 Create base models/entities that all stories depend on
-- [ ] T009 Enforce user-visible status rules so only completed generated results are shown
-- [ ] T010 Configure error handling, logging, and environment configuration
+- [ ] T005 [P] Place domain models and application coordination inside the owning
+      application source tree and keep shared packages sidecar-only
+- [ ] T006 [P] Define inner layer packages or modules for each affected application,
+      including ownership and allowed dependency direction
+- [ ] T007 [P] Normalize identifier naming across aggregates, value objects, and contracts
+- [ ] T008 [P] Define async job states, retry policy, and idempotent command handling
+- [ ] T009 [P] Introduce ports/adapters for AI, storage, media, or validation dependencies
+- [ ] T010 Create base models/entities that all stories depend on
+- [ ] T011 Enforce user-visible status rules so only completed generated results are shown
+- [ ] T012 Configure error handling, logging, and environment configuration
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -87,18 +91,18 @@ Examples of foundational tasks (adjust based on your project):
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T011 [P] [US1] Domain invariant test in tests/unit/test_[domain_concept].py
-- [ ] T012 [P] [US1] Contract test for [endpoint/adapter] in tests/contract/test_[name].py
-- [ ] T013 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T013 [P] [US1] Domain invariant test in tests/unit/test_[domain_concept].py
+- [ ] T014 [P] [US1] Contract test for [endpoint/adapter] in tests/contract/test_[name].py
+- [ ] T015 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 1
 
-- [ ] T014 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T015 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T016 [US1] Implement [Service] in src/services/[service].py (depends on T014, T015)
-- [ ] T017 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T018 [US1] Add validation and error handling
-- [ ] T019 [US1] Add logging and generated-result visibility control for user story 1
+- [ ] T016 [P] [US1] Create [Entity1] model in src/models/[entity1].py
+- [ ] T017 [P] [US1] Create [Entity2] model in src/models/[entity2].py
+- [ ] T018 [US1] Implement [Service] in src/services/[service].py (depends on T016, T017)
+- [ ] T019 [US1] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T020 [US1] Add validation and error handling
+- [ ] T021 [US1] Add logging and generated-result visibility control for user story 1
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -112,16 +116,16 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (include when required by spec or constitution) ⚠️
 
-- [ ] T020 [P] [US2] Domain invariant or state-transition test in tests/unit/test_[name].py
-- [ ] T021 [P] [US2] Contract test for [endpoint/adapter] in tests/contract/test_[name].py
-- [ ] T022 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T022 [P] [US2] Domain invariant or state-transition test in tests/unit/test_[name].py
+- [ ] T023 [P] [US2] Contract test for [endpoint/adapter] in tests/contract/test_[name].py
+- [ ] T024 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 2
 
-- [ ] T023 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T024 [US2] Implement [Service] in src/services/[service].py
-- [ ] T025 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T026 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T025 [P] [US2] Create [Entity] model in src/models/[entity].py
+- [ ] T026 [US2] Implement [Service] in src/services/[service].py
+- [ ] T027 [US2] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T028 [US2] Integrate with User Story 1 components (if needed)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -135,15 +139,15 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (include when required by spec or constitution) ⚠️
 
-- [ ] T027 [P] [US3] Domain invariant or state-transition test in tests/unit/test_[name].py
-- [ ] T028 [P] [US3] Contract test for [endpoint/adapter] in tests/contract/test_[name].py
-- [ ] T029 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T029 [P] [US3] Domain invariant or state-transition test in tests/unit/test_[name].py
+- [ ] T030 [P] [US3] Contract test for [endpoint/adapter] in tests/contract/test_[name].py
+- [ ] T031 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 3
 
-- [ ] T030 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T031 [US3] Implement [Service] in src/services/[service].py
-- [ ] T032 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T032 [P] [US3] Create [Entity] model in src/models/[entity].py
+- [ ] T033 [US3] Implement [Service] in src/services/[service].py
+- [ ] T034 [US3] Implement [endpoint/feature] in src/[location]/[file].py
 
 **Checkpoint**: All user stories should now be independently functional
 

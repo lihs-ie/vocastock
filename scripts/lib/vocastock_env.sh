@@ -261,6 +261,17 @@ vocas_application_smoke_env_file() {
   printf "%s/.artifacts/ci/logs/application-container-smoke.env\n" "$(vocas_repo_root)"
 }
 
+vocas_application_smoke_summary_file() {
+  printf "%s/.artifacts/ci/logs/application-container-smoke.summary\n" "$(vocas_repo_root)"
+}
+
+vocas_explanation_worker_validation_scenarios() {
+  printf "%s\n" \
+    "success" \
+    "retryable-failure" \
+    "terminal-failure"
+}
+
 vocas_prepare_application_smoke_env_file() {
   local base_env_file="$1"
   local smoke_env_file gateway_port command_port query_port

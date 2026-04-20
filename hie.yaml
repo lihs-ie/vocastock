@@ -1,0 +1,37 @@
+cradle:
+  multi:
+    - path: "./applications/backend/explanation-worker/app"
+      config:
+        cradle:
+          cabal:
+            component: "exe:explanation-worker"
+
+    - path: "./applications/backend/explanation-worker/src"
+      config:
+        cradle:
+          cabal:
+            component: "lib:explanation-worker"
+
+    - path: "./applications/backend/explanation-worker/tests/unit"
+      config:
+        cradle:
+          cabal:
+            component: "test:unit"
+
+    - path: "./applications/backend/explanation-worker/tests/feature"
+      config:
+        cradle:
+          cabal:
+            component: "test:feature"
+
+    - path: "./applications/backend/explanation-worker/tests/support/FeatureSupport.hs"
+      config:
+        cradle:
+          cabal:
+            component: "test:feature"
+
+    - path: "./applications/backend/explanation-worker/tests/support/TestSupport.hs"
+      config:
+        cradle:
+          cabal:
+            component: "test:unit"
