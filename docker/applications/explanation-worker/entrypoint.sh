@@ -7,8 +7,6 @@ poll_interval="${VOCAS_WORKER_POLL_INTERVAL_SECONDS:-30}"
 
 echo "[vocastock] ${worker_name} booting as long-running consumer"
 
-trap 'echo "[vocastock] ${worker_name} stopping"; exit 0' TERM INT
-
 check_dependency() {
   dependency_name="$1"
   endpoint="$2"
@@ -33,10 +31,8 @@ check_dependency "storage" "${STORAGE_EMULATOR_HOST:-}"
 check_dependency "auth" "${FIREBASE_AUTH_EMULATOR_HOST:-}"
 check_dependency "pubsub" "${PUBSUB_EMULATOR_HOST:-}"
 
-sleep "${stable_window}"
-echo "[vocastock] ${worker_name} entered stable-run mode"
+export VOCAS_WORKER_NAME="${worker_name}"
+export VOCAS_WORKER_STABLE_RUN_SECONDS="${stable_window}"
+export VOCAS_WORKER_POLL_INTERVAL_SECONDS="${poll_interval}"
 
-while :; do
-  echo "[vocastock] ${worker_name} awaiting queue/subscription work"
-  sleep "${poll_interval}"
-done
+exec /usr/local/bin/explanation-worker "$@"

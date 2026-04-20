@@ -1,0 +1,46 @@
+cabal-version: 3.4
+name: explanation-worker
+version: 0.1.0.0
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  exposed-modules:
+      ExplanationWorker.WorkItemContract
+      ExplanationWorker.WorkflowStateMachine
+      ExplanationWorker.GenerationPort
+      ExplanationWorker.ExplanationPersistence
+      ExplanationWorker.CurrentExplanationHandoff
+      ExplanationWorker.FailureSummary
+      ExplanationWorker.WorkerRuntime
+  build-depends:
+      base >=4.15 && <5
+  default-language: Haskell2010
+
+executable explanation-worker
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends:
+      base >=4.15 && <5
+    , explanation-worker
+  default-language: Haskell2010
+
+test-suite unit
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests/unit
+      tests/support
+  other-modules:
+      ExplanationWorker.WorkItemContractSpec
+      ExplanationWorker.WorkflowStateMachineSpec
+      ExplanationWorker.GenerationPortSpec
+      ExplanationWorker.ExplanationPersistenceSpec
+      ExplanationWorker.CurrentExplanationHandoffSpec
+      ExplanationWorker.FailureSummarySpec
+      ExplanationWorker.WorkerRuntimeSpec
+      TestSupport
+  build-depends:
+      base >=4.15 && <5
+    , explanation-worker
+  default-language: Haskell2010

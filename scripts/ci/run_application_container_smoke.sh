@@ -11,7 +11,7 @@ vocas_ensure_artifact_directories
 reuse_running=0
 skip_build=0
 failure_stage="compose-config"
-summary_file="$(vocas_repo_root)/.artifacts/ci/logs/application-container-smoke.summary"
+summary_file="$(vocas_application_smoke_summary_file)"
 stage_file="$(vocas_repo_root)/.artifacts/ci/logs/application-container-smoke.stage"
 
 for arg in "$@"; do
@@ -108,6 +108,46 @@ while IFS= read -r worker_service; do
     vocas_die "worker is not stably running: ${worker_service}"
   fi
 done < <(vocas_application_worker_services)
+
+failure_stage="explanation-worker-validation"
+while IFS= read -r validation_scenario; do
+  validation_log="$(vocas_repo_root)/.artifacts/ci/logs/explanation-worker-validation.${validation_scenario}.log"
+  if ! docker compose \
+    --env-file "$env_file" \
+    -f "$compose_file" \
+    run \
+    --rm \
+    --no-deps \
+    -e VOCAS_WORKER_RUN_MODE=validate \
+    -e VOCAS_EXPLANATION_WORKFLOW_SCENARIO="$validation_scenario" \
+    explanation-worker >"$validation_log" 2>&1 </dev/null; then
+    cat "$validation_log" >&2 || true
+    vocas_die "explanation-worker validation failed for scenario ${validation_scenario}"
+  fi
+
+  validation_line="$(grep '^VOCAS_EXPLANATION_RESULT ' "$validation_log" | tail -n 1 || true)"
+  [[ -n "$validation_line" ]] || vocas_die "missing explanation-worker validation result for ${validation_scenario}"
+
+  case "$validation_scenario" in
+    success)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=succeeded' \
+        || vocas_die "success validation did not reach succeeded"
+      ;;
+    retryable-failure)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=retry-scheduled-1' \
+        || vocas_die "retryable validation did not reach retry-scheduled"
+      ;;
+    terminal-failure)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=failed-final' \
+        || vocas_die "terminal validation did not reach failed-final"
+      ;;
+    *)
+      vocas_die "unsupported explanation-worker validation scenario: ${validation_scenario}"
+      ;;
+  esac
+
+  printf "explanation_worker_validation.%s=%s\n" "$validation_scenario" "$validation_line" >> "$summary_file"
+done < <(vocas_explanation_worker_validation_scenarios)
 
 elapsed="$(( $(date +%s) - start_epoch ))"
 vocas_write_duration "application-container-smoke" "$elapsed"

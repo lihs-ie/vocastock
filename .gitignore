@@ -122,6 +122,7 @@ app.*.symbols
 .artifacts/
 _build/
 target/
+dist-newstyle/
 
 # Application container local overrides
 docker/applications/env/.env
