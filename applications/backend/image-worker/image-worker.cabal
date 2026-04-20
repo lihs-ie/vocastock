@@ -1,0 +1,70 @@
+cabal-version: 3.4
+name: image-worker
+version: 0.1.0.0
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  exposed-modules:
+      ImageWorker.WorkItemContract
+      ImageWorker.TargetResolution
+      ImageWorker.WorkflowStateMachine
+      ImageWorker.ImageGenerationPort
+      ImageWorker.AssetStoragePort
+      ImageWorker.ImagePersistence
+      ImageWorker.CurrentImageHandoff
+      ImageWorker.FailureSummary
+      ImageWorker.WorkerRuntime
+  build-depends:
+      base >=4.15 && <5
+  default-language: GHC2021
+
+executable image-worker
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends:
+      base >=4.15 && <5
+    , image-worker
+  default-language: GHC2021
+
+test-suite unit
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests/unit
+      tests/support
+  other-modules:
+      ImageWorker.WorkItemContractSpec
+      ImageWorker.TargetResolutionSpec
+      ImageWorker.WorkflowStateMachineSpec
+      ImageWorker.ImageGenerationPortSpec
+      ImageWorker.AssetStoragePortSpec
+      ImageWorker.ImagePersistenceSpec
+      ImageWorker.CurrentImageHandoffSpec
+      ImageWorker.FailureSummarySpec
+      ImageWorker.WorkerRuntimeSpec
+      TestSupport
+  build-depends:
+      base >=4.15 && <5
+    , image-worker
+  default-language: GHC2021
+
+test-suite feature
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests/feature
+      tests/support
+  other-modules:
+      ImageWorker.FeatureSpec
+      FeatureSupport
+      TestSupport
+  build-depends:
+      base >=4.15 && <5
+    , containers
+    , directory
+    , filepath
+    , image-worker
+    , process
+    , time
+  default-language: GHC2021

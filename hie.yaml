@@ -35,3 +35,39 @@ cradle:
         cradle:
           cabal:
             component: "test:unit"
+
+    - path: "./applications/backend/image-worker/app"
+      config:
+        cradle:
+          cabal:
+            component: "exe:image-worker"
+
+    - path: "./applications/backend/image-worker/src"
+      config:
+        cradle:
+          cabal:
+            component: "lib:image-worker"
+
+    - path: "./applications/backend/image-worker/tests/unit"
+      config:
+        cradle:
+          cabal:
+            component: "test:unit"
+
+    - path: "./applications/backend/image-worker/tests/feature"
+      config:
+        cradle:
+          cabal:
+            component: "test:feature"
+
+    - path: "./applications/backend/image-worker/tests/support/FeatureSupport.hs"
+      config:
+        cradle:
+          cabal:
+            component: "test:feature"
+
+    - path: "./applications/backend/image-worker/tests/support/TestSupport.hs"
+      config:
+        cradle:
+          cabal:
+            component: "test:unit"

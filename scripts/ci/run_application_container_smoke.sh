@@ -149,6 +149,46 @@ while IFS= read -r validation_scenario; do
   printf "explanation_worker_validation.%s=%s\n" "$validation_scenario" "$validation_line" >> "$summary_file"
 done < <(vocas_explanation_worker_validation_scenarios)
 
+failure_stage="image-worker-validation"
+while IFS= read -r validation_scenario; do
+  validation_log="$(vocas_repo_root)/.artifacts/ci/logs/image-worker-validation.${validation_scenario}.log"
+  if ! docker compose \
+    --env-file "$env_file" \
+    -f "$compose_file" \
+    run \
+    --rm \
+    --no-deps \
+    -e VOCAS_WORKER_RUN_MODE=validate \
+    -e VOCAS_IMAGE_WORKFLOW_SCENARIO="$validation_scenario" \
+    image-worker >"$validation_log" 2>&1 </dev/null; then
+    cat "$validation_log" >&2 || true
+    vocas_die "image-worker validation failed for scenario ${validation_scenario}"
+  fi
+
+  validation_line="$(grep '^VOCAS_IMAGE_RESULT ' "$validation_log" | tail -n 1 || true)"
+  [[ -n "$validation_line" ]] || vocas_die "missing image-worker validation result for ${validation_scenario}"
+
+  case "$validation_scenario" in
+    success)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=succeeded' \
+        || vocas_die "image success validation did not reach succeeded"
+      ;;
+    retryable-failure)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=retry-scheduled-1' \
+        || vocas_die "image retryable validation did not reach retry-scheduled"
+      ;;
+    terminal-failure)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=failed-final' \
+        || vocas_die "image terminal validation did not reach failed-final"
+      ;;
+    *)
+      vocas_die "unsupported image-worker validation scenario: ${validation_scenario}"
+      ;;
+  esac
+
+  printf "image_worker_validation.%s=%s\n" "$validation_scenario" "$validation_line" >> "$summary_file"
+done < <(vocas_image_worker_validation_scenarios)
+
 elapsed="$(( $(date +%s) - start_epoch ))"
 vocas_write_duration "application-container-smoke" "$elapsed"
 vocas_print_budget_summary "application-container-smoke" "$elapsed" "$ready_budget"

@@ -43,6 +43,11 @@ if (( with_application_containers == 1 )); then
     grep -q "^explanation_worker_validation.${validation_scenario}=" "$summary_file" \
       || vocas_die "missing explanation-worker validation record for ${validation_scenario}"
   done < <(vocas_explanation_worker_validation_scenarios)
+
+  while IFS= read -r validation_scenario; do
+    grep -q "^image_worker_validation.${validation_scenario}=" "$summary_file" \
+      || vocas_die "missing image-worker validation record for ${validation_scenario}"
+  done < <(vocas_image_worker_validation_scenarios)
 fi
 
 vocas_log "local stack validation passed"
