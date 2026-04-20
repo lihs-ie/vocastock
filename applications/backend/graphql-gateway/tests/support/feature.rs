@@ -356,7 +356,9 @@ impl StubResponse {
 
 impl StubServer {
     pub fn start(response: StubResponse) -> Self {
-        let listener = TcpListener::bind(("127.0.0.1", 0)).expect("stub listener should bind");
+        // Containers reach the host through host-gateway on Linux runners, so loopback-only
+        // listeners are not visible from docker compose services during feature tests.
+        let listener = TcpListener::bind(("0.0.0.0", 0)).expect("stub listener should bind");
         let port = listener
             .local_addr()
             .expect("listener address should resolve")
@@ -420,7 +422,7 @@ pub fn assert_not_contains(haystack: &str, needle: &str, label: &str) {
 }
 
 pub fn unused_host_base_url() -> String {
-    let listener = TcpListener::bind(("127.0.0.1", 0)).expect("ephemeral port should bind");
+    let listener = TcpListener::bind(("0.0.0.0", 0)).expect("ephemeral port should bind");
     let port = listener
         .local_addr()
         .expect("listener address should resolve")
