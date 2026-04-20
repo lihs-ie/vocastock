@@ -1,15 +1,19 @@
 use std::collections::BTreeMap;
 use std::env;
 use std::fs;
-use std::io::{Read, Write};
-use std::net::TcpStream;
+use std::io::{BufRead, BufReader, Read, Write};
+use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
-use std::sync::{Mutex, MutexGuard, OnceLock};
-use std::thread::sleep;
+use std::sync::{mpsc, Mutex, MutexGuard, OnceLock};
+use std::thread::{self, sleep, JoinHandle};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+use serde_json::Value;
+
 const GRAPHQL_GATEWAY_SERVICE: &str = "graphql-gateway";
+const COMMAND_API_SERVICE: &str = "command-api";
+const QUERY_API_SERVICE: &str = "query-api";
 const EMULATOR_CONTAINER_NAME: &str = "vocastock-firebase-emulators";
 const DEFAULT_GRAPHQL_GATEWAY_PORT: u16 = 18180;
 const DEFAULT_COMMAND_API_PORT: u16 = 18181;
@@ -20,6 +24,8 @@ const DEFAULT_AUTH_PORT: u16 = 19099;
 const DEFAULT_READINESS_PATH: &str = "/readyz";
 const DEFAULT_READY_BUDGET_SECONDS: u64 = 120;
 const DEFAULT_EMULATOR_READY_BUDGET_SECONDS: &str = "300";
+const FEATURE_REUSE_ENV: &str = "VOCAS_FEATURE_REUSE_RUNNING";
+const FEATURE_SKIP_BUILD_ENV: &str = "VOCAS_FEATURE_SKIP_BUILD";
 
 struct ApplicationPorts {
     gateway: u16,
@@ -28,6 +34,12 @@ struct ApplicationPorts {
     firestore: u16,
     storage: u16,
     auth: u16,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct FeatureRuntimeOptions {
+    pub command_upstream_base_url: Option<String>,
+    pub query_upstream_base_url: Option<String>,
 }
 
 pub struct FeatureRuntime {
@@ -41,7 +53,7 @@ pub struct FeatureRuntime {
     storage_port: u16,
     auth_port: u16,
     started_emulators: bool,
-    started_gateway: bool,
+    started_services: bool,
 }
 
 pub struct HttpResponse {
@@ -49,11 +61,36 @@ pub struct HttpResponse {
     pub body: String,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CapturedRequest {
+    pub method: String,
+    pub path: String,
+    pub headers: BTreeMap<String, String>,
+    pub body: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StubResponse {
+    pub status: u16,
+    pub content_type: String,
+    pub body: String,
+}
+
+pub struct StubServer {
+    base_url: String,
+    captured_request: mpsc::Receiver<CapturedRequest>,
+    handle: Option<JoinHandle<()>>,
+}
+
 impl FeatureRuntime {
     pub fn start() -> Self {
+        Self::start_with_options(FeatureRuntimeOptions::default())
+    }
+
+    pub fn start_with_options(options: FeatureRuntimeOptions) -> Self {
         let lock = feature_test_lock()
             .lock()
-            .expect("feature test lock poisoned");
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         let repo_root = repo_root();
         let compose_file = repo_root.join("docker/applications/compose.yaml");
         let readiness_budget = Duration::from_secs(DEFAULT_READY_BUDGET_SECONDS);
@@ -101,7 +138,8 @@ impl FeatureRuntime {
             auth: auth_port,
         };
 
-        let env_file = write_application_smoke_env_file(&repo_root, &app_env_file, &ports);
+        let env_file =
+            write_application_smoke_env_file(&repo_root, &app_env_file, &ports, &options);
 
         let mut runtime = Self {
             _lock: lock,
@@ -114,15 +152,15 @@ impl FeatureRuntime {
             storage_port,
             auth_port,
             started_emulators: false,
-            started_gateway: false,
+            started_services: false,
         };
 
         if !runtime.should_reuse_running_emulators() {
             runtime.start_emulators();
         }
 
-        runtime.remove_stale_gateway_container();
-        runtime.start_gateway();
+        runtime.remove_stale_application_containers();
+        runtime.start_services();
         runtime.wait_for_gateway_ready(readiness_budget);
         runtime
     }
@@ -140,11 +178,47 @@ impl FeatureRuntime {
     }
 
     pub fn get(&self, path: &str) -> HttpResponse {
-        http_request("127.0.0.1", self.gateway_port, "GET", path)
+        self.request("GET", path, None, None, None)
+    }
+
+    pub fn post_json(
+        &self,
+        path: &str,
+        authorization: Option<&str>,
+        correlation: Option<&str>,
+        payload: &Value,
+    ) -> HttpResponse {
+        let body = payload.to_string();
+        self.request(
+            "POST",
+            path,
+            authorization,
+            correlation,
+            Some(body.as_str()),
+        )
+    }
+
+    fn request(
+        &self,
+        method: &str,
+        path: &str,
+        authorization: Option<&str>,
+        correlation: Option<&str>,
+        body: Option<&str>,
+    ) -> HttpResponse {
+        let mut headers = BTreeMap::new();
+        if let Some(authorization) = authorization {
+            headers.insert("authorization".to_owned(), authorization.to_owned());
+        }
+        if let Some(correlation) = correlation {
+            headers.insert("x-request-correlation".to_owned(), correlation.to_owned());
+        }
+
+        http_request("127.0.0.1", self.gateway_port, method, path, &headers, body)
     }
 
     fn should_reuse_running_emulators(&self) -> bool {
-        env_flag("VOCAS_FEATURE_REUSE_RUNNING")
+        env_flag(FEATURE_REUSE_ENV)
             || emulator_container_running(&self.repo_root)
             || self.firebase_ports_are_listening()
     }
@@ -170,41 +244,58 @@ impl FeatureRuntime {
         self.started_emulators = true;
     }
 
-    fn remove_stale_gateway_container(&self) {
-        run_command(
-            &self.repo_root,
-            "docker",
-            &compose_args(
-                &self.env_file,
-                &self.compose_file,
-                &["rm", "-sf", GRAPHQL_GATEWAY_SERVICE],
-            ),
+    fn remove_stale_application_containers(&self) {
+        let args = compose_args(
+            &self.env_file,
+            &self.compose_file,
+            &[
+                "rm",
+                "-sf",
+                GRAPHQL_GATEWAY_SERVICE,
+                COMMAND_API_SERVICE,
+                QUERY_API_SERVICE,
+            ],
+        );
+        let output = try_run_command(&self.repo_root, "docker", &args)
+            .unwrap_or_else(|error| panic!("failed to execute docker: {error}"));
+        if output.status.success() {
+            return;
+        }
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        if stderr.contains("removal of container") && stderr.contains("already in progress") {
+            return;
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        panic!(
+            "command failed: docker {}\nstdout:\n{}\nstderr:\n{}",
+            args.join(" "),
+            stdout,
+            stderr
         );
     }
 
-    fn start_gateway(&mut self) {
+    fn start_services(&mut self) {
         let mut args = compose_args(&self.env_file, &self.compose_file, &["up", "-d"]);
-        if !env_flag("VOCAS_FEATURE_SKIP_BUILD") {
+        if !env_flag(FEATURE_SKIP_BUILD_ENV) {
             args.push("--build".to_owned());
         }
         args.push(GRAPHQL_GATEWAY_SERVICE.to_owned());
+        args.push(COMMAND_API_SERVICE.to_owned());
+        args.push(QUERY_API_SERVICE.to_owned());
 
         run_command(&self.repo_root, "docker", &args);
-        self.started_gateway = true;
+        self.started_services = true;
     }
 
     fn wait_for_gateway_ready(&self, budget: Duration) {
         let deadline = Instant::now() + budget;
 
         loop {
-            if let Ok(response) = std::panic::catch_unwind(|| {
-                http_request(
-                    "127.0.0.1",
-                    self.gateway_port,
-                    "GET",
-                    self.readiness_path.as_str(),
-                )
-            }) {
+            if let Ok(response) =
+                std::panic::catch_unwind(|| self.get(self.readiness_path.as_str()))
+            {
                 if response.status == 200 {
                     return;
                 }
@@ -227,14 +318,14 @@ impl FeatureRuntime {
 
 impl Drop for FeatureRuntime {
     fn drop(&mut self) {
-        if self.started_gateway {
+        if self.started_services {
             let _ = try_run_command(
                 &self.repo_root,
                 "docker",
                 &compose_args(
                     &self.env_file,
                     &self.compose_file,
-                    &["stop", GRAPHQL_GATEWAY_SERVICE],
+                    &["down", "--remove-orphans"],
                 ),
             );
         }
@@ -253,11 +344,91 @@ impl Drop for FeatureRuntime {
     }
 }
 
+impl StubResponse {
+    pub fn json(status: u16, body: Value) -> Self {
+        Self {
+            status,
+            content_type: "application/json".to_owned(),
+            body: body.to_string(),
+        }
+    }
+}
+
+impl StubServer {
+    pub fn start(response: StubResponse) -> Self {
+        // Containers reach the host through host-gateway on Linux runners, so loopback-only
+        // listeners are not visible from docker compose services during feature tests.
+        let listener = TcpListener::bind(("0.0.0.0", 0)).expect("stub listener should bind");
+        let port = listener
+            .local_addr()
+            .expect("listener address should resolve")
+            .port();
+        let (sender, receiver) = mpsc::channel();
+
+        let handle = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().expect("stub request should arrive");
+            let captured_request = read_incoming_request(&mut stream);
+            sender
+                .send(captured_request)
+                .expect("captured request should send");
+            write!(
+                stream,
+                "HTTP/1.1 {} {}\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                response.status,
+                status_reason(response.status),
+                response.content_type,
+                response.body.len(),
+                response.body
+            )
+            .expect("stub response should write");
+            stream.flush().expect("stub response should flush");
+        });
+
+        Self {
+            base_url: format!("http://host.docker.internal:{port}"),
+            captured_request: receiver,
+            handle: Some(handle),
+        }
+    }
+
+    pub fn base_url(&self) -> String {
+        self.base_url.clone()
+    }
+
+    pub fn capture(mut self) -> CapturedRequest {
+        let captured_request = self
+            .captured_request
+            .recv_timeout(Duration::from_secs(10))
+            .expect("stub request should be captured");
+        if let Some(handle) = self.handle.take() {
+            handle.join().expect("stub thread should finish");
+        }
+        captured_request
+    }
+}
+
 pub fn assert_contains(haystack: &str, needle: &str, label: &str) {
     assert!(
         haystack.contains(needle),
         "expected {label} to contain {needle}, actual body: {haystack}"
     );
+}
+
+pub fn assert_not_contains(haystack: &str, needle: &str, label: &str) {
+    assert!(
+        !haystack.contains(needle),
+        "expected {label} to omit {needle}, actual body: {haystack}"
+    );
+}
+
+pub fn unused_host_base_url() -> String {
+    let listener = TcpListener::bind(("0.0.0.0", 0)).expect("ephemeral port should bind");
+    let port = listener
+        .local_addr()
+        .expect("listener address should resolve")
+        .port();
+    drop(listener);
+    format!("http://host.docker.internal:{port}")
 }
 
 fn feature_test_lock() -> &'static Mutex<()> {
@@ -359,6 +530,7 @@ fn write_application_smoke_env_file(
     repo_root: &Path,
     base_env_file: &Path,
     ports: &ApplicationPorts,
+    options: &FeatureRuntimeOptions,
 ) -> PathBuf {
     let logs_dir = repo_root.join(".artifacts/ci/logs");
     fs::create_dir_all(&logs_dir)
@@ -384,20 +556,29 @@ fn write_application_smoke_env_file(
     }
     contents.push_str(&format!(
         "\
+COMPOSE_PROJECT_NAME=vocastock-graphql-gateway-feature-{}-{}
 GRAPHQL_GATEWAY_PORT={}
 COMMAND_API_PORT={}
 QUERY_API_PORT={}
-VOCAS_COMMAND_UPSTREAM_BASE_URL=http://command-api:{}
-VOCAS_QUERY_UPSTREAM_BASE_URL=http://query-api:{}
+VOCAS_COMMAND_UPSTREAM_BASE_URL={}
+VOCAS_QUERY_UPSTREAM_BASE_URL={}
 FIRESTORE_EMULATOR_HOST=host.docker.internal:{}
 STORAGE_EMULATOR_HOST=host.docker.internal:{}
 FIREBASE_AUTH_EMULATOR_HOST=host.docker.internal:{}
 ",
+        unique_suffix,
+        std::process::id(),
         ports.gateway,
         ports.command,
         ports.query,
-        ports.command,
-        ports.query,
+        options
+            .command_upstream_base_url
+            .as_deref()
+            .unwrap_or(&format!("http://command-api:{}", ports.command)),
+        options
+            .query_upstream_base_url
+            .as_deref()
+            .unwrap_or(&format!("http://query-api:{}", ports.query)),
         ports.firestore,
         ports.storage,
         ports.auth
@@ -478,7 +659,14 @@ fn env_flag(key: &str) -> bool {
         .unwrap_or(false)
 }
 
-fn http_request(host: &str, port: u16, method: &str, path: &str) -> HttpResponse {
+fn http_request(
+    host: &str,
+    port: u16,
+    method: &str,
+    path: &str,
+    headers: &BTreeMap<String, String>,
+    body: Option<&str>,
+) -> HttpResponse {
     let mut stream = TcpStream::connect((host, port))
         .unwrap_or_else(|error| panic!("failed to connect to {host}:{port}: {error}"));
     stream
@@ -488,8 +676,19 @@ fn http_request(host: &str, port: u16, method: &str, path: &str) -> HttpResponse
         .set_write_timeout(Some(Duration::from_secs(5)))
         .expect("write timeout should be configurable");
 
-    let request =
-        format!("{method} {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n\r\n");
+    let mut request = format!("{method} {path} HTTP/1.1\r\nHost: {host}:{port}\r\n");
+    for (header_name, header_value) in headers {
+        request.push_str(&format!("{header_name}: {header_value}\r\n"));
+    }
+    if let Some(body) = body {
+        request.push_str("Content-Type: application/json\r\n");
+        request.push_str(&format!("Content-Length: {}\r\n", body.len()));
+    }
+    request.push_str("Connection: close\r\n\r\n");
+    if let Some(body) = body {
+        request.push_str(body);
+    }
+
     stream
         .write_all(request.as_bytes())
         .expect("request write should succeed");
@@ -506,15 +705,85 @@ fn parse_http_response(raw_response: String) -> HttpResponse {
     let (head, body) = raw_response
         .split_once("\r\n\r\n")
         .unwrap_or((raw_response.as_str(), ""));
-    let status = head
-        .lines()
+    let mut lines = head.lines();
+    let status = lines
         .next()
         .and_then(|status_line| status_line.split_whitespace().nth(1))
         .and_then(|status| status.parse::<u16>().ok())
         .unwrap_or(500);
 
+    let mut headers = BTreeMap::new();
+    for line in lines {
+        if let Some((name, value)) = line.split_once(':') {
+            headers.insert(name.trim().to_ascii_lowercase(), value.trim().to_owned());
+        }
+    }
+
     HttpResponse {
         status,
         body: body.to_owned(),
+    }
+}
+
+fn read_incoming_request(stream: &mut TcpStream) -> CapturedRequest {
+    let mut reader = BufReader::new(stream);
+    let mut request_line = String::new();
+    let mut headers = BTreeMap::new();
+    reader
+        .read_line(&mut request_line)
+        .expect("request line should read");
+
+    loop {
+        let mut header_line = String::new();
+        let bytes_read = reader
+            .read_line(&mut header_line)
+            .expect("header line should read");
+        if bytes_read == 0 || header_line == "\r\n" {
+            break;
+        }
+
+        if let Some((name, value)) = header_line.split_once(':') {
+            headers.insert(name.trim().to_ascii_lowercase(), value.trim().to_owned());
+        }
+    }
+
+    let content_length = headers
+        .get("content-length")
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(0);
+    let mut body_bytes = vec![0; content_length];
+    if content_length > 0 {
+        reader
+            .read_exact(&mut body_bytes)
+            .expect("body should read exactly");
+    }
+
+    CapturedRequest {
+        method: request_line
+            .split_whitespace()
+            .next()
+            .unwrap_or("GET")
+            .to_owned(),
+        path: request_line
+            .split_whitespace()
+            .nth(1)
+            .unwrap_or("/")
+            .to_owned(),
+        headers,
+        body: String::from_utf8_lossy(&body_bytes).into_owned(),
+    }
+}
+
+fn status_reason(status: u16) -> &'static str {
+    match status {
+        200 => "OK",
+        202 => "Accepted",
+        400 => "Bad Request",
+        401 => "Unauthorized",
+        403 => "Forbidden",
+        409 => "Conflict",
+        502 => "Bad Gateway",
+        503 => "Service Unavailable",
+        _ => "OK",
     }
 }
