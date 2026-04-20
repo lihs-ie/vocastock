@@ -10,6 +10,8 @@ run = do
   runNamed "reports terminal and duplicate scenarios" testTerminalAndDuplicateScenarios
   runNamed "reports validation failures" testValidationFailureScenarios
   runNamed "renders scenario output for validation scripts" testRenderScenarioOutput
+  runNamed "parses and renders scenario labels" testScenarioLabels
+  runNamed "covers every scenario label roundtrip" testAllScenarioLabels
   runNamed "covers report accessors and show instances" testAccessorsAndShow
 
 testSuccessScenario :: IO ()
@@ -81,6 +83,39 @@ testRenderScenarioOutput =
           "duplicate rendered output"
           "VOCAS_EXPLANATION_RESULT scenario=duplicate-succeeded final_state=succeeded trail=queued,succeeded visibility=completed-current failure_code=none retryable=false completed_saved=true handoff_completed=false current_action=retained-existing current_retained=true duplicate=reuse-completed"
           duplicateRendered
+
+testScenarioLabels :: IO ()
+testScenarioLabels = do
+  assertEqual "parse success" (Just ScenarioSuccess) (parseWorkerScenarioLabel "success")
+  assertEqual "parse timeout" (Just ScenarioTimeout) (parseWorkerScenarioLabel "timed-out")
+  assertEqual
+    "parse missing"
+    Nothing
+    (parseWorkerScenarioLabel "unknown-scenario")
+  assertEqual "render success" "success" (workerScenarioLabel ScenarioSuccess)
+  assertEqual
+    "render ownership mismatch"
+    "ownership-mismatch"
+    (workerScenarioLabel ScenarioOwnershipMismatch)
+
+testAllScenarioLabels :: IO ()
+testAllScenarioLabels =
+  mapM_
+    assertScenarioLabel
+    [ (ScenarioSuccess, "success"),
+      (ScenarioRetryableFailure, "retryable-failure"),
+      (ScenarioTerminalFailure, "terminal-failure"),
+      (ScenarioTimeout, "timed-out"),
+      (ScenarioDuplicateRunning, "duplicate-running"),
+      (ScenarioDuplicateSucceeded, "duplicate-succeeded"),
+      (ScenarioInvalidTarget, "invalid-target"),
+      (ScenarioOwnershipMismatch, "ownership-mismatch"),
+      (ScenarioPreconditionInvalid, "precondition-invalid")
+    ]
+  where
+    assertScenarioLabel (scenario, label) = do
+      assertEqual ("render label " ++ label) label (workerScenarioLabel scenario)
+      assertEqual ("parse label " ++ label) (Just scenario) (parseWorkerScenarioLabel label)
 
 testAccessorsAndShow :: IO ()
 testAccessorsAndShow = do

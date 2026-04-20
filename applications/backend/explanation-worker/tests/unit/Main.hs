@@ -4,6 +4,7 @@ import qualified ExplanationWorker.CurrentExplanationHandoffSpec
 import qualified ExplanationWorker.ExplanationPersistenceSpec
 import qualified ExplanationWorker.FailureSummarySpec
 import qualified ExplanationWorker.GenerationPortSpec
+import qualified ExplanationWorker.RuntimeHttpSpec
 import qualified ExplanationWorker.WorkItemContractSpec
 import qualified ExplanationWorker.WorkerRuntimeSpec
 import qualified ExplanationWorker.WorkflowStateMachineSpec
@@ -15,5 +16,6 @@ main = do
   ExplanationWorker.ExplanationPersistenceSpec.run
   ExplanationWorker.CurrentExplanationHandoffSpec.run
   ExplanationWorker.FailureSummarySpec.run
+  ExplanationWorker.RuntimeHttpSpec.run
   ExplanationWorker.WorkflowStateMachineSpec.run
   ExplanationWorker.WorkerRuntimeSpec.run

@@ -10,10 +10,11 @@
 |---------|-------|
 | worker runtime | Haskell long-running consumer |
 | stable-run contract | `long-running consumer` を canonical success signal とする |
+| internal HTTP runtime adapter | Servant `0.20.3.0` / `servant-server` `0.20.3.0` を使う non-public surface のみ |
 | workflow state machine | explanation generation lifecycle と retry / timeout / dead-letter |
 | generation adapter | `ExplanationGenerationPort` 越しの caller-owned adapter |
 | persistence | explanation 保存と `currentExplanation` handoff port |
-| testing | Haskell unit mirror + Rust feature harness with Docker / Firebase emulator |
+| testing | Haskell unit mirror + Haskell feature suite with Docker / Firebase emulator |
 | runtime validation | `docker/applications/explanation-worker/`、compose、local stack validation |
 
 ## Out Of Scope
@@ -29,6 +30,7 @@
 ## Rules
 
 - worker は completed result を直接 user-facing response として返してはならない
+- Servant を使う場合でも runtime surface は internal / operator / infrastructure 向けに限定し、public API に昇格させてはならない
 - worker container の canonical success signal は queue / subscription 待受プロセスとしての stable-run である
 - 外向き HTTP endpoint を必須にしてはならない
 - runtime 追加後も 016 の container smoke 契約と矛盾してはならない

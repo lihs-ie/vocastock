@@ -15,21 +15,23 @@
 `dead-lettered` の lifecycle を持ち、completed `Explanation` の保存と
 `VocabularyExpression.currentExplanation` handoff の両方が成立した時だけ success と扱う。
 未完了 explanation 本文は user-visible にせず、既存 current は non-success では維持する。
-実装は Haskell module 群と port / adapter 境界に分割し、Haskell unit テスト、Rust の
-Docker/Firebase feature harness、worker container / local stack validation、021 artifact 同期までを
-含める。image workflow、billing workflow、public GraphQL 拡張、provider 固有最適化は scope 外とする。
+実装は Haskell module 群と port / adapter 境界に分割し、Haskell unit テスト、Haskell の
+Docker/Firebase feature suite、worker container / local stack validation、021 artifact 同期までを
+含める。HTTP runtime adapter が必要な箇所は Servant `0.20.3.0` / `servant-server` `0.20.3.0`
+で non-public surface として構成し、image workflow、billing workflow、public GraphQL 拡張、
+provider 固有最適化は scope 外とする。
 
 ## Technical Context
 
-**Language/Version**: Haskell toolchain via GHC/LTS resolver、Rust 2021 for feature test harness、Bash、Markdown 1.x  
-**Primary Dependencies**: `/Users/lihs/workspace/vocastock/applications/backend/explanation-worker/`、package-local Cabal manifest、`/Users/lihs/workspace/vocastock/docker/applications/explanation-worker/`、`/Users/lihs/workspace/vocastock/docker/applications/compose.yaml`、`/Users/lihs/workspace/vocastock/scripts/ci/run_application_container_smoke.sh`、`/Users/lihs/workspace/vocastock/scripts/bootstrap/validate_local_stack.sh`、`/Users/lihs/workspace/vocastock/docs/internal/domain/explanation.md`、`/Users/lihs/workspace/vocastock/docs/internal/domain/vocabulary-expression.md`、`/Users/lihs/workspace/vocastock/docs/internal/domain/service.md`、`/Users/lihs/workspace/vocastock/docs/external/adr.md`、`/Users/lihs/workspace/vocastock/docs/external/requirements.md`、`/Users/lihs/workspace/vocastock/specs/004-tech-stack-definition/`、`/Users/lihs/workspace/vocastock/specs/007-backend-command-design/`、`/Users/lihs/workspace/vocastock/specs/011-api-command-io-design/`、`/Users/lihs/workspace/vocastock/specs/012-persistence-workflow-design/`、`/Users/lihs/workspace/vocastock/specs/015-command-query-topology/`、`/Users/lihs/workspace/vocastock/specs/016-application-docker-env/`  
+**Language/Version**: Haskell via GHC `9.2.8`、Servant `0.20.3.0` / `servant-server` `0.20.3.0`、Bash、Markdown 1.x  
+**Primary Dependencies**: `/Users/lihs/workspace/vocastock/applications/backend/explanation-worker/`、package-local Cabal manifest、Servant `0.20.3.0`、`servant-server` `0.20.3.0`、`/Users/lihs/workspace/vocastock/docker/applications/explanation-worker/`、`/Users/lihs/workspace/vocastock/docker/applications/compose.yaml`、`/Users/lihs/workspace/vocastock/scripts/ci/run_application_container_smoke.sh`、`/Users/lihs/workspace/vocastock/scripts/bootstrap/validate_local_stack.sh`、`/Users/lihs/workspace/vocastock/docs/internal/domain/explanation.md`、`/Users/lihs/workspace/vocastock/docs/internal/domain/vocabulary-expression.md`、`/Users/lihs/workspace/vocastock/docs/internal/domain/service.md`、`/Users/lihs/workspace/vocastock/docs/external/adr.md`、`/Users/lihs/workspace/vocastock/docs/external/requirements.md`、`/Users/lihs/workspace/vocastock/specs/004-tech-stack-definition/`、`/Users/lihs/workspace/vocastock/specs/007-backend-command-design/`、`/Users/lihs/workspace/vocastock/specs/011-api-command-io-design/`、`/Users/lihs/workspace/vocastock/specs/012-persistence-workflow-design/`、`/Users/lihs/workspace/vocastock/specs/015-command-query-topology/`、`/Users/lihs/workspace/vocastock/specs/016-application-docker-env/`  
 **Storage**: Firestore-aligned workflow state store abstraction、completed `Explanation` store abstraction、`VocabularyExpression.currentExplanation` handoff store abstraction、Git-managed repository files、local Docker/Firebase emulator runtime state  
-**Testing**: package-local `cabal test` unit suites under `tests/unit/*`、coverage-enabled Haskell test run、Rust feature harness under `tests/feature/*` with Docker containers + Firebase emulator、`bash /Users/lihs/workspace/vocastock/scripts/ci/run_application_container_smoke.sh`、`bash /Users/lihs/workspace/vocastock/scripts/bootstrap/validate_local_stack.sh --reuse-running --with-application-containers`  
+**Testing**: package-local `cabal test` unit suites under `tests/unit/*`、package-local `cabal test feature` suite under `tests/feature/*`、coverage-enabled Haskell test run、`bash /Users/lihs/workspace/vocastock/scripts/ci/run_application_container_smoke.sh`、`bash /Users/lihs/workspace/vocastock/scripts/bootstrap/validate_local_stack.sh --reuse-running --with-application-containers`  
 **Target Platform**: internal Haskell worker on Cloud Run-aligned container runtime、local Docker + Firebase emulator validation path  
 **Project Type**: backend worker service implementation  
 **Performance Goals**: success / retryable failure / terminal failure の 3 系統が再現可能であること、worker の stable-run contract を壊さないこと、未完了 explanation 本文の露出を 0 件にすること、worker-owned coverage 90% 以上を達成すること  
-**Constraints**: 004 の `Workflow = Haskell` と `Pub/Sub + Cloud Run worker + Firestore state` baseline を守ること、worker は public endpoint や query response を own しないこと、success は completed `Explanation` 保存と `currentExplanation` handoff の両成立が必要であること、duplicate / replay は business key 単位で idempotent に扱うこと、provider / adapter 詳細は failure summary に漏らさないこと、feature テストは Rust のコードで Docker / Firebase emulator を使うこと、テストは `tests/unit/*` / `tests/feature/*` / `tests/support/*` に配置すること  
-**Scale/Scope**: 1 worker app、1 accepted registration-origin trigger family、1 explanation lifecycle state machine、1 completed-only visibility handoff rule、1 Haskell package skeleton、1 Rust feature harness、runtime / docs touchpoint 一式
+**Constraints**: 004 の `Workflow = Haskell` と `Pub/Sub + Cloud Run worker + Firestore state` baseline を守ること、worker は public endpoint や query response を own しないこと、Servant は internal runtime adapter に限定すること、success は completed `Explanation` 保存と `currentExplanation` handoff の両成立が必要であること、duplicate / replay は business key 単位で idempotent に扱うこと、provider / adapter 詳細は failure summary に漏らさないこと、feature テストは Docker / Firebase emulator を使うこと、テストは `tests/unit/*` / `tests/feature/*` / `tests/support/*` に配置すること  
+**Scale/Scope**: 1 worker app、1 accepted registration-origin trigger family、1 explanation lifecycle state machine、1 completed-only visibility handoff rule、1 Haskell package skeleton、1 Haskell feature suite、1 Servant-based internal runtime adapter surface、runtime / docs touchpoint 一式
 
 ## Constitution Check
 
@@ -40,8 +42,8 @@ Docker/Firebase feature harness、worker container / local stack validation、02
       truth として参照し、worker 実装は既存 aggregate / port semantics をコードへ写像する。
 - [x] Async generation flow defines lifecycle states, retry behavior, timeout handling, dead-letter
       handling, and user-visible status rules. incomplete generated results are never exposed.
-- [x] External generation, persistence, and validation dependencies remain behind ports/adapters.
-      worker は provider SDK や Firestore / Pub/Sub detail を domain language に持ち込まない。
+- [x] External generation, persistence, validation、HTTP runtime dependencies remain behind ports/adapters.
+      worker は provider SDK や Firestore / Pub/Sub / Servant detail を domain language に持ち込まない。
 - [x] User stories remain independently implementable and testable. success path、failure/retry/idempotency、
       worker runtime boundary は別 artifact としてレビュー可能である。
 - [x] Frequency、sophistication、registration state、explanation generation state、image state を
@@ -96,15 +98,18 @@ applications/
         │       ├── ExplanationPersistence.hs
         │       ├── CurrentExplanationHandoff.hs
         │       ├── FailureSummary.hs
+        │       ├── RuntimeHttp.hs
         │       └── WorkerRuntime.hs
         └── tests/
-            ├── Cargo.toml
-            ├── feature.rs
             ├── feature/
-            │   └── explanation_worker.rs
+            │   ├── Main.hs
+            │   └── ExplanationWorker/
+            │       └── FeatureSpec.hs
             ├── support/
-            │   └── feature.rs
+            │   ├── FeatureSupport.hs
+            │   └── TestSupport.hs
             └── unit/
+                ├── Main.hs
                 └── ExplanationWorker/
                     ├── WorkItemContractSpec.hs
                     ├── WorkflowStateMachineSpec.hs
@@ -112,6 +117,7 @@ applications/
                     ├── ExplanationPersistenceSpec.hs
                     ├── CurrentExplanationHandoffSpec.hs
                     ├── FailureSummarySpec.hs
+                    ├── RuntimeHttpSpec.hs
                     └── WorkerRuntimeSpec.hs
 
 docker/
@@ -157,10 +163,12 @@ stable-run 起動だけを担い、worker-owned logic は `src/ExplanationWorker
 は lifecycle 遷移と retry / timeout / dead-letter rule を、`GenerationPort` は completed-only
 generation adapter 契約を、`ExplanationPersistence` と `CurrentExplanationHandoff` は success を
 構成する二段階確定を担う。unit テストは `src/ExplanationWorker/` を mirror した Haskell spec を
-`tests/unit/ExplanationWorker/` に置き、feature テストは AGENTS ルールに合わせて Rust の専用
-harness を `tests/Cargo.toml` + `tests/feature.rs` + `tests/feature/explanation_worker.rs` で
-構成し、Docker container と Firebase emulator を起動して worker の success / retryable /
-terminal path を end-to-end 検証する。runtime 正本は
+`tests/unit/ExplanationWorker/` に置き、feature テストは `tests/feature/Main.hs` +
+`tests/feature/ExplanationWorker/FeatureSpec.hs` + `tests/support/FeatureSupport.hs` の Haskell
+suite として構成し、Docker container と Firebase emulator を起動して worker の success /
+retryable / terminal path を end-to-end 検証する。HTTP runtime adapter が必要な場合は
+`src/ExplanationWorker/RuntimeHttp.hs` に Servant `0.20.3.0` / `servant-server` `0.20.3.0`
+ベースの non-public surface を集約し、worker-owned state machine から分離する。runtime 正本は
 `docker/applications/explanation-worker/` と `docker/applications/compose.yaml`、
 validation 正本は `scripts/ci/run_application_container_smoke.sh` と
 `scripts/bootstrap/validate_local_stack.sh` に同期する。

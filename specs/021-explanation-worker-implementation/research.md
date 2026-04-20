@@ -62,14 +62,29 @@
   - message arrival ごとに再生成する: duplicate explanation write と current switch を招く
   - upstream duplicate 判定だけに依存する: worker restart / replay 時の自己防衛が弱い
 
-## Decision 6: テストは Haskell unit mirror と Rust Docker/Firebase feature harness を併用する
+## Decision 6: テストは Haskell unit mirror と Haskell Docker/Firebase feature suite を併用する
 
 - **Decision**: worker-owned logic は `tests/unit/ExplanationWorker/*Spec.hs` で source module ごとに
-  mirror した Haskell unit テストを用意し、feature path は Rust の test harness から Docker
+  mirror した Haskell unit テストを用意し、feature path は Haskell suite から Docker
   container と Firebase emulator を起動して success / retryable / terminal path を検証する。
-- **Rationale**: repository rule では unit test を `tests/unit/*` へ、feature test を Rust のコードで
-  Docker/Firebase を使って実装することが求められている。Haskell unit だけでは runtime / container /
-  emulator 経路を検証できず、逆に feature だけでは state machine の細部検証が弱い。
+- **Rationale**: 現在の repo rule では feature test 実装言語は固定されておらず、worker 実装と同じ
+  Haskell に寄せた方が Cabal component、coverage、editor support を一貫させやすい。Haskell unit
+  だけでは runtime / container / emulator 経路を検証できず、逆に feature だけでは state machine
+  の細部検証が弱い。
 - **Alternatives considered**:
-  - shell script で worker feature test を書く: AGENTS の feature test rule に反する
-  - Haskell test だけで end-to-end を担保する: Docker / Firebase runtime と stable-run contract を観測できない
+  - shell script で worker feature test を書く: typed fixture と coverage 連携が弱い
+  - Haskell test だけで unit/E2E を兼用する: runtime / container / emulator と state machine の責務が混ざる
+
+## Decision 7: HTTP runtime adapter が必要な場合は Servant 0.20.3.0 / servant-server 0.20.3.0 を使う
+
+- **Decision**: `explanation-worker` が Pub/Sub push 受信、internal health/admin surface、dependency probe
+  などの HTTP runtime adapter を持つ場合は、Servant `0.20.3.0` と `servant-server` `0.20.3.0` を採用する。
+  ただし、これは non-public runtime boundary に限定し、query response や public GraphQL binding は
+  引き続き scope 外とする。
+- **Rationale**: Hackage 上の `servant` / `servant-server` の最新安定版 `0.20.3.0` は
+  GHC `9.2.8` を tested-with に含んでおり、今回の toolchain 制約と両立する。Servant を使えば
+  runtime HTTP surface の contract を型で固定しつつ、worker-owned business logic を既存 module
+  から分離しやすい。
+- **Alternatives considered**:
+  - `wai` / `warp` だけで手書きする: route / payload contract が散りやすい
+  - `scotty` など別 framework を使う: user 指定の Servant 採用方針と一致しない

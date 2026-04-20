@@ -34,6 +34,10 @@
 - [ ] Domain impact is identified, and every changed aggregate, value object, domain
       event, or repository contract is mapped to updates in `docs/internal/domain/*.md`
       or explicitly marked as no domain change.
+- [ ] Domain models, workflow state, and application coordination remain inside the
+      owning application boundary; shared packages are limited to sidecar concerns
+      such as logging, monitoring, auth/session handoff, request correlation, and
+      runtime probes.
 - [ ] Async generation flows define lifecycle states, idempotent retry behavior, and
       user-visible status rules; incomplete generated results are never exposed to users.
 - [ ] All external AI, storage, media, and validation dependencies are introduced behind

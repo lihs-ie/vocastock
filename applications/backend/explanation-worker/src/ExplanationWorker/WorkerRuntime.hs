@@ -1,7 +1,9 @@
 module ExplanationWorker.WorkerRuntime
   ( ScenarioReport (..),
     WorkerScenario (..),
+    parseWorkerScenarioLabel,
     renderScenarioReport,
+    workerScenarioLabel,
     runScenarioReport
   )
 where
@@ -97,7 +99,7 @@ runScenarioReport scenario =
           Nothing -> False
           Just summaryValue -> summaryRetryable summaryValue
    in ScenarioReport
-        { reportScenario = renderScenario scenario,
+        { reportScenario = workerScenarioLabel scenario,
           reportFinalState = renderWorkflowState (workflowFinalState workflowOutcome),
           reportTrail = map renderWorkflowState (workflowTrail workflowOutcome),
           reportVisibility = renderVisibility (workflowVisibility workflowOutcome),
@@ -110,6 +112,20 @@ runScenarioReport scenario =
           reportDuplicateDisposition =
             renderDuplicateDisposition (workflowDuplicateDisposition workflowOutcome)
         }
+
+parseWorkerScenarioLabel :: String -> Maybe WorkerScenario
+parseWorkerScenarioLabel scenarioLabel =
+  case scenarioLabel of
+    "success" -> Just ScenarioSuccess
+    "retryable-failure" -> Just ScenarioRetryableFailure
+    "terminal-failure" -> Just ScenarioTerminalFailure
+    "timed-out" -> Just ScenarioTimeout
+    "duplicate-running" -> Just ScenarioDuplicateRunning
+    "duplicate-succeeded" -> Just ScenarioDuplicateSucceeded
+    "invalid-target" -> Just ScenarioInvalidTarget
+    "ownership-mismatch" -> Just ScenarioOwnershipMismatch
+    "precondition-invalid" -> Just ScenarioPreconditionInvalid
+    _ -> Nothing
 
 renderScenarioReport :: ScenarioReport -> String
 renderScenarioReport report =
@@ -213,8 +229,8 @@ initialStoreForScenario scenario =
        in ExplanationStore [("business-key-001", existingRecord)]
     _ -> emptyExplanationStore
 
-renderScenario :: WorkerScenario -> String
-renderScenario scenario =
+workerScenarioLabel :: WorkerScenario -> String
+workerScenarioLabel scenario =
   case scenario of
     ScenarioSuccess -> "success"
     ScenarioRetryableFailure -> "retryable-failure"

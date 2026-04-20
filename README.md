@@ -10,7 +10,7 @@
 - セットアップ手順: [docs/development/flutter-environment.md](/Users/lihs/workspace/vocastock/docs/development/flutter-environment.md)
 - CI / ruleset / runner 境界: [docs/development/ci-policy.md](/Users/lihs/workspace/vocastock/docs/development/ci-policy.md)
 - version governance: [tooling/versions/approved-components.md](/Users/lihs/workspace/vocastock/tooling/versions/approved-components.md), [docs/development/security-version-review.md](/Users/lihs/workspace/vocastock/docs/development/security-version-review.md)
-- backend 実装 skeleton: `applications/backend/graphql-gateway/`, `applications/backend/command-api/`, `applications/backend/query-api/`, `packages/rust/shared-auth/`
+- backend 実装 skeleton: `applications/backend/graphql-gateway/`, `applications/backend/command-api/`, `applications/backend/query-api/`, `packages/rust/shared-auth/`, `packages/rust/shared-runtime/`
 - backend container contract: [docs/development/backend-container-environment.md](/Users/lihs/workspace/vocastock/docs/development/backend-container-environment.md)
 - application container validation: `bash scripts/bootstrap/validate_application_containers.sh`
 - application container smoke: `bash scripts/ci/run_application_container_smoke.sh`
@@ -19,6 +19,11 @@
 - host baseline 検証: `bash scripts/bootstrap/verify_macos_toolchain.sh`
 - local setup 検証: `bash scripts/bootstrap/validate_local_setup.sh`
 - ドメイン境界を変更する実装では、対象ドメイン文書の更新を必須とする
+- shared package は logging / monitoring / auth-session handoff / request correlation /
+  runtime helper のような sidecar concern のみを持ち、domain model や application
+  coordination を置かない
+- domain model と workflow / use-case coordination は owning application 配下に定義し、
+  application 間で shared executable domain package を作らない
 - 生成中または失敗中の中間生成結果はユーザーへ表示せず、完了済みの結果のみ表示する
 - 識別子型は `XxxIdentifier` と命名し、`id` / `ID` / `xxxId` は使用しない
 - 集約自身の識別子フィールド名は `identifier`、他概念の識別子フィールド名は
