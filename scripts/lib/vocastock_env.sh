@@ -30,6 +30,8 @@ VOCAS_CI_RUNTIME_BUDGET_SECONDS="1800"
 VOCAS_APPLICATION_READY_BUDGET_SECONDS="120"
 VOCAS_APPLICATION_WORKER_STABLE_RUN_SECONDS="10"
 VOCAS_APPLICATION_WORKER_POLL_INTERVAL_SECONDS="30"
+VOCAS_RUST_QUALITY_NAMESPACE="rust-quality"
+VOCAS_RUST_QUALITY_BUDGET_SECONDS="1800"
 VOCAS_DEFAULT_GRAPHQL_GATEWAY_PORT="18180"
 VOCAS_DEFAULT_COMMAND_API_PORT="18181"
 VOCAS_DEFAULT_QUERY_API_PORT="18182"
@@ -112,6 +114,32 @@ vocas_find_flutter_project_dir() {
 vocas_duration_file() {
   local name="$1"
   printf "%s/.artifacts/ci/durations/%s.seconds\n" "$(vocas_repo_root)" "$name"
+}
+
+vocas_rust_quality_summary_file() {
+  printf "%s/.artifacts/ci/logs/%s.summary.md\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_RUST_QUALITY_NAMESPACE"
+}
+
+vocas_rust_quality_stage_file() {
+  printf "%s/.artifacts/ci/logs/%s.stage\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_RUST_QUALITY_NAMESPACE"
+}
+
+vocas_rust_quality_log_file() {
+  local segment="$1"
+  printf "%s/.artifacts/ci/logs/%s.%s.log\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_RUST_QUALITY_NAMESPACE" \
+    "$segment"
+}
+
+vocas_rust_quality_detected_paths_file() {
+  printf "%s/.artifacts/ci/logs/%s.detected-paths.txt\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_RUST_QUALITY_NAMESPACE"
 }
 
 vocas_toolchain_root() {

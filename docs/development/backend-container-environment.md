@@ -89,6 +89,15 @@ secret は committed local default に置かない。
 - CI は `.github/workflows/ci.yml` の `application-container-smoke` job で同じ smoke script を呼ぶ
 - runtime duration と failure stage は `.artifacts/ci/` に出力する
 - Firebase emulator を併用する local stack smoke では、API は `/dependencies/firebase` が 200 を返し、worker は dependency host へ到達できなければ early exit する
+- Linux CI runner でも `host.docker.internal` を解決できるよう、`docker/applications/compose.yaml` は `host-gateway` mapping を持つ
+
+## Rust Quality CI
+
+- `.github/workflows/ci.yml` の `rust-quality` job は Rust 関連 path のみ `full` 実行し、非該当時は required check 名を維持した no-op success を返す
+- change detection の正本は `bash /Users/lihs/workspace/vocastock/scripts/ci/detect_rust_changes.sh --base <base> --head <head>`
+- local / CI の実行本体は `bash /Users/lihs/workspace/vocastock/scripts/ci/run_rust_quality_checks.sh --mode full|noop`
+- Rust quality artifact は `.artifacts/ci/logs/rust-quality.*` と `.artifacts/ci/durations/rust-quality.seconds` に出力する
+- feature segment は `VOCAS_FEATURE_REUSE_RUNNING=1` を使って 1 回の Firebase emulator session を `graphql-gateway`、`query-api`、`command-api` で共有する
 
 ## Troubleshooting
 

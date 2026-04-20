@@ -10,8 +10,16 @@ default-run = "graphql-gateway"
 shared-runtime = { path = "../../../packages/rust/shared-runtime" }
 
 [lib]
-path = "src/lib.rs"
+path = "src/gateway_routing/mod.rs"
 
 [[bin]]
 name = "graphql-gateway"
-path = "src/main.rs"
+path = "src/server/main.rs"
+
+[[test]]
+name = "unit"
+path = "tests/unit.rs"
+
+[[test]]
+name = "feature"
+path = "tests/feature.rs"
