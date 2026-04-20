@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::io::Cursor;
 
 use query_api::{
-    InMemoryCatalogProjectionSource, Request, StubTokenVerifier, read_request, route_request,
-    write_response,
+    read_request, route_request, write_response, InMemoryCatalogProjectionSource, Request,
+    StubTokenVerifier,
 };
 
 fn request(method: &str, path: &str) -> Request {
@@ -27,7 +27,10 @@ fn read_request_parses_method_path_and_headers() {
         request.headers.get("authorization").map(String::as_str),
         Some("Bearer valid-learner-token")
     );
-    assert_eq!(request.headers.get("x-test").map(String::as_str), Some("value"));
+    assert_eq!(
+        request.headers.get("x-test").map(String::as_str),
+        Some("value")
+    );
 }
 
 #[test]
@@ -47,8 +50,12 @@ fn route_request_covers_ready_root_not_found_and_method_not_allowed() {
     assert_eq!(not_found.status, "404 Not Found");
     assert_eq!(not_found.body, "not found");
 
-    let method_not_allowed =
-        route_request(&request("POST", "/vocabulary-catalog"), "/readyz", &verifier, &source);
+    let method_not_allowed = route_request(
+        &request("POST", "/vocabulary-catalog"),
+        "/readyz",
+        &verifier,
+        &source,
+    );
     assert_eq!(method_not_allowed.status, "405 Method Not Allowed");
     assert!(method_not_allowed.body.contains("method not allowed"));
 }

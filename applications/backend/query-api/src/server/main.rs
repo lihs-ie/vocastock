@@ -39,13 +39,14 @@ fn main() {
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
-                if let Err(error) = handle_connection(
-                    stream,
-                    readiness_path.as_str(),
-                    &verifier,
-                    &source,
-                ) {
-                    eprintln!("{} request handling error: {}", query_api::SERVICE_NAME, error);
+                if let Err(error) =
+                    handle_connection(stream, readiness_path.as_str(), &verifier, &source)
+                {
+                    eprintln!(
+                        "{} request handling error: {}",
+                        query_api::SERVICE_NAME,
+                        error
+                    );
                 }
             }
             Err(error) => {

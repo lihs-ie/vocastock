@@ -54,7 +54,9 @@ pub fn read_catalog_from_authorization_header(
     source: &impl CatalogProjectionSource,
 ) -> Result<CatalogReadResponse, CatalogReadError> {
     let bearer_token = extract_bearer_token(authorization_header)?;
-    let actor_context = verifier.verify(bearer_token).map_err(CatalogReadError::Auth)?;
+    let actor_context = verifier
+        .verify(bearer_token)
+        .map_err(CatalogReadError::Auth)?;
 
     read_catalog(&actor_context, source)
 }
@@ -67,12 +69,9 @@ fn extract_bearer_token(authorization_header: Option<&str>) -> Result<&str, Cata
             shared_auth::TokenVerificationError::MissingToken,
         ))?;
 
-    let (scheme, token) =
-        header_value
-            .split_once(' ')
-            .ok_or(CatalogReadError::Auth(
-                shared_auth::TokenVerificationError::InvalidToken,
-            ))?;
+    let (scheme, token) = header_value.split_once(' ').ok_or(CatalogReadError::Auth(
+        shared_auth::TokenVerificationError::InvalidToken,
+    ))?;
 
     if !scheme.eq_ignore_ascii_case("bearer") || token.trim().is_empty() {
         return Err(CatalogReadError::Auth(

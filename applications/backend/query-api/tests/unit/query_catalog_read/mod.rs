@@ -1,7 +1,7 @@
 use query_api::{
     CatalogReadError, CatalogVisibility, CollectionState, InMemoryCatalogProjectionSource,
-    ProjectionFreshness, ProjectionSourceRecord, ROOT_MESSAGE, SERVICE_NAME, StubTokenVerifier,
-    VOCABULARY_CATALOG_PATH, WorkflowState,
+    ProjectionFreshness, ProjectionSourceRecord, StubTokenVerifier, WorkflowState, ROOT_MESSAGE,
+    SERVICE_NAME, VOCABULARY_CATALOG_PATH,
 };
 
 #[test]
@@ -23,5 +23,8 @@ fn crate_root_reexports_catalog_contracts() {
     assert_eq!(CatalogVisibility::StatusOnly, CatalogVisibility::StatusOnly);
     assert_eq!(CollectionState::Empty, CollectionState::Empty);
     assert_eq!(ProjectionFreshness::Eventual, ProjectionFreshness::Eventual);
-    assert_eq!(CatalogReadError::InactiveSession, CatalogReadError::InactiveSession);
+    assert_eq!(
+        CatalogReadError::InactiveSession,
+        CatalogReadError::InactiveSession
+    );
 }

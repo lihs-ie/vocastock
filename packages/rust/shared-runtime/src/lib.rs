@@ -23,7 +23,9 @@ pub fn firebase_dependency_statuses() -> Vec<DependencyStatus> {
     FIREBASE_DEPENDENCIES
         .into_iter()
         .map(|(dependency_name, env_var)| {
-            let endpoint = env::var(env_var).ok().filter(|value| !value.trim().is_empty());
+            let endpoint = env::var(env_var)
+                .ok()
+                .filter(|value| !value.trim().is_empty());
 
             match endpoint {
                 Some(endpoint) => match probe_tcp_endpoint(endpoint.as_str()) {

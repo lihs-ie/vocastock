@@ -5,9 +5,15 @@ use shared_auth::TokenVerificationPort;
 fn stub_verifier_resolves_known_tokens() {
     let verifier = StubTokenVerifier;
 
-    let learner = verifier.verify("valid-learner-token").expect("learner token should resolve");
-    let empty = verifier.verify("valid-empty-token").expect("empty token should resolve");
-    let other = verifier.verify("valid-other-token").expect("other token should resolve");
+    let learner = verifier
+        .verify("valid-learner-token")
+        .expect("learner token should resolve");
+    let empty = verifier
+        .verify("valid-empty-token")
+        .expect("empty token should resolve");
+    let other = verifier
+        .verify("valid-other-token")
+        .expect("other token should resolve");
 
     assert_eq!(learner.actor().as_str(), "actor:learner");
     assert_eq!(empty.actor().as_str(), "actor:empty");

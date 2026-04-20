@@ -1,7 +1,7 @@
 use query_api::{
-    CatalogReadError, CatalogVisibility, CollectionState, InMemoryCatalogProjectionSource,
-    ProjectionFreshness, ProjectionSourceRecord, StubTokenVerifier, WorkflowState, read_catalog,
-    read_catalog_from_authorization_header,
+    read_catalog, read_catalog_from_authorization_header, CatalogReadError, CatalogVisibility,
+    CollectionState, InMemoryCatalogProjectionSource, ProjectionFreshness, ProjectionSourceRecord,
+    StubTokenVerifier, WorkflowState,
 };
 use shared_auth::TokenVerificationError;
 
@@ -33,7 +33,10 @@ fn current_explanation_available_returns_completed_summary() {
 
     assert_eq!(response.collection_state, CollectionState::Populated);
     assert_eq!(response.items.len(), 1);
-    assert_eq!(response.items[0].visibility, CatalogVisibility::CompletedSummary);
+    assert_eq!(
+        response.items[0].visibility,
+        CatalogVisibility::CompletedSummary
+    );
     assert_eq!(
         response.items[0].completed_summary.as_deref(),
         Some("Warm drink summary")
@@ -118,7 +121,10 @@ fn missing_token_is_rejected() {
     )
     .expect_err("missing token must fail");
 
-    assert_eq!(error, CatalogReadError::Auth(TokenVerificationError::MissingToken));
+    assert_eq!(
+        error,
+        CatalogReadError::Auth(TokenVerificationError::MissingToken)
+    );
 }
 
 #[test]
@@ -130,7 +136,10 @@ fn invalid_token_is_rejected() {
     )
     .expect_err("invalid token must fail");
 
-    assert_eq!(error, CatalogReadError::Auth(TokenVerificationError::InvalidToken));
+    assert_eq!(
+        error,
+        CatalogReadError::Auth(TokenVerificationError::InvalidToken)
+    );
 }
 
 #[test]
@@ -142,7 +151,10 @@ fn reauth_required_is_rejected() {
     )
     .expect_err("reauth token must fail");
 
-    assert_eq!(error, CatalogReadError::Auth(TokenVerificationError::ReauthRequired));
+    assert_eq!(
+        error,
+        CatalogReadError::Auth(TokenVerificationError::ReauthRequired)
+    );
 }
 
 #[test]

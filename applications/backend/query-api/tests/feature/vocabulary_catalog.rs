@@ -1,4 +1,4 @@
-use crate::support::{FeatureRuntime, assert_contains, assert_not_contains};
+use crate::support::{assert_contains, assert_not_contains, FeatureRuntime};
 
 #[test]
 fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() {
@@ -32,14 +32,14 @@ fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() 
     );
     assert_contains(
         &dependency.body,
-        &format!("auth=host.docker.internal:{} (reachable", runtime.auth_port()),
+        &format!(
+            "auth=host.docker.internal:{} (reachable",
+            runtime.auth_port()
+        ),
         "firebase dependency report",
     );
 
-    let populated = runtime.get(
-        "/vocabulary-catalog",
-        Some("Bearer valid-learner-token"),
-    );
+    let populated = runtime.get("/vocabulary-catalog", Some("Bearer valid-learner-token"));
     assert_eq!(populated.status, 200);
     assert_contains(
         &populated.body,
@@ -61,7 +61,11 @@ fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() 
         "detailPayload",
         "catalog populated response",
     );
-    assert_not_contains(&populated.body, "pending-sync", "catalog populated response");
+    assert_not_contains(
+        &populated.body,
+        "pending-sync",
+        "catalog populated response",
+    );
 
     let empty = runtime.get("/vocabulary-catalog", Some("Bearer valid-empty-token"));
     assert_eq!(empty.status, 200);
