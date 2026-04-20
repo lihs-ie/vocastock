@@ -1,5 +1,5 @@
 use graphql_gateway::graphql::{catalog_success_response, mutation_success_response};
-use serde_json::json;
+use serde_json::{json, Value};
 
 #[test]
 fn mutation_success_response_wraps_command_payload_under_graphql_data() {
@@ -17,10 +17,13 @@ fn mutation_success_response_wraps_command_payload_under_graphql_data() {
         "replayedByIdempotency": false
     }))
     .expect("mutation payload should wrap");
+    let response_json: Value = serde_json::from_str(&response).expect("response should be json");
 
-    assert!(response.contains("\"data\""));
-    assert!(response.contains("\"registerVocabularyExpression\""));
-    assert!(response.contains("\"acceptance\":\"accepted\""));
+    assert_eq!(
+        response_json["data"]["registerVocabularyExpression"]["acceptance"],
+        "accepted"
+    );
+    assert!(response_json["data"].get("operation_name").is_none());
 }
 
 #[test]
@@ -61,9 +64,13 @@ fn catalog_success_response_wraps_catalog_payload_under_graphql_data() {
         ]
     }))
     .expect("catalog payload should wrap");
+    let response_json: Value = serde_json::from_str(&response).expect("response should be json");
 
-    assert!(response.contains("\"vocabularyCatalog\""));
-    assert!(response.contains("\"collectionState\":\"populated\""));
+    assert_eq!(
+        response_json["data"]["vocabularyCatalog"]["collectionState"],
+        "populated"
+    );
+    assert!(response_json["data"].get("operation_name").is_none());
 }
 
 #[test]

@@ -104,10 +104,11 @@ pub fn catalog_success_response(payload: Value) -> Result<String, GatewayFailure
 }
 
 fn wrap_data(operation_name: &str, payload: Value) -> String {
+    let mut data = Map::new();
+    data.insert(operation_name.to_owned(), payload);
+
     json!({
-        "data": {
-            operation_name: payload
-        }
+        "data": data
     })
     .to_string()
 }
