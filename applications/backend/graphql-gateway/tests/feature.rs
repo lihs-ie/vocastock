@@ -1,5 +1,5 @@
 #[path = "support/feature.rs"]
 mod support;
 
-#[path = "feature/gateway_routing.rs"]
-mod gateway_routing;
+#[path = "feature/public_graphql_gateway.rs"]
+mod public_graphql_gateway;
