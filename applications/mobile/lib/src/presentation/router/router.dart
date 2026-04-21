@@ -9,6 +9,8 @@ import '../auth/login_screen.dart';
 import '../auth/session_resolving_screen.dart';
 import '../catalog/vocabulary_catalog_screen.dart';
 import '../catalog/vocabulary_registration_screen.dart';
+import '../detail/explanation_detail_screen.dart';
+import '../detail/image_detail_screen.dart';
 import '../detail/vocabulary_expression_detail_screen.dart';
 
 /// Canonical route paths (spec 013 navigation-topology-contract).
@@ -65,6 +67,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '${AppRoutes.vocabularyPrefix}/:identifier',
         builder: (context, state) => VocabularyExpressionDetailScreen(
           identifier: VocabularyExpressionIdentifier(
+            state.pathParameters['identifier']!,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.explanationPrefix}/:identifier',
+        builder: (context, state) => ExplanationDetailScreen(
+          identifier: ExplanationIdentifier(
+            state.pathParameters['identifier']!,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.imagePrefix}/:identifier',
+        builder: (context, state) => ImageDetailScreen(
+          identifier: VisualImageIdentifier(
             state.pathParameters['identifier']!,
           ),
         ),
