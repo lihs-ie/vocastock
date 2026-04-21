@@ -30,3 +30,6 @@ linter:
     one_member_abstracts: false
     prefer_relative_imports: true
     always_use_package_imports: false
+    # Doc-only cross references (`[Xxx]`) are a navigation aid; we do not
+    # require the referenced symbols to be in lexical scope.
+    comment_references: false
