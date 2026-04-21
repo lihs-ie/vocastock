@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vocastock_mobile/src/presentation/theme/widgets/vs_progress.dart';
 
 void main() {
-  testWidgets('VsProgress fills proportionally to value', (tester) async {
+  testWidgets('VsProgress fills proportionally to value', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -17,7 +17,7 @@ void main() {
     expect(fraction.widthFactor, 0.5);
   });
 
-  testWidgets('VsProgress clamps values above 1', (tester) async {
+  testWidgets('VsProgress clamps values above 1', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(

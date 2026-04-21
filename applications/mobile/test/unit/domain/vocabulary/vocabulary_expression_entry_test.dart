@@ -60,7 +60,10 @@ void main() {
 
   group('VocabularyCatalog', () {
     test('is empty when no entries are present', () {
-      expect(VocabularyCatalog(const []).isEmpty, isTrue);
+      expect(
+        VocabularyCatalog(const <VocabularyExpressionEntry>[]).isEmpty,
+        isTrue,
+      );
     });
 
     test('findByText returns a matching entry', () {

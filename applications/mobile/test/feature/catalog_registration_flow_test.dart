@@ -71,7 +71,7 @@ void main() {
       },
     );
 
-    testWidgets('duplicate submit reuses existing entry', (tester) async {
+    testWidgets('duplicate submit reuses existing entry', (WidgetTester tester) async {
       final handoff = StubActorHandoffController();
       final catalog = StubVocabularyCatalog();
       addTearDown(handoff.dispose);
@@ -102,7 +102,7 @@ void main() {
       expect(catalog.current.entries.length, equals(1));
     });
 
-    testWidgets('validation failure surfaces inline error', (tester) async {
+    testWidgets('validation failure surfaces inline error', (WidgetTester tester) async {
       final handoff = StubActorHandoffController();
       final catalog = StubVocabularyCatalog();
       addTearDown(handoff.dispose);

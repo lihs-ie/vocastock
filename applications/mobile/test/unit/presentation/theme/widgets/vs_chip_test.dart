@@ -7,12 +7,12 @@ void main() {
   group('VsChip', () {
     Widget harness(Widget child) => MaterialApp(home: Scaffold(body: child));
 
-    testWidgets('renders the provided label', (tester) async {
+    testWidgets('renders the provided label', (WidgetTester tester) async {
       await tester.pumpWidget(harness(const VsChip(label: '頻出')));
       expect(find.text('頻出'), findsOneWidget);
     });
 
-    testWidgets('accent tone paints accent container colors', (tester) async {
+    testWidgets('accent tone paints accent container colors', (WidgetTester tester) async {
       await tester.pumpWidget(
         harness(const VsChip(label: '完了', tone: VsChipTone.accent)),
       );
@@ -21,7 +21,7 @@ void main() {
       expect(decoration.color, VsTokens.accentSoft);
     });
 
-    testWidgets('dark tone paints ink container colors', (tester) async {
+    testWidgets('dark tone paints ink container colors', (WidgetTester tester) async {
       await tester.pumpWidget(
         harness(const VsChip(label: 'ALL', tone: VsChipTone.dark)),
       );

@@ -97,7 +97,7 @@ void main() {
       );
     });
 
-    testWidgets('restore command recovers the last paid plan', (tester) async {
+    testWidgets('restore command recovers the last paid plan', (WidgetTester tester) async {
       final handoff = StubActorHandoffController();
       final catalog = StubVocabularyCatalog();
       final subscription = StubSubscriptionState(
@@ -120,7 +120,7 @@ void main() {
       expect(subscription.current.state, equals(SubscriptionState.active));
     });
 
-    testWidgets('paywall purchase activates the plan', (tester) async {
+    testWidgets('paywall purchase activates the plan', (WidgetTester tester) async {
       final handoff = StubActorHandoffController();
       final catalog = StubVocabularyCatalog();
       final subscription = StubSubscriptionState(

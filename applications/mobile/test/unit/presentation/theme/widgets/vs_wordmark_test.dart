@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vocastock_mobile/src/presentation/theme/widgets/vs_wordmark.dart';
 
 void main() {
-  testWidgets('VsWordmark composes vocastock with accent dot', (tester) async {
+  testWidgets('VsWordmark composes vocastock with accent dot', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: Scaffold(body: VsWordmark())),
     );

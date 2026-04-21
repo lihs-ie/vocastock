@@ -6,7 +6,7 @@ import 'package:vocastock_mobile/src/app.dart';
 
 void main() {
   group('bootstrap smoke', () {
-    testWidgets('VocastockApp mounts MaterialApp.router', (tester) async {
+    testWidgets('VocastockApp mounts MaterialApp.router', (WidgetTester tester) async {
       await tester.pumpWidget(const ProviderScope(child: VocastockApp()));
       await tester.pump();
       expect(find.byType(MaterialApp), findsOneWidget);

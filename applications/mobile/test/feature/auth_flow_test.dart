@@ -23,7 +23,7 @@ Future<void> _pumpAppWithStub(
 
 void main() {
   group('auth flow', () {
-    testWidgets('unauth → login → handoff → /catalog', (tester) async {
+    testWidgets('unauth → login → handoff → /catalog', (WidgetTester tester) async {
       final controller = StubActorHandoffController();
       addTearDown(controller.dispose);
 

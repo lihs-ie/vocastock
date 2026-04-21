@@ -43,7 +43,7 @@ Future<void> _pumpSubscription(
 
 void main() {
   group('SubscriptionStatusScreen', () {
-    testWidgets('renders all four sections for active + free', (tester) async {
+    testWidgets('renders all four sections for active + free', (WidgetTester tester) async {
       await _pumpSubscription(
         tester,
         subscription: StubSubscriptionState(),
@@ -70,7 +70,7 @@ void main() {
       );
     });
 
-    testWidgets('restore CTA activates the last paid plan', (tester) async {
+    testWidgets('restore CTA activates the last paid plan', (WidgetTester tester) async {
       final subscription = StubSubscriptionState(
         initialState: SubscriptionState.expired,
       );
@@ -83,7 +83,7 @@ void main() {
       expect(subscription.current.plan, equals(PlanCode.standardMonthly));
     });
 
-    testWidgets('grace state label differs from active', (tester) async {
+    testWidgets('grace state label differs from active', (WidgetTester tester) async {
       final subscription = StubSubscriptionState(
         initialState: SubscriptionState.grace,
         initialPlan: PlanCode.proMonthly,
@@ -93,7 +93,7 @@ void main() {
       expect(find.text('プロ (月額)'), findsOneWidget);
     });
 
-    testWidgets('pending-sync state label renders as 同期中', (tester) async {
+    testWidgets('pending-sync state label renders as 同期中', (WidgetTester tester) async {
       final subscription = StubSubscriptionState(
         initialState: SubscriptionState.pendingSync,
       );
@@ -101,7 +101,7 @@ void main() {
       expect(find.text('同期中'), findsOneWidget);
     });
 
-    testWidgets('expired state label renders', (tester) async {
+    testWidgets('expired state label renders', (WidgetTester tester) async {
       final subscription = StubSubscriptionState(
         initialState: SubscriptionState.expired,
       );

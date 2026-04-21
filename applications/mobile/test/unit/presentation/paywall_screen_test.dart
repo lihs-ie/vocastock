@@ -11,7 +11,7 @@ import 'package:vocastock_mobile/src/presentation/router/router.dart';
 
 void main() {
   group('PaywallScreen', () {
-    testWidgets('shows two plan cards and a status link', (tester) async {
+    testWidgets('shows two plan cards and a status link', (WidgetTester tester) async {
       final handoff = StubActorHandoffController();
       final catalog = StubVocabularyCatalog();
       final subscription = StubSubscriptionState(

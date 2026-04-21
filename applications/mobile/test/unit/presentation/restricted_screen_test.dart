@@ -40,7 +40,7 @@ void main() {
       expect(find.byKey(const Key('restricted.logout')), findsOneWidget);
     });
 
-    testWidgets('logout from restricted returns to login', (tester) async {
+    testWidgets('logout from restricted returns to login', (WidgetTester tester) async {
       final handoff = StubActorHandoffController();
       final catalog = StubVocabularyCatalog();
       final subscription = StubSubscriptionState(

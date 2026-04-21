@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vocastock_mobile/src/presentation/theme/widgets/vs_skeleton.dart';
 
 void main() {
-  testWidgets('VsSkeleton animates a linear gradient shimmer', (tester) async {
+  testWidgets('VsSkeleton animates a linear gradient shimmer', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
