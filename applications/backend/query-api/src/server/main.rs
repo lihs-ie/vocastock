@@ -34,7 +34,7 @@ fn main() {
     );
 
     let verifier = query_api::StubTokenVerifier;
-    let source: Box<dyn query_api::CatalogProjectionSource + Send + Sync> =
+    let catalog_source: Box<dyn query_api::CatalogProjectionSource> =
         match query_api::FirestoreCatalogProjectionSource::from_env() {
             Some(firestore) => {
                 println!(
@@ -52,12 +52,45 @@ fn main() {
             }
         };
 
+    let vocabulary_expression_detail_source: Option<
+        Box<dyn query_api::VocabularyExpressionDetailSource>,
+    > = query_api::FirestoreVocabularyExpressionDetailSource::from_env()
+        .map(|source| Box::new(source) as Box<_>);
+    let explanation_detail_source: Option<Box<dyn query_api::ExplanationDetailSource>> =
+        query_api::FirestoreExplanationDetailSource::from_env()
+            .map(|source| Box::new(source) as Box<_>);
+    let image_detail_source: Option<Box<dyn query_api::ImageDetailSource>> =
+        query_api::FirestoreImageDetailSource::from_env().map(|source| Box::new(source) as Box<_>);
+    let subscription_status_source: Option<Box<dyn query_api::SubscriptionStatusSource>> =
+        query_api::FirestoreSubscriptionStatusSource::from_env()
+            .map(|source| Box::new(source) as Box<_>);
+
+    if vocabulary_expression_detail_source.is_some() {
+        println!(
+            "{} detail readers wired to Firestore emulator",
+            query_api::SERVICE_NAME,
+        );
+    } else {
+        println!(
+            "{} detail readers unavailable (set VOCAS_PRODUCTION_ADAPTERS=true + FIRESTORE_EMULATOR_HOST to enable)",
+            query_api::SERVICE_NAME,
+        );
+    }
+
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
-                if let Err(error) =
-                    handle_connection(stream, readiness_path.as_str(), &verifier, source.as_ref())
-                {
+                let ctx = query_api::RouteContext {
+                    readiness_path: readiness_path.as_str(),
+                    verifier: &verifier,
+                    catalog_source: catalog_source.as_ref(),
+                    vocabulary_expression_detail_source: vocabulary_expression_detail_source
+                        .as_deref(),
+                    explanation_detail_source: explanation_detail_source.as_deref(),
+                    image_detail_source: image_detail_source.as_deref(),
+                    subscription_status_source: subscription_status_source.as_deref(),
+                };
+                if let Err(error) = handle_connection(stream, &ctx) {
                     eprintln!(
                         "{} request handling error: {}",
                         query_api::SERVICE_NAME,
@@ -74,15 +107,13 @@ fn main() {
 
 fn handle_connection(
     mut stream: TcpStream,
-    readiness_path: &str,
-    verifier: &query_api::StubTokenVerifier,
-    source: &dyn query_api::CatalogProjectionSource,
+    ctx: &query_api::RouteContext<'_>,
 ) -> std::io::Result<()> {
     let request = {
         let mut reader = BufReader::new(&mut stream);
         query_api::read_request(&mut reader)?
     };
-    let response = query_api::route_request(&request, readiness_path, verifier, source);
+    let response = query_api::route_request(&request, ctx);
 
     query_api::write_response(&mut stream, &response)
 }

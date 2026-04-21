@@ -1,0 +1,53 @@
+use crate::support::{assert_contains, FeatureRuntime};
+
+#[test]
+fn image_detail_reads_seeded_record_with_sense_metadata() {
+    let runtime = FeatureRuntime::start_with_production_adapters();
+
+    let populated = runtime.get(
+        "/image-detail?identifier=stub-img-for-stub-vocab-0000",
+        Some("Bearer valid-demo-token"),
+    );
+    assert_eq!(populated.status, 200);
+    assert_contains(
+        &populated.body,
+        "\"identifier\":\"stub-img-for-stub-vocab-0000\"",
+        "populated image detail",
+    );
+    assert_contains(
+        &populated.body,
+        "\"explanation\":\"stub-exp-for-stub-vocab-0000\"",
+        "populated image detail",
+    );
+    assert_contains(
+        &populated.body,
+        "\"assetReference\":\"actors/stub-actor-demo/images/stub-img-for-stub-vocab-0000.png\"",
+        "asset reference is parsed verbatim from Firestore",
+    );
+    assert_contains(
+        &populated.body,
+        "\"senseIdentifier\":\"s1\"",
+        "senseIdentifier is present",
+    );
+    assert_contains(
+        &populated.body,
+        "\"senseLabel\":\"走る\"",
+        "senseLabel is present",
+    );
+
+    let missing_record = runtime.get(
+        "/image-detail?identifier=stub-img-missing",
+        Some("Bearer valid-demo-token"),
+    );
+    assert_eq!(missing_record.status, 200);
+    assert_eq!(missing_record.body.trim(), "null");
+
+    let missing_identifier = runtime.get("/image-detail", Some("Bearer valid-demo-token"));
+    assert_eq!(missing_identifier.status, 400);
+
+    let missing_token = runtime.get(
+        "/image-detail?identifier=stub-img-for-stub-vocab-0000",
+        None,
+    );
+    assert_eq!(missing_token.status, 401);
+}

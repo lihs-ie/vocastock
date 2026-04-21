@@ -46,6 +46,15 @@ pub struct FeatureRuntime {
     started_query_api: bool,
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct FeatureRuntimeOptions {
+    /// When true, the query-api container runs with
+    /// `VOCAS_PRODUCTION_ADAPTERS=true`, switching all read sources to
+    /// the Firestore-backed implementations. Detail feature tests need
+    /// this; the legacy catalog feature test keeps it off.
+    pub production_adapters: bool,
+}
+
 pub struct HttpResponse {
     pub status: u16,
     pub body: String,
@@ -53,6 +62,16 @@ pub struct HttpResponse {
 
 impl FeatureRuntime {
     pub fn start() -> Self {
+        Self::start_with_options(FeatureRuntimeOptions::default())
+    }
+
+    pub fn start_with_production_adapters() -> Self {
+        Self::start_with_options(FeatureRuntimeOptions {
+            production_adapters: true,
+        })
+    }
+
+    pub fn start_with_options(options: FeatureRuntimeOptions) -> Self {
         let lock = feature_test_lock()
             .lock()
             .expect("feature test lock poisoned");
@@ -103,7 +122,7 @@ impl FeatureRuntime {
             auth: auth_port,
         };
 
-        let env_file = write_application_smoke_env_file(&repo_root, &app_env_file, &ports);
+        let env_file = write_application_smoke_env_file(&repo_root, &app_env_file, &ports, options);
 
         let mut runtime = Self {
             _lock: lock,
@@ -377,6 +396,7 @@ fn write_application_smoke_env_file(
     repo_root: &Path,
     base_env_file: &Path,
     ports: &ApplicationPorts,
+    options: FeatureRuntimeOptions,
 ) -> PathBuf {
     let logs_dir = repo_root.join(".artifacts/ci/logs");
     fs::create_dir_all(&logs_dir)
@@ -420,6 +440,10 @@ FIREBASE_AUTH_EMULATOR_HOST=host.docker.internal:{}
         ports.storage,
         ports.auth
     ));
+
+    if options.production_adapters {
+        contents.push_str("VOCAS_PRODUCTION_ADAPTERS=true\n");
+    }
 
     fs::write(&env_file, contents)
         .unwrap_or_else(|error| panic!("failed to write {}: {error}", env_file.display()));
