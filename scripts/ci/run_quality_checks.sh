@@ -52,7 +52,7 @@ if project_dir="$(vocas_find_flutter_project_dir)"; then
   fi
   (
     cd "$project_dir"
-    dart analyze . 2>&1 | tee "$analyze_log"
+    flutter analyze 2>&1 | tee "$analyze_log"
     flutter test 2>&1 | tee "$test_log"
   )
   {
