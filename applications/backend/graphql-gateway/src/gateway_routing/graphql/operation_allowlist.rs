@@ -82,9 +82,12 @@ pub fn allowlisted_operation(
                 REQUEST_EXPLANATION_GENERATION_PATH,
             ))
         }
-        (GraphqlOperationKind::Mutation, REQUEST_IMAGE_GENERATION_OPERATION) => Ok(
-            command_mutation(REQUEST_IMAGE_GENERATION_OPERATION, REQUEST_IMAGE_GENERATION_PATH),
-        ),
+        (GraphqlOperationKind::Mutation, REQUEST_IMAGE_GENERATION_OPERATION) => {
+            Ok(command_mutation(
+                REQUEST_IMAGE_GENERATION_OPERATION,
+                REQUEST_IMAGE_GENERATION_PATH,
+            ))
+        }
         (GraphqlOperationKind::Mutation, RETRY_GENERATION_OPERATION) => Ok(command_mutation(
             RETRY_GENERATION_OPERATION,
             RETRY_GENERATION_PATH,
@@ -93,13 +96,15 @@ pub fn allowlisted_operation(
             REQUEST_PURCHASE_OPERATION,
             REQUEST_PURCHASE_PATH,
         )),
-        (GraphqlOperationKind::Mutation, REQUEST_RESTORE_PURCHASE_OPERATION) => Ok(
-            command_mutation(REQUEST_RESTORE_PURCHASE_OPERATION, REQUEST_RESTORE_PURCHASE_PATH),
-        ),
-        (GraphqlOperationKind::Query, VOCABULARY_CATALOG_OPERATION) => Ok(query(
-            VOCABULARY_CATALOG_OPERATION,
-            VOCABULARY_CATALOG_PATH,
-        )),
+        (GraphqlOperationKind::Mutation, REQUEST_RESTORE_PURCHASE_OPERATION) => {
+            Ok(command_mutation(
+                REQUEST_RESTORE_PURCHASE_OPERATION,
+                REQUEST_RESTORE_PURCHASE_PATH,
+            ))
+        }
+        (GraphqlOperationKind::Query, VOCABULARY_CATALOG_OPERATION) => {
+            Ok(query(VOCABULARY_CATALOG_OPERATION, VOCABULARY_CATALOG_PATH))
+        }
         (GraphqlOperationKind::Query, VOCABULARY_EXPRESSION_DETAIL_OPERATION) => Ok(query(
             VOCABULARY_EXPRESSION_DETAIL_OPERATION,
             VOCABULARY_EXPRESSION_DETAIL_PATH,
@@ -138,10 +143,7 @@ fn command_mutation(
     }
 }
 
-fn query(
-    operation_name: &'static str,
-    downstream_route: &'static str,
-) -> GatewayRoutingDecision {
+fn query(operation_name: &'static str, downstream_route: &'static str) -> GatewayRoutingDecision {
     GatewayRoutingDecision {
         operation_kind: GraphqlOperationKind::Query,
         operation_name: operation_name.to_owned(),

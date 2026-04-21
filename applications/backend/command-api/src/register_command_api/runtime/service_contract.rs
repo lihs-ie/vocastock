@@ -1,7 +1,6 @@
 pub const SERVICE_NAME: &str = "command-api";
 pub const REGISTER_VOCABULARY_EXPRESSION_PATH: &str = "/commands/register-vocabulary-expression";
-pub const REQUEST_EXPLANATION_GENERATION_PATH: &str =
-    "/commands/request-explanation-generation";
+pub const REQUEST_EXPLANATION_GENERATION_PATH: &str = "/commands/request-explanation-generation";
 pub const REQUEST_IMAGE_GENERATION_PATH: &str = "/commands/request-image-generation";
 pub const RETRY_GENERATION_PATH: &str = "/commands/retry-generation";
 pub const REQUEST_PURCHASE_PATH: &str = "/commands/request-purchase";

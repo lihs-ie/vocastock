@@ -8,8 +8,8 @@ use crate::downstream::{
 };
 use crate::graphql::{
     allowlisted_operation, failure_envelope::GatewayFailure, GraphqlOperationKind,
-    UnifiedGraphqlRequest, UnifiedGraphqlRequestEnvelope,
-    REGISTER_VOCABULARY_EXPRESSION_OPERATION, VOCABULARY_CATALOG_OPERATION,
+    UnifiedGraphqlRequest, UnifiedGraphqlRequestEnvelope, REGISTER_VOCABULARY_EXPRESSION_OPERATION,
+    VOCABULARY_CATALOG_OPERATION,
 };
 
 use super::service_contract::{
