@@ -53,6 +53,25 @@ A single 1×1 transparent PNG placeholder is uploaded at
 so downstream code that dereferences `CompletedImageDetail.assetReference`
 has something to fetch.
 
+## Wiring status
+
+- **Firestore (catalog)**: `query-api` reads the seed through
+  `FirestoreCatalogProjectionSource` when
+  `VOCAS_PRODUCTION_ADAPTERS=true` (see
+  `applications/backend/query-api/src/query_catalog_read/catalog/firestore_source.rs`).
+  The Flutter `useLiveBackend` flag targets the same catalog via
+  `graphql-gateway`.
+- **Auth**: consumed directly by Flutter through `FirebaseAuth`; the
+  gateway forwards the resulting ID token untouched.
+- **Storage**: the seeded placeholder PNG is resolved by
+  `FirebaseStorageImageResolver` when the `ImageDetail` screen runs in
+  live mode.
+- **Remaining gaps**: `vocabularyExpressionDetail`, `explanationDetail`,
+  `imageDetail`, `subscriptionStatus`, `actorHandoffStatus`,
+  `learningState` all relay through the gateway, but the downstream
+  query-api endpoints are still pending. See
+  `docs/architecture/graphql-schema.md`.
+
 ## How to run
 
 Prerequisites — the Firebase emulator suite has to be up:
