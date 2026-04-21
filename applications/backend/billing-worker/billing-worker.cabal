@@ -1,0 +1,72 @@
+cabal-version: 3.4
+name: billing-worker
+version: 0.1.0.0
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  exposed-modules:
+      BillingWorker.WorkItemContract
+      BillingWorker.WorkflowStateMachine
+      BillingWorker.PurchaseVerificationPort
+      BillingWorker.SubscriptionAuthorityPort
+      BillingWorker.EntitlementRecalcPort
+      BillingWorker.NotificationPort
+      BillingWorker.BillingPersistence
+      BillingWorker.CurrentSubscriptionHandoff
+      BillingWorker.FailureSummary
+      BillingWorker.WorkerRuntime
+  build-depends:
+      base >=4.15 && <5
+  default-language: GHC2021
+
+executable billing-worker
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends:
+      base >=4.15 && <5
+    , billing-worker
+  default-language: GHC2021
+
+test-suite unit
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests/unit
+      tests/support
+  other-modules:
+      BillingWorker.WorkItemContractSpec
+      BillingWorker.WorkflowStateMachineSpec
+      BillingWorker.PurchaseVerificationPortSpec
+      BillingWorker.SubscriptionAuthorityPortSpec
+      BillingWorker.EntitlementRecalcPortSpec
+      BillingWorker.NotificationPortSpec
+      BillingWorker.BillingPersistenceSpec
+      BillingWorker.CurrentSubscriptionHandoffSpec
+      BillingWorker.FailureSummarySpec
+      BillingWorker.WorkerRuntimeSpec
+      TestSupport
+  build-depends:
+      base >=4.15 && <5
+    , billing-worker
+  default-language: GHC2021
+
+test-suite feature
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests/feature
+      tests/support
+  other-modules:
+      BillingWorker.FeatureSpec
+      FeatureSupport
+      TestSupport
+  build-depends:
+      base >=4.15 && <5
+    , containers
+    , directory
+    , filepath
+    , billing-worker
+    , process
+    , time
+  default-language: GHC2021
