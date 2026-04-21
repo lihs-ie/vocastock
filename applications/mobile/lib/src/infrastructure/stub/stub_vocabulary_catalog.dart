@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import '../../application/command/generation_commands.dart';
 import '../../application/command/register_vocabulary_expression_command.dart';
 import '../../application/envelope/command_error.dart';
 import '../../application/envelope/command_response_envelope.dart';
 import '../../application/reader/vocabulary_catalog_reader.dart';
+import '../../application/reader/vocabulary_expression_detail_reader.dart';
 import '../../domain/common/user_facing_message.dart';
 import '../../domain/identifier/identifier.dart';
 import '../../domain/status/explanation_generation_status.dart';
@@ -11,24 +13,44 @@ import '../../domain/status/image_generation_status.dart';
 import '../../domain/status/registration_status.dart';
 import '../../domain/vocabulary/vocabulary_expression_entry.dart';
 
-/// In-memory catalog adapter used while the GraphQL gateway is still being
-/// rolled out.
+/// In-memory adapter that backs the catalog reader, detail reader, and all
+/// registration / generation commands.
 ///
-/// Implements both the reader and the registration command so tests can
-/// inject a single instance via `ProviderScope(overrides: ...)` and observe
-/// the same state from both sides.
+/// Having a single state owner across screens keeps the stub consistent:
+/// status updates driven by a generation command are immediately visible
+/// through both the catalog watch stream and the per-entry detail watch.
 class StubVocabularyCatalog
-    implements VocabularyCatalogReader, RegisterVocabularyExpressionCommand {
+    implements
+        VocabularyCatalogReader,
+        VocabularyExpressionDetailReader,
+        RegisterVocabularyExpressionCommand,
+        RequestExplanationGenerationCommand,
+        RequestImageGenerationCommand,
+        RetryGenerationCommand {
   StubVocabularyCatalog({
     VocabularyExpressionIdentifier Function(int counter)? identifierFactory,
-  }) : _identifierFactory = identifierFactory ?? _defaultIdentifierFactory;
+    ExplanationIdentifier Function(VocabularyExpressionIdentifier)?
+        explanationIdentifierFactory,
+    VisualImageIdentifier Function(VocabularyExpressionIdentifier)?
+        imageIdentifierFactory,
+  })  : _identifierFactory = identifierFactory ?? _defaultIdentifierFactory,
+        _explanationIdentifierFactory = explanationIdentifierFactory ??
+            _defaultExplanationIdentifierFactory,
+        _imageIdentifierFactory =
+            imageIdentifierFactory ?? _defaultImageIdentifierFactory;
 
   final VocabularyExpressionIdentifier Function(int counter)
       _identifierFactory;
+  final ExplanationIdentifier Function(VocabularyExpressionIdentifier)
+      _explanationIdentifierFactory;
+  final VisualImageIdentifier Function(VocabularyExpressionIdentifier)
+      _imageIdentifierFactory;
 
   final List<VocabularyExpressionEntry> _entries = [];
-  final StreamController<VocabularyCatalog> _controller =
+  final StreamController<VocabularyCatalog> _catalogStream =
       StreamController<VocabularyCatalog>.broadcast();
+  final StreamController<VocabularyExpressionEntry> _entryStream =
+      StreamController<VocabularyExpressionEntry>.broadcast();
   int _counter = 0;
 
   @override
@@ -38,10 +60,26 @@ class StubVocabularyCatalog
   Future<VocabularyCatalog> read() async => current;
 
   @override
-  Stream<VocabularyCatalog> watch() => _controller.stream;
+  Stream<VocabularyCatalog> watch() => _catalogStream.stream;
 
   @override
-  Future<CommandResponseEnvelope> execute({
+  Future<VocabularyExpressionEntry?> readDetail(
+    VocabularyExpressionIdentifier identifier,
+  ) async {
+    return _findEntry(identifier);
+  }
+
+  @override
+  Stream<VocabularyExpressionEntry?> watchDetail(
+    VocabularyExpressionIdentifier identifier,
+  ) {
+    return _entryStream.stream.where(
+      (entry) => entry.identifier == identifier,
+    );
+  }
+
+  @override
+  Future<CommandResponseEnvelope> register({
     required String text,
     required IdempotencyKey idempotencyKey,
   }) async {
@@ -75,7 +113,7 @@ class StubVocabularyCatalog
       imageStatus: ImageGenerationStatus.pending,
     );
     _entries.add(entry);
-    _controller.add(current);
+    _emit(entry);
 
     return const CommandResponseAccepted(
       message: UserFacingMessage(
@@ -86,13 +124,186 @@ class StubVocabularyCatalog
     );
   }
 
+  @override
+  Future<CommandResponseEnvelope> requestExplanation({
+    required VocabularyExpressionIdentifier vocabularyExpression,
+    required IdempotencyKey idempotencyKey,
+  }) async {
+    final entry = _findEntry(vocabularyExpression);
+    if (entry == null) {
+      return const CommandResponseRejected(
+        message: UserFacingMessage(
+          key: 'detail.not-found',
+          text: '対象が見つかりませんでした',
+        ),
+        category: CommandErrorCategory.targetMissing,
+      );
+    }
+    _replace(
+      entry.copyWith(
+        explanationStatus: ExplanationGenerationStatus.running,
+      ),
+    );
+    _completeExplanation(vocabularyExpression);
+    return const CommandResponseAccepted(
+      message: UserFacingMessage(
+        key: 'generation.explanation.accepted',
+        text: '解説生成を受け付けました',
+      ),
+      outcome: AcceptanceOutcome.accepted,
+    );
+  }
+
+  @override
+  Future<CommandResponseEnvelope> requestImage({
+    required VocabularyExpressionIdentifier vocabularyExpression,
+    required IdempotencyKey idempotencyKey,
+  }) async {
+    final entry = _findEntry(vocabularyExpression);
+    if (entry == null) {
+      return const CommandResponseRejected(
+        message: UserFacingMessage(
+          key: 'detail.not-found',
+          text: '対象が見つかりませんでした',
+        ),
+        category: CommandErrorCategory.targetMissing,
+      );
+    }
+    if (entry.currentExplanation == null) {
+      return const CommandResponseRejected(
+        message: UserFacingMessage(
+          key: 'generation.image.prerequisite',
+          text: '先に解説生成を完了してください',
+        ),
+        category: CommandErrorCategory.targetNotReady,
+      );
+    }
+    _replace(
+      entry.copyWith(imageStatus: ImageGenerationStatus.running),
+    );
+    _completeImage(vocabularyExpression);
+    return const CommandResponseAccepted(
+      message: UserFacingMessage(
+        key: 'generation.image.accepted',
+        text: '画像生成を受け付けました',
+      ),
+      outcome: AcceptanceOutcome.accepted,
+    );
+  }
+
+  @override
+  Future<CommandResponseEnvelope> retry({
+    required VocabularyExpressionIdentifier vocabularyExpression,
+    required GenerationTargetKind target,
+    required IdempotencyKey idempotencyKey,
+  }) async {
+    return switch (target) {
+      GenerationTargetKind.explanation => requestExplanation(
+          vocabularyExpression: vocabularyExpression,
+          idempotencyKey: idempotencyKey,
+        ),
+      GenerationTargetKind.image => requestImage(
+          vocabularyExpression: vocabularyExpression,
+          idempotencyKey: idempotencyKey,
+        ),
+    };
+  }
+
+  /// Forces an image generation into the `failedFinal` state; used by
+  /// feature tests to rehearse the retryable-failure UI variant without
+  /// reaching into private fields.
+  void markImageFailed(VocabularyExpressionIdentifier identifier) {
+    final entry = _findEntry(identifier);
+    if (entry == null) return;
+    _replace(
+      entry.copyWith(imageStatus: ImageGenerationStatus.failedFinal),
+    );
+  }
+
+  void _completeExplanation(VocabularyExpressionIdentifier identifier) {
+    final entry = _findEntry(identifier);
+    if (entry == null) return;
+    _replace(
+      entry.copyWith(
+        explanationStatus: ExplanationGenerationStatus.succeeded,
+        currentExplanation: _explanationIdentifierFactory(identifier),
+      ),
+    );
+  }
+
+  void _completeImage(VocabularyExpressionIdentifier identifier) {
+    final entry = _findEntry(identifier);
+    if (entry == null) return;
+    _replace(
+      entry.copyWith(
+        imageStatus: ImageGenerationStatus.succeeded,
+        currentImage: _imageIdentifierFactory(identifier),
+      ),
+    );
+  }
+
+  VocabularyExpressionEntry? _findEntry(
+    VocabularyExpressionIdentifier identifier,
+  ) {
+    for (final entry in _entries) {
+      if (entry.identifier == identifier) return entry;
+    }
+    return null;
+  }
+
+  void _replace(VocabularyExpressionEntry updated) {
+    final index = _entries.indexWhere(
+      (entry) => entry.identifier == updated.identifier,
+    );
+    if (index == -1) return;
+    _entries[index] = updated;
+    _emit(updated);
+  }
+
+  void _emit(VocabularyExpressionEntry entry) {
+    _catalogStream.add(current);
+    _entryStream.add(entry);
+  }
+
   Future<void> dispose() async {
-    await _controller.close();
+    await _catalogStream.close();
+    await _entryStream.close();
   }
 
   static VocabularyExpressionIdentifier _defaultIdentifierFactory(int counter) {
     return VocabularyExpressionIdentifier(
       'stub-vocab-${counter.toString().padLeft(4, '0')}',
+    );
+  }
+
+  static ExplanationIdentifier _defaultExplanationIdentifierFactory(
+    VocabularyExpressionIdentifier vocabulary,
+  ) {
+    return ExplanationIdentifier('stub-exp-for-${vocabulary.value}');
+  }
+
+  static VisualImageIdentifier _defaultImageIdentifierFactory(
+    VocabularyExpressionIdentifier vocabulary,
+  ) {
+    return VisualImageIdentifier('stub-img-for-${vocabulary.value}');
+  }
+}
+
+extension _EntryCopyWith on VocabularyExpressionEntry {
+  VocabularyExpressionEntry copyWith({
+    ExplanationGenerationStatus? explanationStatus,
+    ImageGenerationStatus? imageStatus,
+    ExplanationIdentifier? currentExplanation,
+    VisualImageIdentifier? currentImage,
+  }) {
+    return VocabularyExpressionEntry(
+      identifier: identifier,
+      text: text,
+      registrationStatus: registrationStatus,
+      explanationStatus: explanationStatus ?? this.explanationStatus,
+      imageStatus: imageStatus ?? this.imageStatus,
+      currentExplanation: currentExplanation ?? this.currentExplanation,
+      currentImage: currentImage ?? this.currentImage,
     );
   }
 }

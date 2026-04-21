@@ -7,7 +7,7 @@ import '../envelope/command_response_envelope.dart';
 /// path; callers should branch on the outcome to decide whether to display a
 /// "registered" or "already in your catalog" message.
 abstract class RegisterVocabularyExpressionCommand {
-  Future<CommandResponseEnvelope> execute({
+  Future<CommandResponseEnvelope> register({
     required String text,
     required IdempotencyKey idempotencyKey,
   });

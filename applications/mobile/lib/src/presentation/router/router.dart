@@ -4,11 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../app_bindings.dart';
 import '../../domain/auth/actor_handoff_status.dart';
+import '../../domain/identifier/identifier.dart';
 import '../auth/login_screen.dart';
 import '../auth/session_resolving_screen.dart';
 import '../catalog/vocabulary_catalog_screen.dart';
 import '../catalog/vocabulary_registration_screen.dart';
-import '../detail/vocabulary_expression_detail_placeholder.dart';
+import '../detail/vocabulary_expression_detail_screen.dart';
 
 /// Canonical route paths (spec 013 navigation-topology-contract).
 class AppRoutes {
@@ -17,6 +18,8 @@ class AppRoutes {
   static const catalog = '/catalog';
   static const registration = '/registration';
   static const vocabularyPrefix = '/vocabulary';
+  static const explanationPrefix = '/explanation';
+  static const imagePrefix = '/image';
 }
 
 /// Provides the app's [GoRouter]. Built once; handoff state changes trigger
@@ -60,8 +63,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '${AppRoutes.vocabularyPrefix}/:identifier',
-        builder: (context, state) => VocabularyExpressionDetailPlaceholder(
-          identifier: state.pathParameters['identifier'] ?? '',
+        builder: (context, state) => VocabularyExpressionDetailScreen(
+          identifier: VocabularyExpressionIdentifier(
+            state.pathParameters['identifier']!,
+          ),
         ),
       ),
     ],
@@ -71,7 +76,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 bool _isAppShellLocation(String location) {
   return location == AppRoutes.catalog ||
       location == AppRoutes.registration ||
-      location.startsWith('${AppRoutes.vocabularyPrefix}/');
+      location.startsWith('${AppRoutes.vocabularyPrefix}/') ||
+      location.startsWith('${AppRoutes.explanationPrefix}/') ||
+      location.startsWith('${AppRoutes.imagePrefix}/');
 }
 
 String? _redirect(ActorHandoffStatus status, String location) {

@@ -41,7 +41,7 @@ class _VocabularyRegistrationScreenState
       _submitting = true;
       _errorText = null;
     });
-    final response = await command.execute(
+    final response = await command.register(
       text: _textController.text,
       idempotencyKey: IdempotencyKey(_uuidGenerator.v4()),
     );

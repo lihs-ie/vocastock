@@ -13,7 +13,7 @@ void main() {
 
     test('accepts a new registration', () async {
       final catalog = StubVocabularyCatalog();
-      final response = await catalog.execute(
+      final response = await catalog.register(
         text: 'serendipity',
         idempotencyKey: IdempotencyKey('idem-1'),
       );
@@ -32,11 +32,11 @@ void main() {
 
     test('returns reusedExisting for duplicate text', () async {
       final catalog = StubVocabularyCatalog();
-      await catalog.execute(
+      await catalog.register(
         text: 'serendipity',
         idempotencyKey: IdempotencyKey('idem-1'),
       );
-      final duplicate = await catalog.execute(
+      final duplicate = await catalog.register(
         text: 'serendipity',
         idempotencyKey: IdempotencyKey('idem-2'),
       );
@@ -54,7 +54,7 @@ void main() {
 
     test('rejects empty text with validationFailed', () async {
       final catalog = StubVocabularyCatalog();
-      final response = await catalog.execute(
+      final response = await catalog.register(
         text: '   ',
         idempotencyKey: IdempotencyKey('idem-1'),
       );
@@ -76,7 +76,7 @@ void main() {
       final sub = catalog.watch().listen(
             (snapshot) => events.add(snapshot.entries.length),
           );
-      await catalog.execute(
+      await catalog.register(
         text: 'serendipity',
         idempotencyKey: IdempotencyKey('idem-1'),
       );

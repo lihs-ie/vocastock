@@ -5,10 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'application/auth/actor_handoff_reader.dart';
 import 'application/auth/login_command.dart';
 import 'application/auth/logout_command.dart';
+import 'application/command/generation_commands.dart';
 import 'application/command/register_vocabulary_expression_command.dart';
 import 'application/gate/subscription_feature_gate.dart';
 import 'application/reader/vocabulary_catalog_reader.dart';
+import 'application/reader/vocabulary_expression_detail_reader.dart';
 import 'domain/auth/actor_handoff_status.dart';
+import 'domain/identifier/identifier.dart';
 import 'domain/vocabulary/vocabulary_expression_entry.dart';
 import 'infrastructure/stub/stub_actor_handoff_controller.dart';
 import 'infrastructure/stub/stub_vocabulary_catalog.dart';
@@ -78,6 +81,43 @@ final registerVocabularyExpressionCommandProvider =
     Provider<RegisterVocabularyExpressionCommand>((ref) {
   return ref.watch(stubVocabularyCatalogProvider);
 });
+
+final vocabularyExpressionDetailReaderProvider =
+    Provider<VocabularyExpressionDetailReader>((ref) {
+  return ref.watch(stubVocabularyCatalogProvider);
+});
+
+final requestExplanationGenerationCommandProvider =
+    Provider<RequestExplanationGenerationCommand>((ref) {
+  return ref.watch(stubVocabularyCatalogProvider);
+});
+
+final requestImageGenerationCommandProvider =
+    Provider<RequestImageGenerationCommand>((ref) {
+  return ref.watch(stubVocabularyCatalogProvider);
+});
+
+final retryGenerationCommandProvider = Provider<RetryGenerationCommand>((ref) {
+  return ref.watch(stubVocabularyCatalogProvider);
+});
+
+/// Streams a single entry for the `VocabularyExpressionDetail` screen,
+/// prepended with the current value so first frame is never null.
+// ignore: specify_nonobvious_property_types
+final vocabularyExpressionDetailStreamProvider = StreamProvider.autoDispose
+    .family<VocabularyExpressionEntry?, VocabularyExpressionIdentifier>(
+  (ref, identifier) {
+    final reader = ref.watch(vocabularyExpressionDetailReaderProvider);
+    final controller = StreamController<VocabularyExpressionEntry?>();
+    unawaited(reader.readDetail(identifier).then(controller.add));
+    final subscription = reader.watchDetail(identifier).listen(controller.add);
+    ref.onDispose(() {
+      unawaited(subscription.cancel());
+      unawaited(controller.close());
+    });
+    return controller.stream;
+  },
+);
 
 /// Streams the current catalog snapshot, prepending the reader's initial
 /// value so subscribers never render on a null first frame.

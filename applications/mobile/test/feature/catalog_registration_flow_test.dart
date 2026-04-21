@@ -77,7 +77,7 @@ void main() {
       addTearDown(handoff.dispose);
       addTearDown(catalog.dispose);
 
-      await catalog.execute(
+      await catalog.register(
         text: 'serendipity',
         idempotencyKey: IdempotencyKey('idem-pre'),
       );
