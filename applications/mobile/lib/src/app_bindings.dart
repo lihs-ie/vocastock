@@ -10,6 +10,7 @@ import 'application/command/purchase_commands.dart';
 import 'application/command/register_vocabulary_expression_command.dart';
 import 'application/gate/subscription_feature_gate.dart';
 import 'application/reader/completed_detail_readers.dart';
+import 'application/reader/learning_state_reader.dart';
 import 'application/reader/subscription_status_reader.dart';
 import 'application/reader/vocabulary_catalog_reader.dart';
 import 'application/reader/vocabulary_expression_detail_reader.dart';
@@ -72,6 +73,13 @@ final actorHandoffStatusProvider = StreamProvider<ActorHandoffStatus>((ref) {
 /// Pure-function feature gate; no infrastructure dependency.
 final subscriptionFeatureGateProvider = Provider<SubscriptionFeatureGate>((ref) {
   return const SubscriptionFeatureGate();
+});
+
+/// Stub learning-state reader that derives proficiency deterministically
+/// from the catalog entry identifier. Real backend reader (spec 005
+/// LearningState aggregate) will override this provider.
+final learningStateReaderProvider = Provider<LearningStateReader>((ref) {
+  return const StubLearningStateReader();
 });
 
 /// Stub vocabulary catalog backing both the reader and registration command.

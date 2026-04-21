@@ -11,8 +11,9 @@ import '../theme/widgets/vs_wordmark.dart';
 
 /// Spec 013 canonical `SessionResolving` screen (Auth route group).
 ///
-/// Always renders as `loading`. Displays the current handoff stage label as
-/// progress hint; does not expose actor reference itself.
+/// Visual reference: `screens.jsx` running / loading pattern. A compact
+/// wordmark at the top, a centered spinner with a Mincho stage label and a
+/// muted sans helper, and a cancel text button at the foot.
 class SessionResolvingScreen extends ConsumerWidget {
   const SessionResolvingScreen({super.key});
 
@@ -32,22 +33,21 @@ class SessionResolvingScreen extends ConsumerWidget {
       backgroundColor: VsTokens.paper,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
           child: Column(
             children: <Widget>[
-              const SizedBox(height: 32),
               const Align(
                 alignment: Alignment.centerLeft,
-                child: VsWordmark(size: 15),
+                child: VsWordmark(size: 13),
               ),
               const Spacer(),
-              const VsSpinner(size: 20),
-              const SizedBox(height: 20),
+              const VsSpinner(size: 24),
+              const SizedBox(height: 24),
               Text(
                 stageLabel,
                 key: const Key('session-resolving.stage'),
                 textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium,
+                style: theme.textTheme.headlineSmall,
               ),
               const SizedBox(height: 6),
               Text(
@@ -61,9 +61,12 @@ class SessionResolvingScreen extends ConsumerWidget {
               TextButton(
                 key: const Key('session-resolving.cancel'),
                 onPressed: () => unawaited(logoutCommand.signOut()),
+                style: TextButton.styleFrom(
+                  foregroundColor: VsTokens.inkMute,
+                ),
                 child: const Text('キャンセル'),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
             ],
           ),
         ),

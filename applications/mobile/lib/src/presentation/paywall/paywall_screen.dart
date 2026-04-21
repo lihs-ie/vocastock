@@ -11,71 +11,147 @@ import '../../domain/subscription/plan.dart';
 import '../router/router.dart';
 import '../theme/vs_tokens.dart';
 import '../theme/widgets/vs_chip.dart';
-import '../theme/widgets/vs_screen_scaffold.dart';
 
 /// Spec 013 canonical `Paywall` screen (full-screen route group).
 ///
-/// Lists paid plan options from spec 014 product catalog. Does NOT display
-/// completed payload; purchase state progresses through the underlying
-/// stub. Offers a link to the canonical `SubscriptionStatus` screen so the
-/// learner can review state in detail.
-class PaywallScreen extends ConsumerWidget {
+/// Visual reference: `screens.jsx` `VSPaywall`. Hero has a
+/// `PREMIUM GENERATION` crown chip, a Mincho 28 two-line headline
+/// ("多義の深さに、画像を添えて。") with accent highlight on 画像, and a muted
+/// tagline. The plan list exposes Free / Standard / Pro cards with
+/// selectable state; the selected plan drives the upgrade CTA copy.
+class PaywallScreen extends ConsumerStatefulWidget {
   const PaywallScreen({super.key});
 
+  @override
+  ConsumerState<PaywallScreen> createState() => _PaywallScreenState();
+}
+
+class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   static const Uuid _uuidGenerator = Uuid();
+  PlanCode _selected = PlanCode.proMonthly;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return VsScreenScaffold(
-      eyebrow: 'SUBSCRIPTION',
-      title: 'プランを選ぶ',
-      caption: '生成可能数を増やし、より深く多義を掘り下げる。',
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
+    final currentPlan = ref
+            .watch(subscriptionStatusStreamProvider)
+            .value
+            ?.plan ??
+        PlanCode.free;
+
+    return Scaffold(
+      backgroundColor: VsTokens.paper,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+            const _PaywallHeader(),
+            const SizedBox(height: 24),
+            _PlanCard(
+              key: const Key('paywall.plan.free'),
+              plan: PlanCode.free,
+              label: 'Free',
+              price: '¥0',
+              sub: '基本',
+              quota: '10 語 / 月',
+              features: const <String>[
+                '基本的な解説',
+                '画像生成なし',
+                '月 10 語まで',
+              ],
+              isCurrent: currentPlan == PlanCode.free,
+              isSelected: _selected == PlanCode.free,
+              onTap: () => setState(() => _selected = PlanCode.free),
+            ),
+            const SizedBox(height: 8),
+            _PlanCard(
+              key: const Key('paywall.plan.standard'),
+              plan: PlanCode.standardMonthly,
+              label: 'Standard',
+              price: '¥580',
+              sub: '月額',
+              quota: '100 語 / 月',
+              features: const <String>[
+                'AI解説 完全版',
+                '画像生成: 月 30 枚',
+                '月 100 語まで',
+              ],
+              isCurrent: currentPlan == PlanCode.standardMonthly,
+              isSelected: _selected == PlanCode.standardMonthly,
+              onTap: () =>
+                  setState(() => _selected = PlanCode.standardMonthly),
+            ),
+            const SizedBox(height: 8),
+            _PlanCard(
+              key: const Key('paywall.plan.pro'),
+              plan: PlanCode.proMonthly,
+              label: 'Pro',
+              price: '¥1,280',
+              sub: '月額',
+              quota: '無制限',
+              features: const <String>[
+                'AI解説 完全版',
+                '画像生成: 無制限',
+                '登録数 無制限',
+                '優先キュー',
+              ],
+              isCurrent: currentPlan == PlanCode.proMonthly,
+              isSelected: _selected == PlanCode.proMonthly,
+              onTap: () => setState(() => _selected = PlanCode.proMonthly),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _selected == PlanCode.free || _selected == currentPlan
+                  ? null
+                  : () => unawaited(_purchase(_selected)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: VsTokens.accent,
+                foregroundColor: VsTokens.paper,
+                disabledBackgroundColor: VsTokens.paperDeep,
+                disabledForegroundColor: VsTokens.inkMute,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(VsTokens.radiusMd)),
+                ),
+                textStyle: const TextStyle(
+                  fontFamily: VsTokens.sans,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              icon: const Icon(Icons.bolt, size: 16),
+              label: Text('${_planLabel(_selected)} にアップグレード'),
+            ),
+            const SizedBox(height: 12),
             Text(
-              '月額プランはいつでも解約できます。',
-              style: theme.textTheme.bodyMedium?.copyWith(
+              'purchase state: initiated → submitted → verifying → verified\n'
+              'verified になるまで premium 機能は解放されません。',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                height: 1.5,
                 color: VsTokens.inkMute,
               ),
             ),
             const SizedBox(height: 24),
-            _PlanCard(
-              key: const Key('paywall.plan.standard'),
-              title: 'スタンダード',
-              priceLine: '¥ 480 / 月',
-              features: const <String>['解説 100 / 月', '画像 30 / 月'],
-              accentTag: 'STANDARD',
-              onPurchase: () => unawaited(
-                _purchase(ref, PlanCode.standardMonthly),
+            Center(
+              child: TextButton(
+                key: const Key('paywall.status-link'),
+                onPressed: () => context.go(AppRoutes.subscriptionStatus),
+                child: const Text('サブスクリプション状態を確認'),
               ),
             ),
-            const SizedBox(height: 14),
-            _PlanCard(
-              key: const Key('paywall.plan.pro'),
-              title: 'プロ',
-              priceLine: '¥ 1,280 / 月',
-              features: const <String>['解説 300 / 月', '画像 100 / 月'],
-              accentTag: 'PRO',
-              recommended: true,
-              onPurchase: () => unawaited(_purchase(ref, PlanCode.proMonthly)),
-            ),
-            const SizedBox(height: 24),
-            TextButton(
-              key: const Key('paywall.status-link'),
-              onPressed: () => context.go(AppRoutes.subscriptionStatus),
-              child: const Text('サブスクリプション状態を確認'),
-            ),
           ],
+          ),
         ),
       ),
     );
   }
 
-  Future<void> _purchase(WidgetRef ref, PlanCode plan) async {
+  Future<void> _purchase(PlanCode plan) async {
     final command = ref.read(requestPurchaseCommandProvider);
     await command.purchase(
       plan: plan,
@@ -84,90 +160,192 @@ class PaywallScreen extends ConsumerWidget {
   }
 }
 
-class _PlanCard extends StatelessWidget {
-  const _PlanCard({
-    required this.title,
-    required this.priceLine,
-    required this.features,
-    required this.accentTag,
-    required this.onPurchase,
-    this.recommended = false,
-    super.key,
-  });
-
-  final String title;
-  final String priceLine;
-  final List<String> features;
-  final String accentTag;
-  final bool recommended;
-  final VoidCallback onPurchase;
+class _PaywallHeader extends StatelessWidget {
+  const _PaywallHeader();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: VsTokens.paperSoft,
-        borderRadius: BorderRadius.circular(VsTokens.radiusLg),
-        border: Border.all(
-          color: recommended ? VsTokens.accent : VsTokens.inkHair,
-          width: recommended ? 1.2 : 0.5,
+    return Column(
+      children: <Widget>[
+        const VsChip(
+          label: 'PREMIUM GENERATION',
+          tone: VsChipTone.accent,
+          icon: Icon(Icons.emoji_events),
         ),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              VsChip(
-                label: accentTag,
-                tone: recommended ? VsChipTone.accent : VsChipTone.neutral,
-              ),
-              if (recommended) ...<Widget>[
-                const SizedBox(width: 6),
-                const VsChip(label: 'おすすめ', tone: VsChipTone.dark),
-              ],
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(title, style: theme.textTheme.headlineMedium),
-          const SizedBox(height: 4),
-          Text(
-            priceLine,
-            style: const TextStyle(
-              fontFamily: VsTokens.mono,
-              fontSize: 16,
+        const SizedBox(height: 14),
+        RichText(
+          textAlign: TextAlign.center,
+          text: const TextSpan(
+            style: TextStyle(
+              fontFamily: VsTokens.serif,
+              fontSize: 28,
               fontWeight: FontWeight.w600,
+              letterSpacing: -0.6,
+              height: 1.2,
               color: VsTokens.ink,
             ),
+            children: <InlineSpan>[
+              TextSpan(text: '多義の深さに、\n'),
+              TextSpan(
+                text: '画像',
+                style: TextStyle(color: VsTokens.accent),
+              ),
+              TextSpan(text: 'を添えて。'),
+            ],
           ),
-          const SizedBox(height: 14),
-          for (final feature in features)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Row(
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'AIによる視覚イメージ生成で、英単語の意味が記憶に定着します。',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: VsTokens.inkSoft,
+            height: 1.6,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PlanCard extends StatelessWidget {
+  const _PlanCard({
+    required this.plan,
+    required this.label,
+    required this.price,
+    required this.sub,
+    required this.quota,
+    required this.features,
+    required this.isCurrent,
+    required this.isSelected,
+    required this.onTap,
+    super.key,
+  });
+
+  final PlanCode plan;
+  final String label;
+  final String price;
+  final String sub;
+  final String quota;
+  final List<String> features;
+  final bool isCurrent;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final background = isSelected ? VsTokens.ink : VsTokens.paperSoft;
+    final foreground = isSelected ? VsTokens.paper : VsTokens.ink;
+    final borderColor = isSelected ? VsTokens.ink : VsTokens.inkHair;
+    final mutedColor = isSelected ? VsTokens.paperDeep : VsTokens.inkMute;
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(VsTokens.radiusMd),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(VsTokens.radiusMd),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: borderColor,
+              width: isSelected ? 1 : 0.5,
+            ),
+            borderRadius: BorderRadius.circular(VsTokens.radiusMd),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
                 children: <Widget>[
-                  const Icon(
-                    Icons.check,
-                    size: 14,
-                    color: VsTokens.accent,
-                  ),
-                  const SizedBox(width: 8),
                   Text(
-                    feature,
-                    style: theme.textTheme.bodyMedium,
+                    label,
+                    style: TextStyle(
+                      fontFamily: VsTokens.serif,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: foreground,
+                    ),
+                  ),
+                  if (isCurrent) ...<Widget>[
+                    const SizedBox(width: 8),
+                    VsChip(
+                      label: '現在のプラン',
+                      tone: isSelected ? VsChipTone.dark : VsChipTone.accent,
+                    ),
+                  ],
+                  const Spacer(),
+                  Text(
+                    price,
+                    style: TextStyle(
+                      fontFamily: VsTokens.serif,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: foreground,
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    sub,
+                    style: TextStyle(
+                      fontFamily: VsTokens.sans,
+                      fontSize: 10,
+                      color: mutedColor,
+                    ),
                   ),
                 ],
               ),
-            ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onPurchase,
-            child: const Text('このプランを購入'),
+              const SizedBox(height: 4),
+              Text(
+                'QUOTA · ${quota.toUpperCase()}',
+                style: TextStyle(
+                  fontFamily: VsTokens.mono,
+                  fontSize: 10,
+                  letterSpacing: 0.5,
+                  color: mutedColor,
+                ),
+              ),
+              const SizedBox(height: 12),
+              for (final feature in features)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.check,
+                        size: 12,
+                        color: isSelected ? VsTokens.paper : VsTokens.ok,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          feature,
+                          style: TextStyle(
+                            fontFamily: VsTokens.sans,
+                            fontSize: 11,
+                            color: isSelected
+                                ? VsTokens.paper.withAlpha(230)
+                                : VsTokens.ink.withAlpha(200),
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
+
+String _planLabel(PlanCode plan) => switch (plan) {
+      PlanCode.free => 'Free',
+      PlanCode.standardMonthly => 'Standard',
+      PlanCode.proMonthly => 'Pro',
+    };

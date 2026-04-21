@@ -12,7 +12,8 @@ void main() {
       expect(find.text('頻出'), findsOneWidget);
     });
 
-    testWidgets('accent tone paints accent container colors', (WidgetTester tester) async {
+    testWidgets('accent tone paints accent container colors',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         harness(const VsChip(label: '完了', tone: VsChipTone.accent)),
       );
@@ -21,7 +22,8 @@ void main() {
       expect(decoration.color, VsTokens.accentSoft);
     });
 
-    testWidgets('dark tone paints ink container colors', (WidgetTester tester) async {
+    testWidgets('dark tone paints ink container colors',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         harness(const VsChip(label: 'ALL', tone: VsChipTone.dark)),
       );
@@ -29,22 +31,36 @@ void main() {
       final decoration = container.decoration! as BoxDecoration;
       expect(decoration.color, VsTokens.ink);
     });
-  });
 
-  group('VsOutlinedChip', () {
-    testWidgets('draws an outlined pill tinted by the given color',
-        (tester) async {
+    testWidgets('outlined mode draws transparent fill with colored border',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: VsOutlinedChip(
-              label: '学習中',
-              color: VsTokens.profLearning,
-            ),
+        harness(
+          const VsChip(
+            label: '学習中',
+            outlined: true,
+            color: VsTokens.profLearning,
           ),
         ),
       );
-      expect(find.text('学習中'), findsOneWidget);
+      final container = tester.widget<Container>(find.byType(Container).first);
+      final decoration = container.decoration! as BoxDecoration;
+      expect(decoration.color, Colors.transparent);
+      expect(decoration.border, isA<Border>());
+    });
+
+    testWidgets('icon slot renders provided widget',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        harness(
+          const VsChip(
+            label: 'PREMIUM',
+            icon: Icon(Icons.emoji_events),
+            tone: VsChipTone.accent,
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.emoji_events), findsOneWidget);
     });
   });
 }
