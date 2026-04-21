@@ -76,6 +76,11 @@ void main() {
       ProviderScope.containerOf(element).read(routerProvider).go('/paywall');
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('paywall.status-link')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.byKey(const Key('paywall.status-link')));
       await tester.pumpAndSettle();
 

@@ -15,6 +15,9 @@ import '../../domain/subscription/entitlement.dart';
 import '../../domain/subscription/plan.dart';
 import '../../domain/vocabulary/vocabulary_expression_entry.dart';
 import '../router/router.dart';
+import '../theme/vs_tokens.dart';
+import '../theme/widgets/vs_chip.dart';
+import '../theme/widgets/vs_spinner.dart';
 
 /// Spec 013 canonical `VocabularyExpressionDetail` screen.
 ///
@@ -38,11 +41,19 @@ class VocabularyExpressionDetailScreen extends ConsumerWidget {
     final entry = entryAsync.value;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('単語の詳細')),
+      backgroundColor: VsTokens.paper,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: () => context.go(AppRoutes.catalog),
+        ),
+        title: const Text('単語の詳細'),
+      ),
       body: entry == null
           ? const Center(
-              child: CircularProgressIndicator(
+              child: VsSpinner(
                 key: Key('detail.loading'),
+                size: 20,
               ),
             )
           : _buildStatusBody(context, ref, entry),
@@ -54,78 +65,77 @@ class VocabularyExpressionDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     VocabularyExpressionEntry entry,
   ) {
-    final explanationStatusLabel = _explanationLabel(entry.explanationStatus);
-    final imageStatusLabel = _imageLabel(entry.imageStatus);
+    final theme = Theme.of(context);
     final canRequestImage =
         entry.hasCompletedExplanation && !entry.hasCompletedImage;
-    final explanationFailed =
-        entry.explanationStatus == ExplanationGenerationStatus.failedFinal ||
-            entry.explanationStatus == ExplanationGenerationStatus.deadLettered;
-    final imageFailed =
-        entry.imageStatus == ImageGenerationStatus.failedFinal ||
-            entry.imageStatus == ImageGenerationStatus.deadLettered;
+    final explanationFailed = _isExplanationFailed(entry.explanationStatus);
+    final imageFailed = _isImageFailed(entry.imageStatus);
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            entry.text,
-            key: const Key('detail.text'),
-            style: const TextStyle(fontSize: 20),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+      children: <Widget>[
+        Text(
+          entry.text,
+          key: const Key('detail.text'),
+          style: theme.textTheme.displayMedium,
+        ),
+        const SizedBox(height: 32),
+        _StatusSection(
+          keyValue: 'detail.explanation-status',
+          title: '解説',
+          label: _explanationLabel(entry.explanationStatus),
+          tone: _explanationChipTone(entry.explanationStatus),
+        ),
+        const SizedBox(height: 12),
+        if (entry.hasCompletedExplanation)
+          ElevatedButton(
+            key: const Key('detail.open-explanation'),
+            onPressed: () => context.go(
+              '${AppRoutes.explanationPrefix}/${entry.currentExplanation!.value}',
+            ),
+            child: const Text('解説を見る'),
           ),
-          const SizedBox(height: 24),
-          ListTile(
-            key: const Key('detail.explanation-status'),
-            title: const Text('解説'),
-            subtitle: Text(explanationStatusLabel),
+        if (explanationFailed)
+          OutlinedButton(
+            key: const Key('detail.retry-explanation'),
+            onPressed: () => unawaited(
+              _retry(ref, GenerationTargetKind.explanation),
+            ),
+            child: const Text('解説生成を再試行'),
           ),
-          if (entry.hasCompletedExplanation)
-            ElevatedButton(
-              key: const Key('detail.open-explanation'),
-              onPressed: () => context.go(
-                '${AppRoutes.explanationPrefix}/${entry.currentExplanation!.value}',
-              ),
-              child: const Text('解説を見る'),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Divider(),
+        ),
+        _StatusSection(
+          keyValue: 'detail.image-status',
+          title: '画像',
+          label: _imageLabel(entry.imageStatus),
+          tone: _imageChipTone(entry.imageStatus),
+        ),
+        const SizedBox(height: 12),
+        if (entry.hasCompletedImage)
+          ElevatedButton(
+            key: const Key('detail.open-image'),
+            onPressed: () => context.go(
+              '${AppRoutes.imagePrefix}/${entry.currentImage!.value}',
             ),
-          if (explanationFailed)
-            OutlinedButton(
-              key: const Key('detail.retry-explanation'),
-              onPressed: () => unawaited(
-                _retry(ref, GenerationTargetKind.explanation),
-              ),
-              child: const Text('解説生成を再試行'),
-            ),
-          const SizedBox(height: 24),
-          ListTile(
-            key: const Key('detail.image-status'),
-            title: const Text('画像'),
-            subtitle: Text(imageStatusLabel),
+            child: const Text('画像を見る'),
           ),
-          if (entry.hasCompletedImage)
-            ElevatedButton(
-              key: const Key('detail.open-image'),
-              onPressed: () => context.go(
-                '${AppRoutes.imagePrefix}/${entry.currentImage!.value}',
-              ),
-              child: const Text('画像を見る'),
-            ),
-          if (canRequestImage)
-            ElevatedButton(
-              key: const Key('detail.request-image'),
-              onPressed: () => unawaited(_requestImage(context, ref)),
-              child: const Text('画像を生成する'),
-            ),
-          if (imageFailed)
-            OutlinedButton(
-              key: const Key('detail.retry-image'),
-              onPressed: () =>
-                  unawaited(_retry(ref, GenerationTargetKind.image)),
-              child: const Text('画像生成を再試行'),
-            ),
-        ],
-      ),
+        if (canRequestImage)
+          ElevatedButton(
+            key: const Key('detail.request-image'),
+            onPressed: () => unawaited(_requestImage(context, ref)),
+            child: const Text('画像を生成する'),
+          ),
+        if (imageFailed)
+          OutlinedButton(
+            key: const Key('detail.retry-image'),
+            onPressed: () =>
+                unawaited(_retry(ref, GenerationTargetKind.image)),
+            child: const Text('画像生成を再試行'),
+          ),
+      ],
     );
   }
 
@@ -138,9 +148,6 @@ class VocabularyExpressionDetailScreen extends ConsumerWidget {
         state: status.state,
         plan: status.plan.tier,
       );
-      // Deny routes to Restricted (handled by the router redirect on revoked
-      // state); Limited is delegated to usage allowance resolution, and when
-      // the allowance is depleted we open the Paywall.
       if (decision is FeatureGateLimited &&
           !status.allowance.canGenerateImage) {
         if (!context.mounted) return;
@@ -174,6 +181,16 @@ class VocabularyExpressionDetailScreen extends ConsumerWidget {
     }
   }
 
+  bool _isExplanationFailed(ExplanationGenerationStatus status) {
+    return status == ExplanationGenerationStatus.failedFinal ||
+        status == ExplanationGenerationStatus.deadLettered;
+  }
+
+  bool _isImageFailed(ImageGenerationStatus status) {
+    return status == ImageGenerationStatus.failedFinal ||
+        status == ImageGenerationStatus.deadLettered;
+  }
+
   String _explanationLabel(ExplanationGenerationStatus status) {
     return switch (status) {
       ExplanationGenerationStatus.pending => '解説を準備しています',
@@ -196,5 +213,65 @@ class VocabularyExpressionDetailScreen extends ConsumerWidget {
       ImageGenerationStatus.failedFinal => '生成できませんでした',
       ImageGenerationStatus.deadLettered => '生成できませんでした',
     };
+  }
+
+  VsChipTone _explanationChipTone(ExplanationGenerationStatus status) {
+    return switch (status) {
+      ExplanationGenerationStatus.succeeded => VsChipTone.ok,
+      ExplanationGenerationStatus.pending ||
+      ExplanationGenerationStatus.running ||
+      ExplanationGenerationStatus.retryScheduled =>
+        VsChipTone.accent,
+      ExplanationGenerationStatus.timedOut ||
+      ExplanationGenerationStatus.failedFinal ||
+      ExplanationGenerationStatus.deadLettered =>
+        VsChipTone.err,
+    };
+  }
+
+  VsChipTone _imageChipTone(ImageGenerationStatus status) {
+    return switch (status) {
+      ImageGenerationStatus.succeeded => VsChipTone.ok,
+      ImageGenerationStatus.pending ||
+      ImageGenerationStatus.running ||
+      ImageGenerationStatus.retryScheduled =>
+        VsChipTone.accent,
+      ImageGenerationStatus.timedOut ||
+      ImageGenerationStatus.failedFinal ||
+      ImageGenerationStatus.deadLettered =>
+        VsChipTone.err,
+    };
+  }
+}
+
+class _StatusSection extends StatelessWidget {
+  const _StatusSection({
+    required this.keyValue,
+    required this.title,
+    required this.label,
+    required this.tone,
+  });
+
+  final String keyValue;
+  final String title;
+  final String label;
+  final VsChipTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      key: Key(keyValue),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Text(title, style: theme.textTheme.headlineSmall),
+            const SizedBox(width: 10),
+            VsChip(label: label, tone: tone),
+          ],
+        ),
+      ],
+    );
   }
 }

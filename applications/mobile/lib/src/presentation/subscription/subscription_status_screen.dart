@@ -10,8 +10,11 @@ import '../../domain/identifier/identifier.dart';
 import '../../domain/status/subscription_state.dart';
 import '../../domain/subscription/entitlement.dart';
 import '../../domain/subscription/plan.dart';
-import '../../domain/subscription/subscription_status_view.dart';
 import '../router/router.dart';
+import '../theme/vs_tokens.dart';
+import '../theme/widgets/vs_chip.dart';
+import '../theme/widgets/vs_screen_scaffold.dart';
+import '../theme/widgets/vs_spinner.dart';
 
 /// Spec 013 canonical `SubscriptionStatus` screen.
 ///
@@ -32,38 +35,62 @@ class SubscriptionStatusScreen extends ConsumerWidget {
     final view = statusAsync.value;
     if (view == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        backgroundColor: VsTokens.paper,
+        body: Center(child: VsSpinner(size: 18)),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('サブスクリプション状態'),
-        actions: [
-          IconButton(
-            key: const Key('subscription-status.logout'),
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await ref.read(logoutCommandProvider).signOut();
-              if (!context.mounted) return;
-              context.go(AppRoutes.login);
-            },
-          ),
-        ],
+    return VsScreenScaffold(
+      eyebrow: 'SUBSCRIPTION',
+      title: 'サブスクリプション',
+      caption: 'プラン・権利・残量を一覧で確認します。',
+      trailing: IconButton(
+        key: const Key('subscription-status.logout'),
+        icon: const Icon(Icons.logout),
+        onPressed: () async {
+          await ref.read(logoutCommandProvider).signOut();
+          if (!context.mounted) return;
+          context.go(AppRoutes.login);
+        },
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _StateSection(view: view),
-          const Divider(),
-          _PlanSection(view: view),
-          const Divider(),
-          _EntitlementSection(view: view),
-          const Divider(),
-          _AllowanceSection(view: view),
-          const Divider(),
-          _RecoverySection(
-            onRestore: () async {
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        children: <Widget>[
+          _SectionCard(
+            keyValue: 'subscription-status.state',
+            label: '状態',
+            value: _stateLabel(view.state),
+            tone: _stateTone(view.state),
+          ),
+          const SizedBox(height: 12),
+          _SectionCard(
+            keyValue: 'subscription-status.plan',
+            label: 'プラン',
+            value: _planLabel(view.plan),
+          ),
+          const SizedBox(height: 12),
+          _SectionCard(
+            keyValue: 'subscription-status.entitlement',
+            label: '利用可能な機能',
+            value: _entitlementLabel(view.entitlement),
+          ),
+          const SizedBox(height: 12),
+          _SectionCard(
+            keyValue: 'subscription-status.allowance',
+            label: '今月の残量',
+            value:
+                '解説 ${view.allowance.remainingExplanationGenerations} / '
+                '画像 ${view.allowance.remainingImageGenerations}',
+          ),
+          const SizedBox(height: 24),
+          Text(
+            '購入履歴を復元',
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton(
+            key: const Key('subscription-status.restore'),
+            onPressed: () {
               final command = ref.read(requestRestorePurchaseCommandProvider);
               unawaited(
                 command.restore(
@@ -71,107 +98,6 @@ class SubscriptionStatusScreen extends ConsumerWidget {
                 ),
               );
             },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StateSection extends StatelessWidget {
-  const _StateSection({required this.view});
-  final SubscriptionStatusView view;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      key: const Key('subscription-status.state'),
-      title: const Text('状態'),
-      subtitle: Text(_stateLabel(view.state)),
-    );
-  }
-
-  String _stateLabel(SubscriptionState state) => switch (state) {
-        SubscriptionState.active => '有効',
-        SubscriptionState.grace => '猶予期間',
-        SubscriptionState.pendingSync => '同期中',
-        SubscriptionState.expired => '期限切れ',
-        SubscriptionState.revoked => '無効',
-      };
-}
-
-class _PlanSection extends StatelessWidget {
-  const _PlanSection({required this.view});
-  final SubscriptionStatusView view;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      key: const Key('subscription-status.plan'),
-      title: const Text('プラン'),
-      subtitle: Text(_planLabel(view.plan)),
-    );
-  }
-
-  String _planLabel(PlanCode plan) => switch (plan) {
-        PlanCode.free => '無料',
-        PlanCode.standardMonthly => 'スタンダード (月額)',
-        PlanCode.proMonthly => 'プロ (月額)',
-      };
-}
-
-class _EntitlementSection extends StatelessWidget {
-  const _EntitlementSection({required this.view});
-  final SubscriptionStatusView view;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      key: const Key('subscription-status.entitlement'),
-      title: const Text('利用可能な機能'),
-      subtitle: Text(_entitlementLabel(view.entitlement)),
-    );
-  }
-
-  String _entitlementLabel(EntitlementBundle bundle) => switch (bundle) {
-        EntitlementBundle.freeBasic => '基本機能',
-        EntitlementBundle.premiumGeneration => 'プレミアム生成機能',
-      };
-}
-
-class _AllowanceSection extends StatelessWidget {
-  const _AllowanceSection({required this.view});
-  final SubscriptionStatusView view;
-
-  @override
-  Widget build(BuildContext context) {
-    final allowance = view.allowance;
-    return ListTile(
-      key: const Key('subscription-status.allowance'),
-      title: const Text('今月の残量'),
-      subtitle: Text(
-        '解説: ${allowance.remainingExplanationGenerations} / '
-        '画像: ${allowance.remainingImageGenerations}',
-      ),
-    );
-  }
-}
-
-class _RecoverySection extends StatelessWidget {
-  const _RecoverySection({required this.onRestore});
-  final VoidCallback onRestore;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Column(
-        children: [
-          const Text('購入履歴を復元'),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            key: const Key('subscription-status.restore'),
-            onPressed: onRestore,
             child: const Text('復元する'),
           ),
         ],
@@ -179,3 +105,92 @@ class _RecoverySection extends StatelessWidget {
     );
   }
 }
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({
+    required this.keyValue,
+    required this.label,
+    required this.value,
+    this.tone,
+  });
+
+  final String keyValue;
+  final String label;
+  final String value;
+  final VsChipTone? tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      key: Key(keyValue),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: VsTokens.paperSoft,
+        borderRadius: BorderRadius.circular(VsTokens.radiusMd),
+        border: Border.all(color: VsTokens.inkHair),
+      ),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(label, style: theme.textTheme.labelMedium),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: theme.textTheme.titleMedium,
+                ),
+              ],
+            ),
+          ),
+          if (tone != null) VsChip(label: _chipLabel(), tone: tone!),
+        ],
+      ),
+    );
+  }
+
+  String _chipLabel() {
+    switch (tone!) {
+      case VsChipTone.ok:
+        return 'ACTIVE';
+      case VsChipTone.accent:
+        return 'SYNC';
+      case VsChipTone.warn:
+        return 'GRACE';
+      case VsChipTone.err:
+        return 'BLOCKED';
+      case VsChipTone.neutral:
+      case VsChipTone.dark:
+        return value;
+    }
+  }
+}
+
+String _stateLabel(SubscriptionState state) => switch (state) {
+      SubscriptionState.active => '有効',
+      SubscriptionState.grace => '猶予期間',
+      SubscriptionState.pendingSync => '同期中',
+      SubscriptionState.expired => '期限切れ',
+      SubscriptionState.revoked => '無効',
+    };
+
+VsChipTone _stateTone(SubscriptionState state) => switch (state) {
+      SubscriptionState.active => VsChipTone.ok,
+      SubscriptionState.grace => VsChipTone.warn,
+      SubscriptionState.pendingSync => VsChipTone.accent,
+      SubscriptionState.expired => VsChipTone.err,
+      SubscriptionState.revoked => VsChipTone.err,
+    };
+
+String _planLabel(PlanCode plan) => switch (plan) {
+      PlanCode.free => '無料',
+      PlanCode.standardMonthly => 'スタンダード (月額)',
+      PlanCode.proMonthly => 'プロ (月額)',
+    };
+
+String _entitlementLabel(EntitlementBundle bundle) => switch (bundle) {
+      EntitlementBundle.freeBasic => '基本機能',
+      EntitlementBundle.premiumGeneration => 'プレミアム生成機能',
+    };

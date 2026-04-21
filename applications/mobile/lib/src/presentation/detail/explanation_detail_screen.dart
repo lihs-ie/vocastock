@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../app_bindings.dart';
 import '../../domain/identifier/identifier.dart';
+import '../theme/vs_tokens.dart';
+import '../theme/widgets/vs_skeleton.dart';
 
 /// Spec 013 canonical `ExplanationDetail` screen.
 ///
@@ -19,9 +21,17 @@ class ExplanationDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(explanationDetailFutureProvider(identifier));
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('解説')),
+      backgroundColor: VsTokens.paper,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text('解説'),
+      ),
       body: detailAsync.when(
         data: (detail) {
           if (detail == null) {
@@ -30,40 +40,67 @@ class ExplanationDetailScreen extends ConsumerWidget {
             });
             return const SizedBox.shrink();
           }
-          return Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  detail.body,
-                  key: const Key('explanation-detail.body'),
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  '例文',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                for (final sentence in detail.exampleSentences)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      '- $sentence',
-                      key: const Key('explanation-detail.example'),
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+            children: <Widget>[
+              Text(
+                detail.body,
+                key: const Key('explanation-detail.body'),
+                style: theme.textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              Text(
+                '例文',
+                style: theme.textTheme.labelMedium,
+              ),
+              const SizedBox(height: 10),
+              for (final sentence in detail.exampleSentences)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    sentence,
+                    key: const Key('explanation-detail.example'),
+                    style: const TextStyle(
+                      fontFamily: VsTokens.serif,
+                      fontSize: 15,
+                      height: 1.6,
+                      fontStyle: FontStyle.italic,
+                      color: VsTokens.ink,
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-            key: Key('explanation-detail.loading'),
+        loading: () => const Padding(
+          key: Key('explanation-detail.loading'),
+          padding: EdgeInsets.fromLTRB(24, 16, 24, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              VsSkeleton(height: 20),
+              SizedBox(height: 12),
+              VsSkeleton(),
+              SizedBox(height: 6),
+              VsSkeleton(),
+              SizedBox(height: 6),
+              VsSkeleton(width: 240),
+            ],
           ),
         ),
         error: (error, _) => Center(
-          child: Text('エラー: $error'),
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(
+              'エラー: $error',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: VsTokens.err,
+              ),
+            ),
+          ),
         ),
       ),
     );

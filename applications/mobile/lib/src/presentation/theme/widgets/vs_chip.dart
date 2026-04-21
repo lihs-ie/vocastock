@@ -1,0 +1,132 @@
+import 'package:flutter/material.dart';
+
+import '../vs_tokens.dart';
+
+/// Semantic tone palette for [VsChip].
+enum VsChipTone { neutral, accent, ok, warn, err, dark }
+
+class _VsChipColors {
+  const _VsChipColors({required this.background, required this.foreground});
+  final Color background;
+  final Color foreground;
+}
+
+_VsChipColors _tonePalette(VsChipTone tone) {
+  switch (tone) {
+    case VsChipTone.neutral:
+      return const _VsChipColors(
+        background: VsTokens.paperDeep,
+        foreground: VsTokens.inkSoft,
+      );
+    case VsChipTone.accent:
+      return const _VsChipColors(
+        background: VsTokens.accentSoft,
+        foreground: VsTokens.accentDeep,
+      );
+    case VsChipTone.ok:
+      return const _VsChipColors(
+        background: Color(0xFFE6EEDF),
+        foreground: Color(0xFF3E5A37),
+      );
+    case VsChipTone.warn:
+      return const _VsChipColors(
+        background: Color(0xFFF2E8D4),
+        foreground: Color(0xFF6E531C),
+      );
+    case VsChipTone.err:
+      return const _VsChipColors(
+        background: Color(0xFFF2DDD8),
+        foreground: Color(0xFF6E322A),
+      );
+    case VsChipTone.dark:
+      return const _VsChipColors(
+        background: VsTokens.ink,
+        foreground: VsTokens.paper,
+      );
+  }
+}
+
+/// Small pill label mirroring the handoff bundle's `VSChip` component.
+class VsChip extends StatelessWidget {
+  const VsChip({
+    required this.label,
+    this.tone = VsChipTone.neutral,
+    this.icon,
+    super.key,
+  });
+
+  final String label;
+  final VsChipTone tone;
+  final Widget? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = _tonePalette(tone);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: palette.background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (icon != null) ...<Widget>[
+            IconTheme(
+              data: IconThemeData(color: palette.foreground, size: 12),
+              child: icon!,
+            ),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: VsTokens.sans,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.3,
+              height: 1.6,
+              color: palette.foreground,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Outlined chip tinted by [color] — used for proficiency badges where the
+/// fill is paper and the label inherits its semantic hue.
+class VsOutlinedChip extends StatelessWidget {
+  const VsOutlinedChip({
+    required this.label,
+    required this.color,
+    super.key,
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color, width: 0.8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: VsTokens.sans,
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.3,
+          height: 1.6,
+          color: color,
+        ),
+      ),
+    );
+  }
+}

@@ -7,6 +7,9 @@ import '../../app_bindings.dart';
 import '../../application/envelope/command_response_envelope.dart';
 import '../../domain/identifier/identifier.dart';
 import '../router/router.dart';
+import '../theme/vs_tokens.dart';
+import '../theme/widgets/vs_spinner.dart';
+import '../theme/widgets/vs_wordmark.dart';
 
 /// Spec 013 canonical `VocabularyRegistration` screen.
 ///
@@ -51,8 +54,6 @@ class _VocabularyRegistrationScreenState
     });
     switch (response) {
       case CommandResponseAccepted():
-        // Both `accepted` and `reusedExisting` land on the catalog so the
-        // learner can see their entry.
         context.go(AppRoutes.catalog);
       case CommandResponseRejected(:final message):
         setState(() {
@@ -63,42 +64,93 @@ class _VocabularyRegistrationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('新しい単語を登録')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
+      backgroundColor: VsTokens.paper,
+      body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              key: const Key('registration.text-field'),
-              controller: _textController,
-              enabled: !_submitting,
-              decoration: const InputDecoration(
-                labelText: '単語または表現',
-                hintText: '例: serendipity',
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  TextButton(
+                    onPressed: _submitting
+                        ? null
+                        : () => context.go(AppRoutes.catalog),
+                    child: const Text('キャンセル'),
+                  ),
+                  const VsWordmark(),
+                  TextButton(
+                    onPressed: _submitting ? null : _submit,
+                    child: const Text('登録'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              key: const Key('registration.submit'),
-              onPressed: _submitting ? null : _submit,
-              child: _submitting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('登録する'),
-            ),
-            if (_errorText != null) ...[
-              const SizedBox(height: 16),
-              Text(
-                _errorText!,
-                key: const Key('registration.error-message'),
-                style: const TextStyle(color: Colors.red),
+            const Divider(height: 0.5, thickness: 0.5),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Text(
+                      'ENGLISH EXPRESSION',
+                      style: theme.textTheme.labelMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      key: const Key('registration.text-field'),
+                      controller: _textController,
+                      enabled: !_submitting,
+                      autofocus: true,
+                      onChanged: (_) => setState(() {}),
+                      style: const TextStyle(
+                        fontFamily: VsTokens.serif,
+                        fontSize: 34,
+                        fontWeight: FontWeight.w600,
+                        color: VsTokens.ink,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'serendipity',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '単語 / 連語どちらも可。小文字・原形での登録を推奨。',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: VsTokens.inkMute,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    ElevatedButton(
+                      key: const Key('registration.submit'),
+                      onPressed: _submitting ? null : _submit,
+                      child: _submitting
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: VsSpinner(color: VsTokens.paper),
+                            )
+                          : const Text('この表現を登録'),
+                    ),
+                    if (_errorText != null) ...<Widget>[
+                      const SizedBox(height: 16),
+                      Text(
+                        _errorText!,
+                        key: const Key('registration.error-message'),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: VsTokens.err,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ],
+            ),
           ],
         ),
       ),
