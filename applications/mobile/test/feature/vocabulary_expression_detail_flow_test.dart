@@ -171,5 +171,34 @@ void main() {
         );
       },
     );
+
+    testWidgets('explanation failed renders retry CTA and recovers',
+        (tester) async {
+      final handoff = StubActorHandoffController();
+      final catalog = StubVocabularyCatalog();
+      addTearDown(handoff.dispose);
+      addTearDown(catalog.dispose);
+
+      final identifier = await _preloadEntry(catalog, 'arcane');
+      catalog.markExplanationFailed(identifier);
+
+      await _pumpSignedIn(tester, handoff: handoff, catalog: catalog);
+
+      await tester.tap(find.text('arcane'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('detail.retry-explanation')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('detail.retry-explanation')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('detail.open-explanation')),
+        findsOneWidget,
+      );
+    });
   });
 }

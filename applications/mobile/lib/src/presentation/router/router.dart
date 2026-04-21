@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../app_bindings.dart';
 import '../../domain/auth/actor_handoff_status.dart';
 import '../../domain/identifier/identifier.dart';
+import '../../domain/status/subscription_state.dart';
 import '../auth/login_screen.dart';
 import '../auth/session_resolving_screen.dart';
 import '../catalog/vocabulary_catalog_screen.dart';
@@ -12,6 +13,9 @@ import '../catalog/vocabulary_registration_screen.dart';
 import '../detail/explanation_detail_screen.dart';
 import '../detail/image_detail_screen.dart';
 import '../detail/vocabulary_expression_detail_screen.dart';
+import '../paywall/paywall_screen.dart';
+import '../restricted/restricted_access_screen.dart';
+import '../subscription/subscription_status_screen.dart';
 
 /// Canonical route paths (spec 013 navigation-topology-contract).
 class AppRoutes {
@@ -22,19 +26,27 @@ class AppRoutes {
   static const vocabularyPrefix = '/vocabulary';
   static const explanationPrefix = '/explanation';
   static const imagePrefix = '/image';
+  static const subscriptionStatus = '/subscription';
+  static const paywall = '/paywall';
+  static const restricted = '/restricted';
 }
 
-/// Provides the app's [GoRouter]. Built once; handoff state changes trigger
-/// `refreshListenable` instead of a provider rebuild so MaterialApp.router
-/// does not re-mount a new Navigator on every state emission.
+/// Provides the app's [GoRouter]. Built once; handoff and subscription
+/// status changes trigger `refreshListenable` so MaterialApp.router does not
+/// re-mount a new Navigator on every state emission.
 final routerProvider = Provider<GoRouter>((ref) {
   final notifier = ValueNotifier<int>(0);
-  final subscription = ref.listen<AsyncValue<ActorHandoffStatus>>(
+  final handoffSubscription = ref.listen<AsyncValue<ActorHandoffStatus>>(
     actorHandoffStatusProvider,
     (_, _) => notifier.value++,
   );
+  final subscriptionSubscription = ref.listen(
+    subscriptionStatusStreamProvider,
+    (_, _) => notifier.value++,
+  );
   ref.onDispose(() {
-    subscription.close();
+    handoffSubscription.close();
+    subscriptionSubscription.close();
     notifier.dispose();
   });
 
@@ -42,9 +54,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.login,
     refreshListenable: notifier,
     redirect: (context, state) {
-      final status = ref.read(actorHandoffStatusProvider).value ??
+      final handoff = ref.read(actorHandoffStatusProvider).value ??
           const ActorHandoffNotStarted();
-      return _redirect(status, state.matchedLocation);
+      final subscription =
+          ref.read(subscriptionStatusStreamProvider).value?.state;
+      return _redirect(handoff, subscription, state.matchedLocation);
     },
     routes: [
       GoRoute(
@@ -87,6 +101,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
+      GoRoute(
+        path: AppRoutes.subscriptionStatus,
+        builder: (context, state) => const SubscriptionStatusScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.paywall,
+        builder: (context, state) => const PaywallScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.restricted,
+        builder: (context, state) => const RestrictedAccessScreen(),
+      ),
     ],
   );
 });
@@ -96,17 +122,20 @@ bool _isAppShellLocation(String location) {
       location == AppRoutes.registration ||
       location.startsWith('${AppRoutes.vocabularyPrefix}/') ||
       location.startsWith('${AppRoutes.explanationPrefix}/') ||
-      location.startsWith('${AppRoutes.imagePrefix}/');
+      location.startsWith('${AppRoutes.imagePrefix}/') ||
+      location == AppRoutes.subscriptionStatus ||
+      location == AppRoutes.paywall;
 }
 
-String? _redirect(ActorHandoffStatus status, String location) {
-  switch (status) {
+String? _redirect(
+  ActorHandoffStatus handoff,
+  SubscriptionState? subscription,
+  String location,
+) {
+  // Auth boundary takes precedence over subscription state.
+  switch (handoff) {
     case ActorHandoffCompleted():
-      if (location == AppRoutes.login ||
-          location == AppRoutes.sessionResolving) {
-        return AppRoutes.catalog;
-      }
-      return null;
+      break; // fall through to subscription checks
     case ActorHandoffInProgress():
       if (location == AppRoutes.login || _isAppShellLocation(location)) {
         return AppRoutes.sessionResolving;
@@ -114,9 +143,28 @@ String? _redirect(ActorHandoffStatus status, String location) {
       return null;
     case ActorHandoffNotStarted():
     case ActorHandoffFailed():
+      if (location == AppRoutes.restricted) {
+        return null; // restricted screen handles its own logout flow
+      }
       if (location != AppRoutes.login) {
         return AppRoutes.login;
       }
       return null;
   }
+
+  // Handoff is completed — subscription access policy applies.
+  if (subscription == SubscriptionState.revoked &&
+      location != AppRoutes.restricted) {
+    return AppRoutes.restricted;
+  }
+  if (subscription != SubscriptionState.revoked &&
+      location == AppRoutes.restricted) {
+    return AppRoutes.subscriptionStatus;
+  }
+
+  if (location == AppRoutes.login ||
+      location == AppRoutes.sessionResolving) {
+    return AppRoutes.catalog;
+  }
+  return null;
 }

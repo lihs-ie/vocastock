@@ -220,6 +220,17 @@ class StubVocabularyCatalog
     );
   }
 
+  /// Test-only helper: puts an explanation into the `failedFinal` state.
+  void markExplanationFailed(VocabularyExpressionIdentifier identifier) {
+    final entry = _findEntry(identifier);
+    if (entry == null) return;
+    _replace(
+      entry.copyWith(
+        explanationStatus: ExplanationGenerationStatus.failedFinal,
+      ),
+    );
+  }
+
   void _completeExplanation(VocabularyExpressionIdentifier identifier) {
     final entry = _findEntry(identifier);
     if (entry == null) return;

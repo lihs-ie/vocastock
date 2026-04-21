@@ -6,18 +6,22 @@ import 'application/auth/actor_handoff_reader.dart';
 import 'application/auth/login_command.dart';
 import 'application/auth/logout_command.dart';
 import 'application/command/generation_commands.dart';
+import 'application/command/purchase_commands.dart';
 import 'application/command/register_vocabulary_expression_command.dart';
 import 'application/gate/subscription_feature_gate.dart';
 import 'application/reader/completed_detail_readers.dart';
+import 'application/reader/subscription_status_reader.dart';
 import 'application/reader/vocabulary_catalog_reader.dart';
 import 'application/reader/vocabulary_expression_detail_reader.dart';
 import 'domain/auth/actor_handoff_status.dart';
 import 'domain/explanation/explanation_detail.dart';
 import 'domain/identifier/identifier.dart';
+import 'domain/subscription/subscription_status_view.dart';
 import 'domain/visual/visual_image_detail.dart';
 import 'domain/vocabulary/vocabulary_expression_entry.dart';
 import 'infrastructure/stub/stub_actor_handoff_controller.dart';
 import 'infrastructure/stub/stub_completed_details.dart';
+import 'infrastructure/stub/stub_subscription_state.dart';
 import 'infrastructure/stub/stub_vocabulary_catalog.dart';
 
 /// Composition root for the mobile client.
@@ -136,6 +140,41 @@ final imageDetailFutureProvider = FutureProvider.autoDispose
   (ref, identifier) =>
       ref.watch(visualImageDetailReaderProvider).readImage(identifier),
 );
+
+final stubSubscriptionStateProvider =
+    Provider<StubSubscriptionState>((ref) {
+  final state = StubSubscriptionState();
+  ref.onDispose(state.dispose);
+  return state;
+});
+
+final subscriptionStatusReaderProvider =
+    Provider<SubscriptionStatusReader>((ref) {
+  return ref.watch(stubSubscriptionStateProvider);
+});
+
+final requestPurchaseCommandProvider =
+    Provider<RequestPurchaseCommand>((ref) {
+  return ref.watch(stubSubscriptionStateProvider);
+});
+
+final requestRestorePurchaseCommandProvider =
+    Provider<RequestRestorePurchaseCommand>((ref) {
+  return ref.watch(stubSubscriptionStateProvider);
+});
+
+final subscriptionStatusStreamProvider =
+    StreamProvider<SubscriptionStatusView>((ref) {
+  final reader = ref.watch(subscriptionStatusReaderProvider);
+  final controller = StreamController<SubscriptionStatusView>()
+    ..add(reader.current);
+  final subscription = reader.watch().listen(controller.add);
+  ref.onDispose(() {
+    unawaited(subscription.cancel());
+    unawaited(controller.close());
+  });
+  return controller.stream;
+});
 
 /// Streams a single entry for the `VocabularyExpressionDetail` screen,
 /// prepended with the current value so first frame is never null.
