@@ -1,0 +1,32 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    # Promote selected hints to errors to enforce spec 013 discipline.
+    invalid_annotation_target: ignore
+    missing_required_param: error
+    missing_return: error
+    todo: ignore
+    fixme: ignore
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.gql.dart"
+    - "**/*.var.gql.dart"
+    - "**/*.req.gql.dart"
+    - "**/*.data.gql.dart"
+    - "**/__generated__/**"
+    - "build/**"
+
+linter:
+  rules:
+    # Keep very_good_analysis defaults; customize where spec 013 diverges.
+    public_member_api_docs: false
+    lines_longer_than_80_chars: false
+    one_member_abstracts: false
+    prefer_relative_imports: true
+    always_use_package_imports: false
