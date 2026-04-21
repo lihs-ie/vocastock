@@ -71,13 +71,29 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.byKey(const Key('explanation-detail.body')),
+        find.byKey(const Key('explanation-detail.text')),
         findsOneWidget,
       );
-      expect(find.textContaining('Stub explanation'), findsOneWidget);
+      expect(
+        find.byKey(const Key('explanation-detail.nuance')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('explanation-detail.situation')),
+        findsOneWidget,
+      );
       expect(
         find.byKey(const Key('explanation-detail.example')),
         findsWidgets,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('explanation-detail.etymology')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(
+        find.byKey(const Key('explanation-detail.etymology')),
+        findsOneWidget,
       );
     });
 
@@ -136,7 +152,8 @@ void main() {
         find.byKey(const Key('image-detail.description')),
         findsOneWidget,
       );
-      expect(find.textContaining('Illustration for'), findsOneWidget);
+      expect(find.textContaining('halcyon'), findsWidgets);
+      expect(find.textContaining('視覚化'), findsOneWidget);
     });
   });
 }
