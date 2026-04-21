@@ -189,6 +189,52 @@ while IFS= read -r validation_scenario; do
   printf "image_worker_validation.%s=%s\n" "$validation_scenario" "$validation_line" >> "$summary_file"
 done < <(vocas_image_worker_validation_scenarios)
 
+failure_stage="billing-worker-validation"
+while IFS= read -r validation_scenario; do
+  validation_log="$(vocas_repo_root)/.artifacts/ci/logs/billing-worker-validation.${validation_scenario}.log"
+  if ! docker compose \
+    --env-file "$env_file" \
+    -f "$compose_file" \
+    run \
+    --rm \
+    --no-deps \
+    -e VOCAS_WORKER_RUN_MODE=validate \
+    -e VOCAS_BILLING_WORKFLOW_SCENARIO="$validation_scenario" \
+    billing-worker >"$validation_log" 2>&1 </dev/null; then
+    cat "$validation_log" >&2 || true
+    vocas_die "billing-worker validation failed for scenario ${validation_scenario}"
+  fi
+
+  validation_line="$(grep '^VOCAS_BILLING_RESULT ' "$validation_log" | tail -n 1 || true)"
+  [[ -n "$validation_line" ]] || vocas_die "missing billing-worker validation result for ${validation_scenario}"
+
+  case "$validation_scenario" in
+    success)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=succeeded' \
+        || vocas_die "billing success validation did not reach succeeded"
+      ;;
+    retryable-failure)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=retry-scheduled-1' \
+        || vocas_die "billing retryable validation did not reach retry-scheduled"
+      ;;
+    terminal-failure)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=failed-final' \
+        || vocas_die "billing terminal validation did not reach failed-final"
+      ;;
+    notification-reconciled)
+      printf "%s\n" "$validation_line" | grep -q 'final_state=succeeded' \
+        || vocas_die "billing notification-reconciled validation did not reach succeeded"
+      printf "%s\n" "$validation_line" | grep -q 'source=notification-reconciliation' \
+        || vocas_die "billing notification-reconciled validation did not route to notification-reconciliation source"
+      ;;
+    *)
+      vocas_die "unsupported billing-worker validation scenario: ${validation_scenario}"
+      ;;
+  esac
+
+  printf "billing_worker_validation.%s=%s\n" "$validation_scenario" "$validation_line" >> "$summary_file"
+done < <(vocas_billing_worker_validation_scenarios)
+
 elapsed="$(( $(date +%s) - start_epoch ))"
 vocas_write_duration "application-container-smoke" "$elapsed"
 vocas_print_budget_summary "application-container-smoke" "$elapsed" "$ready_budget"
