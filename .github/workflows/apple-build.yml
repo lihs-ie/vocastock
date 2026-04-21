@@ -25,6 +25,11 @@ jobs:
         run: |
           echo "Local host baseline: ${LOCAL_HOST_BASELINE}"
           echo "Apple CI runner: macos-15"
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
       - name: Install and verify toolchains
         run: bash scripts/ci/install_toolchains.sh
       - name: Run Apple build smoke

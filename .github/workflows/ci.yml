@@ -37,6 +37,11 @@ jobs:
     needs: toolchain-validate
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
       - name: Install and verify toolchains
         run: bash scripts/ci/install_toolchains.sh
       - name: Run Flutter quality checks
@@ -116,6 +121,11 @@ jobs:
     needs: toolchain-validate
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
       - name: Install and verify toolchains
         run: bash scripts/ci/install_toolchains.sh
       - name: Run Android build smoke
