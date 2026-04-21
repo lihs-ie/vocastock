@@ -33,3 +33,7 @@ linter:
     # Doc-only cross references (`[Xxx]`) are a navigation aid; we do not
     # require the referenced symbols to be in lexical scope.
     comment_references: false
+    # Conflicts with `strict-inference: true` for test callbacks
+    # (testWidgets + matcher projections). We prefer explicit types for
+    # inference determinism over redundancy-shaming.
+    avoid_types_on_closure_parameters: false
