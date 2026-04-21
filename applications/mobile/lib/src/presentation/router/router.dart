@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -5,24 +6,36 @@ import '../../app_bindings.dart';
 import '../../domain/auth/actor_handoff_status.dart';
 import '../auth/login_screen.dart';
 import '../auth/session_resolving_screen.dart';
-import '../catalog/vocabulary_catalog_placeholder.dart';
+import '../catalog/vocabulary_catalog_screen.dart';
+import '../catalog/vocabulary_registration_screen.dart';
+import '../detail/vocabulary_expression_detail_placeholder.dart';
 
 /// Canonical route paths (spec 013 navigation-topology-contract).
 class AppRoutes {
   static const login = '/login';
   static const sessionResolving = '/session-resolving';
   static const catalog = '/catalog';
+  static const registration = '/registration';
+  static const vocabularyPrefix = '/vocabulary';
 }
 
-/// Provides the app's [GoRouter]. The router is rebuilt when the handoff
-/// status changes, which fires `redirect` to enforce the Auth/AppShell
-/// boundary without the UI having to remember intermediate routes.
+/// Provides the app's [GoRouter]. Built once; handoff state changes trigger
+/// `refreshListenable` instead of a provider rebuild so MaterialApp.router
+/// does not re-mount a new Navigator on every state emission.
 final routerProvider = Provider<GoRouter>((ref) {
-  // React to handoff status updates so redirects re-evaluate on sign-in.
-  ref.watch(actorHandoffStatusProvider);
+  final notifier = ValueNotifier<int>(0);
+  final subscription = ref.listen<AsyncValue<ActorHandoffStatus>>(
+    actorHandoffStatusProvider,
+    (_, _) => notifier.value++,
+  );
+  ref.onDispose(() {
+    subscription.close();
+    notifier.dispose();
+  });
 
   return GoRouter(
     initialLocation: AppRoutes.login,
+    refreshListenable: notifier,
     redirect: (context, state) {
       final status = ref.read(actorHandoffStatusProvider).value ??
           const ActorHandoffNotStarted();
@@ -39,11 +52,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.catalog,
-        builder: (context, state) => const VocabularyCatalogPlaceholder(),
+        builder: (context, state) => const VocabularyCatalogScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.registration,
+        builder: (context, state) => const VocabularyRegistrationScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.vocabularyPrefix}/:identifier',
+        builder: (context, state) => VocabularyExpressionDetailPlaceholder(
+          identifier: state.pathParameters['identifier'] ?? '',
+        ),
       ),
     ],
   );
 });
+
+bool _isAppShellLocation(String location) {
+  return location == AppRoutes.catalog ||
+      location == AppRoutes.registration ||
+      location.startsWith('${AppRoutes.vocabularyPrefix}/');
+}
 
 String? _redirect(ActorHandoffStatus status, String location) {
   switch (status) {
@@ -54,7 +83,7 @@ String? _redirect(ActorHandoffStatus status, String location) {
       }
       return null;
     case ActorHandoffInProgress():
-      if (location == AppRoutes.login || location == AppRoutes.catalog) {
+      if (location == AppRoutes.login || _isAppShellLocation(location)) {
         return AppRoutes.sessionResolving;
       }
       return null;

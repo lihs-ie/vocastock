@@ -5,9 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'application/auth/actor_handoff_reader.dart';
 import 'application/auth/login_command.dart';
 import 'application/auth/logout_command.dart';
+import 'application/command/register_vocabulary_expression_command.dart';
 import 'application/gate/subscription_feature_gate.dart';
+import 'application/reader/vocabulary_catalog_reader.dart';
 import 'domain/auth/actor_handoff_status.dart';
+import 'domain/vocabulary/vocabulary_expression_entry.dart';
 import 'infrastructure/stub/stub_actor_handoff_controller.dart';
+import 'infrastructure/stub/stub_vocabulary_catalog.dart';
 
 /// Composition root for the mobile client.
 ///
@@ -57,4 +61,35 @@ final actorHandoffStatusProvider = StreamProvider<ActorHandoffStatus>((ref) {
 /// Pure-function feature gate; no infrastructure dependency.
 final subscriptionFeatureGateProvider = Provider<SubscriptionFeatureGate>((ref) {
   return const SubscriptionFeatureGate();
+});
+
+/// Stub vocabulary catalog backing both the reader and registration command.
+final stubVocabularyCatalogProvider = Provider<StubVocabularyCatalog>((ref) {
+  final catalog = StubVocabularyCatalog();
+  ref.onDispose(catalog.dispose);
+  return catalog;
+});
+
+final vocabularyCatalogReaderProvider = Provider<VocabularyCatalogReader>((ref) {
+  return ref.watch(stubVocabularyCatalogProvider);
+});
+
+final registerVocabularyExpressionCommandProvider =
+    Provider<RegisterVocabularyExpressionCommand>((ref) {
+  return ref.watch(stubVocabularyCatalogProvider);
+});
+
+/// Streams the current catalog snapshot, prepending the reader's initial
+/// value so subscribers never render on a null first frame.
+final vocabularyCatalogStreamProvider =
+    StreamProvider<VocabularyCatalog>((ref) {
+  final reader = ref.watch(vocabularyCatalogReaderProvider);
+  final controller = StreamController<VocabularyCatalog>()
+    ..add(reader.current);
+  final subscription = reader.watch().listen(controller.add);
+  ref.onDispose(() {
+    unawaited(subscription.cancel());
+    unawaited(controller.close());
+  });
+  return controller.stream;
 });
