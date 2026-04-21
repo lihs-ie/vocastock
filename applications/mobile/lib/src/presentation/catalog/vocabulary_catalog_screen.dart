@@ -8,6 +8,7 @@ import '../../domain/status/image_generation_status.dart';
 import '../../domain/vocabulary/vocabulary_expression_entry.dart';
 import '../router/router.dart';
 import '../theme/vs_tokens.dart';
+import '../theme/widgets/vs_bottom_tab_bar.dart';
 import '../theme/widgets/vs_chip.dart';
 import '../theme/widgets/vs_icon_circle.dart';
 import '../theme/widgets/vs_illustration_panel.dart';
@@ -48,6 +49,7 @@ class _VocabularyCatalogScreenState
 
     return Scaffold(
       backgroundColor: VsTokens.paper,
+      bottomNavigationBar: const VsBottomTabBar(),
       floatingActionButton: FloatingActionButton(
         key: const Key('catalog.add'),
         onPressed: () => context.go(AppRoutes.registration),
@@ -66,19 +68,9 @@ class _VocabularyCatalogScreenState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       const VsWordmark(size: 15),
-                      Row(
-                        children: <Widget>[
-                          VsIconCircle(
-                            key: const Key('catalog.proficiency'),
-                            icon: Icons.layers_outlined,
-                            onTap: () => context.go(AppRoutes.proficiency),
-                          ),
-                          const SizedBox(width: 8),
-                          VsIconCircle(
-                            icon: Icons.search,
-                            onTap: () {},
-                          ),
-                        ],
+                      VsIconCircle(
+                        icon: Icons.search,
+                        onTap: () {},
                       ),
                     ],
                   ),

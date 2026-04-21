@@ -7,6 +7,7 @@ import '../../domain/status/proficiency_level.dart';
 import '../../domain/vocabulary/vocabulary_expression_entry.dart';
 import '../router/router.dart';
 import '../theme/vs_tokens.dart';
+import '../theme/widgets/vs_bottom_tab_bar.dart';
 import '../theme/widgets/vs_chip.dart';
 import '../theme/widgets/vs_wordmark.dart';
 
@@ -37,41 +38,29 @@ class ProficiencyScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: VsTokens.paper,
+      bottomNavigationBar: const VsBottomTabBar(),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 8, 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        const VsWordmark(size: 13),
-                        const SizedBox(height: 8),
-                        Text(
-                          '習熟度',
-                          key: const Key('proficiency.title'),
-                          style: theme.textTheme.displaySmall,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'LearningState.proficiency を Learner ごとに集計',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: VsTokens.inkMute,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const VsWordmark(size: 13),
+                  const SizedBox(height: 8),
+                  Text(
+                    '習熟度',
+                    key: const Key('proficiency.title'),
+                    style: theme.textTheme.displaySmall,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    color: VsTokens.inkSoft,
-                    onPressed: () => context.go(AppRoutes.catalog),
+                  const SizedBox(height: 4),
+                  Text(
+                    'LearningState.proficiency を Learner ごとに集計',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: VsTokens.inkMute,
+                    ),
                   ),
                 ],
               ),
