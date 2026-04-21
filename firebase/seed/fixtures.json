@@ -1,0 +1,301 @@
+{
+  "$schema": "./fixtures.schema.json",
+  "project": "demo-vocastock",
+  "auth": {
+    "users": [
+      {
+        "uid": "stub-actor-demo",
+        "email": "demo@vocastock.test",
+        "password": "demo1234",
+        "emailVerified": true,
+        "displayName": "Demo Learner",
+        "customClaims": {
+          "plan": "standardMonthly",
+          "role": "learner"
+        }
+      },
+      {
+        "uid": "stub-actor-free",
+        "email": "free@vocastock.test",
+        "password": "free1234",
+        "emailVerified": true,
+        "displayName": "Free Plan Learner",
+        "customClaims": {
+          "plan": "free",
+          "role": "learner"
+        }
+      }
+    ]
+  },
+  "firestore": {
+    "actors": [
+      {
+        "id": "stub-actor-demo",
+        "data": {
+          "session": "stub-session-demo",
+          "authAccount": "stub-account-demo",
+          "sessionState": "active",
+          "profile": {
+            "name": "Demo Learner",
+            "email": "demo@vocastock.test",
+            "createdAt": "2026-04-01T09:00:00.000Z"
+          }
+        },
+        "subscription": {
+          "state": "active",
+          "plan": "standardMonthly",
+          "entitlement": "premiumGeneration",
+          "allowance": {
+            "remainingExplanationGenerations": 82,
+            "remainingImageGenerations": 27
+          },
+          "renewedAt": "2026-04-01T09:00:00.000Z",
+          "nextRenewalAt": "2026-05-01T09:00:00.000Z"
+        },
+        "vocabularyExpressions": [
+          {
+            "id": "stub-vocab-0000",
+            "text": "run",
+            "registrationStatus": "active",
+            "explanationStatus": "succeeded",
+            "imageStatus": "succeeded",
+            "currentExplanation": "stub-exp-for-stub-vocab-0000",
+            "currentImage": "stub-img-for-stub-vocab-0000",
+            "registeredAt": "2026-04-05T10:00:00.000Z"
+          },
+          {
+            "id": "stub-vocab-0001",
+            "text": "serendipity",
+            "registrationStatus": "active",
+            "explanationStatus": "succeeded",
+            "imageStatus": "pending",
+            "currentExplanation": "stub-exp-for-stub-vocab-0001",
+            "currentImage": null,
+            "registeredAt": "2026-04-10T15:30:00.000Z"
+          },
+          {
+            "id": "stub-vocab-0002",
+            "text": "ubiquitous",
+            "registrationStatus": "active",
+            "explanationStatus": "pending",
+            "imageStatus": "pending",
+            "currentExplanation": null,
+            "currentImage": null,
+            "registeredAt": "2026-04-18T08:15:00.000Z"
+          },
+          {
+            "id": "stub-vocab-0003",
+            "text": "halcyon",
+            "registrationStatus": "active",
+            "explanationStatus": "failedFinal",
+            "imageStatus": "pending",
+            "currentExplanation": null,
+            "currentImage": null,
+            "registeredAt": "2026-04-19T11:00:00.000Z"
+          }
+        ],
+        "explanations": [
+          {
+            "id": "stub-exp-for-stub-vocab-0000",
+            "vocabularyExpression": "stub-vocab-0000",
+            "text": "run",
+            "pronunciation": {
+              "weak": "/run/",
+              "strong": "/RUN/"
+            },
+            "frequency": "often",
+            "sophistication": "veryBasic",
+            "etymology": "古英語 rinnan に由来する。ゲルマン祖語 *rinnan（流れる・走る）から。",
+            "similarities": [
+              {
+                "value": "sprint",
+                "meaning": "全力疾走する",
+                "comparison": "run よりも短距離で最大速度のニュアンス。"
+              },
+              {
+                "value": "jog",
+                "meaning": "軽く走る",
+                "comparison": "run より速度がゆるやかで持続的。"
+              }
+            ],
+            "senses": [
+              {
+                "identifier": "s1",
+                "order": 1,
+                "label": "走る",
+                "situation": "スポーツ・日常の移動・体育の授業など物理的な移動場面。",
+                "nuance": "歩くより速い速度で足を交互に動かす、最も中核的な意味。",
+                "examples": [
+                  {
+                    "value": "I run every morning before work.",
+                    "meaning": "毎朝、仕事の前に走っています。"
+                  },
+                  {
+                    "value": "She ran to catch the train.",
+                    "meaning": "彼女は電車に間に合うように走った。"
+                  }
+                ],
+                "collocations": [
+                  { "value": "run fast", "meaning": "速く走る" },
+                  { "value": "run a marathon", "meaning": "マラソンを走る" }
+                ]
+              },
+              {
+                "identifier": "s2",
+                "order": 2,
+                "label": "経営する",
+                "situation": "ビジネス、会社、組織、プロジェクトの運営について話す場面。",
+                "nuance": "責任を持って継続的に物事を動かしていくイメージ。operate より口語的。",
+                "examples": [
+                  {
+                    "value": "He runs a small bakery in Kyoto.",
+                    "meaning": "彼は京都で小さなパン屋を経営しています。"
+                  },
+                  {
+                    "value": "Who runs this project?",
+                    "meaning": "このプロジェクトは誰が仕切っていますか？"
+                  }
+                ],
+                "collocations": [
+                  { "value": "run a business", "meaning": "事業を営む" },
+                  { "value": "run a meeting", "meaning": "会議を取り仕切る" }
+                ]
+              },
+              {
+                "identifier": "s3",
+                "order": 3,
+                "label": "（機械・プログラムが）動作する",
+                "situation": "ソフトウェア、エンジン、機械の稼働状態を述べる場面。",
+                "nuance": "work より「動いている最中」に焦点。IT 文脈では必須の語義。",
+                "examples": [
+                  {
+                    "value": "The app runs on both iOS and Android.",
+                    "meaning": "そのアプリは iOS でも Android でも動きます。"
+                  }
+                ],
+                "collocations": [
+                  { "value": "run smoothly", "meaning": "スムーズに動く" },
+                  {
+                    "value": "run in the background",
+                    "meaning": "バックグラウンドで動作する"
+                  }
+                ]
+              },
+              {
+                "identifier": "s4",
+                "order": 4,
+                "label": "（液体が）流れる",
+                "situation": "水・涙・インクなど液体の動きを描写する場面。",
+                "nuance": "flow よりやや口語的で、方向性のある流れを示す。",
+                "examples": [
+                  {
+                    "value": "Tears ran down her cheeks.",
+                    "meaning": "涙が彼女の頬を伝って流れた。"
+                  }
+                ],
+                "collocations": [
+                  { "value": "run dry", "meaning": "枯渇する" }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "stub-exp-for-stub-vocab-0001",
+            "vocabularyExpression": "stub-vocab-0001",
+            "text": "serendipity",
+            "pronunciation": {
+              "weak": "/sɛrənˈdɪpɪti/",
+              "strong": "/ˌsɛrənˈdɪpɪti/"
+            },
+            "frequency": "sometimes",
+            "sophistication": "advanced",
+            "etymology": "18世紀の小説 'The Three Princes of Serendip' から Horace Walpole が造語。",
+            "similarities": [
+              {
+                "value": "chance",
+                "meaning": "偶然",
+                "comparison": "serendipity は『幸運な』偶然であるという含みが強い。"
+              }
+            ],
+            "senses": [
+              {
+                "identifier": "s1",
+                "order": 1,
+                "label": "幸運な偶然",
+                "situation": "探していなかったものを偶然見つけたり、良い出会いを表現する場面。",
+                "nuance": "単なる偶然ではなく『意味のある、望ましい発見』という前向きな色合い。",
+                "examples": [
+                  {
+                    "value": "Finding that book was pure serendipity.",
+                    "meaning": "その本に出会ったのは、本当に幸運な偶然でした。"
+                  },
+                  {
+                    "value": "Their meeting was a moment of serendipity.",
+                    "meaning": "二人の出会いは幸運な偶然の瞬間だった。"
+                  }
+                ],
+                "collocations": [
+                  {
+                    "value": "a stroke of serendipity",
+                    "meaning": "幸運な偶然"
+                  },
+                  {
+                    "value": "pure serendipity",
+                    "meaning": "純粋な幸運の偶然"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "images": [
+          {
+            "id": "stub-img-for-stub-vocab-0000",
+            "explanation": "stub-exp-for-stub-vocab-0000",
+            "assetReference": "actors/stub-actor-demo/images/stub-img-for-stub-vocab-0000.png",
+            "description": "「run」を視覚化したイラスト — 朝の公園を走るランナーの姿。",
+            "senseIdentifier": "s1",
+            "senseLabel": "走る"
+          }
+        ]
+      },
+      {
+        "id": "stub-actor-free",
+        "data": {
+          "session": "stub-session-free",
+          "authAccount": "stub-account-free",
+          "sessionState": "active",
+          "profile": {
+            "name": "Free Plan Learner",
+            "email": "free@vocastock.test",
+            "createdAt": "2026-04-15T09:00:00.000Z"
+          }
+        },
+        "subscription": {
+          "state": "active",
+          "plan": "free",
+          "entitlement": "freeBasic",
+          "allowance": {
+            "remainingExplanationGenerations": 7,
+            "remainingImageGenerations": 2
+          },
+          "renewedAt": "2026-04-01T00:00:00.000Z",
+          "nextRenewalAt": "2026-05-01T00:00:00.000Z"
+        },
+        "vocabularyExpressions": [],
+        "explanations": [],
+        "images": []
+      }
+    ]
+  },
+  "storage": {
+    "bucket": "demo-vocastock.appspot.com",
+    "placeholders": [
+      {
+        "path": "actors/stub-actor-demo/images/stub-img-for-stub-vocab-0000.png",
+        "contentType": "image/png",
+        "description": "Placeholder 1x1 PNG for the `run` illustration (generated at seed time)."
+      }
+    ]
+  }
+}
