@@ -9,10 +9,27 @@ targets:
             DateTime:
               type: DateTime
               import: "dart:core"
-            Url:
-              type: Uri
-              import: "dart:core"
+            ULID:
+              type: String
       ferry_generator|serializer_builder:
+        enabled: true
+        options:
+          schema: vocastock_mobile|lib/src/infrastructure/graphql/schema.graphql
+          custom_scalars:
+            DateTime:
+              type: DateTime
+              import: "dart:core"
+            ULID:
+              type: String
+      gql_build|schema_builder:
+        enabled: true
+        options:
+          schema: vocastock_mobile|lib/src/infrastructure/graphql/schema.graphql
+      gql_build|ast_builder:
+        enabled: true
+      gql_build|data_builder:
+        enabled: true
+      gql_build|var_builder:
         enabled: true
       riverpod_generator|riverpod_generator:
         enabled: true

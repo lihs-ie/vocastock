@@ -1,5 +1,11 @@
 pub const SERVICE_NAME: &str = "command-api";
 pub const REGISTER_VOCABULARY_EXPRESSION_PATH: &str = "/commands/register-vocabulary-expression";
+pub const REQUEST_EXPLANATION_GENERATION_PATH: &str =
+    "/commands/request-explanation-generation";
+pub const REQUEST_IMAGE_GENERATION_PATH: &str = "/commands/request-image-generation";
+pub const RETRY_GENERATION_PATH: &str = "/commands/retry-generation";
+pub const REQUEST_PURCHASE_PATH: &str = "/commands/request-purchase";
+pub const REQUEST_RESTORE_PURCHASE_PATH: &str = "/commands/request-restore-purchase";
 pub const ROOT_MESSAGE: &str =
     "command-api accepts register commands and returns accepted/reused-existing or failures without completed payloads";
 pub const STATUS_HANDLE_PREFIX: &str = "status";

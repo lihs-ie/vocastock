@@ -9,4 +9,8 @@ pub use catalog::{
     VocabularyCatalogItem, WorkflowState,
 };
 pub use http::{read_request, route_request, write_response, RenderedResponse, Request};
-pub use runtime::{StubTokenVerifier, ROOT_MESSAGE, SERVICE_NAME, VOCABULARY_CATALOG_PATH};
+pub use runtime::{
+    StubTokenVerifier, ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH, IMAGE_DETAIL_PATH,
+    LEARNING_STATE_PATH, ROOT_MESSAGE, SERVICE_NAME, SUBSCRIPTION_STATUS_PATH,
+    VOCABULARY_CATALOG_PATH, VOCABULARY_EXPRESSION_DETAIL_PATH,
+};

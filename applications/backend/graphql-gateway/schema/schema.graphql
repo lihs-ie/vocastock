@@ -1,0 +1,290 @@
+# vocastock GraphQL schema — single source of truth for the public API
+#
+# Surface area:
+#   - Flutter mobile consumes this schema to generate typed query / mutation
+#     clients via ferry_generator (`applications/mobile/build.yaml`).
+#   - graphql-gateway allowlists the operation names declared under
+#     `type Query` and `type Mutation`. See
+#     `applications/backend/graphql-gateway/src/gateway_routing/graphql/operation_allowlist.rs`.
+#
+# Field naming: camelCase (GraphQL convention); Rust / Dart adapters must
+# translate to / from the canonical field names below.
+
+scalar DateTime
+scalar ULID
+
+# ---------- enums ---------------------------------------------------------
+
+enum AuthProvider {
+  BASIC
+  GOOGLE
+}
+
+enum RegistrationStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum GenerationTargetKind {
+  EXPLANATION
+  IMAGE
+}
+
+enum ExplanationGenerationStatus {
+  PENDING
+  RUNNING
+  RETRY_SCHEDULED
+  TIMED_OUT
+  SUCCEEDED
+  FAILED_FINAL
+  DEAD_LETTERED
+}
+
+enum ImageGenerationStatus {
+  PENDING
+  RUNNING
+  RETRY_SCHEDULED
+  TIMED_OUT
+  SUCCEEDED
+  FAILED_FINAL
+  DEAD_LETTERED
+}
+
+enum SubscriptionState {
+  ACTIVE
+  GRACE
+  PENDING_SYNC
+  EXPIRED
+  REVOKED
+}
+
+enum PlanCode {
+  FREE
+  STANDARD_MONTHLY
+  PRO_MONTHLY
+}
+
+enum EntitlementBundle {
+  FREE_BASIC
+  PREMIUM_GENERATION
+}
+
+enum FrequencyLevel {
+  OFTEN
+  SOMETIMES
+  RARELY
+  HARDLY_EVER
+}
+
+enum SophisticationLevel {
+  VERY_BASIC
+  BASIC
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ProficiencyLevel {
+  LEARNING
+  LEARNED
+  INTERNALIZED
+  FLUENT
+}
+
+enum AcceptanceOutcome {
+  ACCEPTED
+  REUSED_EXISTING
+}
+
+enum CommandErrorCategory {
+  VALIDATION_FAILED
+  TARGET_MISSING
+  TARGET_NOT_READY
+  DISPATCH_FAILED
+  DOWNSTREAM_UNAVAILABLE
+  DOWNSTREAM_AUTH_FAILED
+}
+
+enum SessionStateCode {
+  ACTIVE
+  INACTIVE
+  REVOKED
+}
+
+# ---------- shared envelope types -----------------------------------------
+
+type UserFacingMessage {
+  key: String!
+  text: String!
+}
+
+type CommandResponseEnvelope {
+  accepted: Boolean!
+  outcome: AcceptanceOutcome
+  errorCategory: CommandErrorCategory
+  message: UserFacingMessage!
+}
+
+# ---------- explanation domain --------------------------------------------
+
+type Pronunciation {
+  weak: String!
+  strong: String!
+}
+
+type SimilarExpression {
+  value: String!
+  meaning: String!
+  comparison: String!
+}
+
+type SenseExample {
+  value: String!
+  meaning: String!
+  pronunciation: String
+}
+
+type Collocation {
+  value: String!
+  meaning: String!
+}
+
+type Sense {
+  identifier: String!
+  order: Int!
+  label: String!
+  situation: String!
+  nuance: String!
+  examples: [SenseExample!]!
+  collocations: [Collocation!]!
+}
+
+type CompletedExplanationDetail {
+  identifier: ID!
+  vocabularyExpression: ID!
+  text: String!
+  pronunciation: Pronunciation!
+  frequency: FrequencyLevel!
+  sophistication: SophisticationLevel!
+  etymology: String!
+  similarities: [SimilarExpression!]!
+  senses: [Sense!]!
+}
+
+# ---------- image domain --------------------------------------------------
+
+type CompletedImageDetail {
+  identifier: ID!
+  explanation: ID!
+  assetReference: String!
+  description: String!
+  senseIdentifier: String
+  senseLabel: String
+}
+
+# ---------- vocabulary catalog --------------------------------------------
+
+type VocabularyExpressionEntry {
+  identifier: ID!
+  text: String!
+  registrationStatus: RegistrationStatus!
+  explanationStatus: ExplanationGenerationStatus!
+  imageStatus: ImageGenerationStatus!
+  currentExplanation: ID
+  currentImage: ID
+  registeredAt: DateTime!
+}
+
+type VocabularyCatalog {
+  entries: [VocabularyExpressionEntry!]!
+}
+
+# ---------- subscription --------------------------------------------------
+
+type UsageAllowance {
+  remainingExplanationGenerations: Int!
+  remainingImageGenerations: Int!
+}
+
+type SubscriptionStatusView {
+  state: SubscriptionState!
+  plan: PlanCode!
+  entitlement: EntitlementBundle!
+  allowance: UsageAllowance!
+}
+
+# ---------- auth session --------------------------------------------------
+
+type ActorHandoffStatus {
+  actor: ID
+  session: ID
+  authAccount: ID
+  sessionState: SessionStateCode!
+}
+
+# ---------- learning state ------------------------------------------------
+
+type LearningState {
+  vocabularyExpression: ID!
+  proficiency: ProficiencyLevel!
+}
+
+# ---------- inputs --------------------------------------------------------
+
+input RegisterVocabularyExpressionInput {
+  text: String!
+  idempotencyKey: String!
+}
+
+input RequestGenerationInput {
+  vocabularyExpression: ID!
+  idempotencyKey: String!
+}
+
+input RetryGenerationInput {
+  vocabularyExpression: ID!
+  target: GenerationTargetKind!
+  idempotencyKey: String!
+}
+
+input RequestPurchaseInput {
+  planCode: PlanCode!
+  idempotencyKey: String!
+}
+
+input RequestRestorePurchaseInput {
+  idempotencyKey: String!
+}
+
+# ---------- root operations ------------------------------------------------
+
+type Query {
+  vocabularyCatalog: VocabularyCatalog!
+  vocabularyExpressionDetail(identifier: ID!): VocabularyExpressionEntry
+  explanationDetail(identifier: ID!): CompletedExplanationDetail
+  imageDetail(identifier: ID!): CompletedImageDetail
+  subscriptionStatus: SubscriptionStatusView!
+  actorHandoffStatus: ActorHandoffStatus!
+  learningState(identifier: ID!): LearningState
+}
+
+type Mutation {
+  registerVocabularyExpression(
+    input: RegisterVocabularyExpressionInput!
+  ): CommandResponseEnvelope!
+
+  requestExplanationGeneration(
+    input: RequestGenerationInput!
+  ): CommandResponseEnvelope!
+
+  requestImageGeneration(
+    input: RequestGenerationInput!
+  ): CommandResponseEnvelope!
+
+  retryGeneration(input: RetryGenerationInput!): CommandResponseEnvelope!
+
+  requestPurchase(input: RequestPurchaseInput!): CommandResponseEnvelope!
+
+  requestRestorePurchase(
+    input: RequestRestorePurchaseInput!
+  ): CommandResponseEnvelope!
+}

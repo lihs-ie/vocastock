@@ -1,10 +1,29 @@
-use command_api::{REGISTER_VOCABULARY_EXPRESSION_PATH, SERVICE_NAME as COMMAND_API_SERVICE_NAME};
-use query_api::{SERVICE_NAME as QUERY_API_SERVICE_NAME, VOCABULARY_CATALOG_PATH};
+use command_api::{
+    REGISTER_VOCABULARY_EXPRESSION_PATH, REQUEST_EXPLANATION_GENERATION_PATH,
+    REQUEST_IMAGE_GENERATION_PATH, REQUEST_PURCHASE_PATH, REQUEST_RESTORE_PURCHASE_PATH,
+    RETRY_GENERATION_PATH, SERVICE_NAME as COMMAND_API_SERVICE_NAME,
+};
+use query_api::{
+    ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH, IMAGE_DETAIL_PATH, LEARNING_STATE_PATH,
+    SERVICE_NAME as QUERY_API_SERVICE_NAME, SUBSCRIPTION_STATUS_PATH, VOCABULARY_CATALOG_PATH,
+    VOCABULARY_EXPRESSION_DETAIL_PATH,
+};
 
 use super::{failure_envelope::GatewayFailure, public_request::UnifiedGraphqlRequestEnvelope};
 
 pub const REGISTER_VOCABULARY_EXPRESSION_OPERATION: &str = "registerVocabularyExpression";
 pub const VOCABULARY_CATALOG_OPERATION: &str = "vocabularyCatalog";
+pub const VOCABULARY_EXPRESSION_DETAIL_OPERATION: &str = "vocabularyExpressionDetail";
+pub const EXPLANATION_DETAIL_OPERATION: &str = "explanationDetail";
+pub const IMAGE_DETAIL_OPERATION: &str = "imageDetail";
+pub const SUBSCRIPTION_STATUS_OPERATION: &str = "subscriptionStatus";
+pub const ACTOR_HANDOFF_STATUS_OPERATION: &str = "actorHandoffStatus";
+pub const LEARNING_STATE_OPERATION: &str = "learningState";
+pub const REQUEST_EXPLANATION_GENERATION_OPERATION: &str = "requestExplanationGeneration";
+pub const REQUEST_IMAGE_GENERATION_OPERATION: &str = "requestImageGeneration";
+pub const RETRY_GENERATION_OPERATION: &str = "retryGeneration";
+pub const REQUEST_PURCHASE_OPERATION: &str = "requestPurchase";
+pub const REQUEST_RESTORE_PURCHASE_OPERATION: &str = "requestRestorePurchase";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum GraphqlOperationKind {
@@ -52,22 +71,83 @@ pub fn allowlisted_operation(
 
     match (parsed.operation_kind, parsed.root_fields[0].as_str()) {
         (GraphqlOperationKind::Mutation, REGISTER_VOCABULARY_EXPRESSION_OPERATION) => {
-            Ok(GatewayRoutingDecision {
-                operation_kind: GraphqlOperationKind::Mutation,
-                operation_name: REGISTER_VOCABULARY_EXPRESSION_OPERATION.to_owned(),
-                downstream_service: COMMAND_API_SERVICE_NAME,
-                downstream_route: REGISTER_VOCABULARY_EXPRESSION_PATH,
-                visible_guarantee: VisibleGuarantee::AcceptedOnly,
-            })
+            Ok(command_mutation(
+                REGISTER_VOCABULARY_EXPRESSION_OPERATION,
+                REGISTER_VOCABULARY_EXPRESSION_PATH,
+            ))
         }
-        (GraphqlOperationKind::Query, VOCABULARY_CATALOG_OPERATION) => Ok(GatewayRoutingDecision {
-            operation_kind: GraphqlOperationKind::Query,
-            operation_name: VOCABULARY_CATALOG_OPERATION.to_owned(),
-            downstream_service: QUERY_API_SERVICE_NAME,
-            downstream_route: VOCABULARY_CATALOG_PATH,
-            visible_guarantee: VisibleGuarantee::CompletedOrStatusOnly,
-        }),
+        (GraphqlOperationKind::Mutation, REQUEST_EXPLANATION_GENERATION_OPERATION) => {
+            Ok(command_mutation(
+                REQUEST_EXPLANATION_GENERATION_OPERATION,
+                REQUEST_EXPLANATION_GENERATION_PATH,
+            ))
+        }
+        (GraphqlOperationKind::Mutation, REQUEST_IMAGE_GENERATION_OPERATION) => Ok(
+            command_mutation(REQUEST_IMAGE_GENERATION_OPERATION, REQUEST_IMAGE_GENERATION_PATH),
+        ),
+        (GraphqlOperationKind::Mutation, RETRY_GENERATION_OPERATION) => Ok(command_mutation(
+            RETRY_GENERATION_OPERATION,
+            RETRY_GENERATION_PATH,
+        )),
+        (GraphqlOperationKind::Mutation, REQUEST_PURCHASE_OPERATION) => Ok(command_mutation(
+            REQUEST_PURCHASE_OPERATION,
+            REQUEST_PURCHASE_PATH,
+        )),
+        (GraphqlOperationKind::Mutation, REQUEST_RESTORE_PURCHASE_OPERATION) => Ok(
+            command_mutation(REQUEST_RESTORE_PURCHASE_OPERATION, REQUEST_RESTORE_PURCHASE_PATH),
+        ),
+        (GraphqlOperationKind::Query, VOCABULARY_CATALOG_OPERATION) => Ok(query(
+            VOCABULARY_CATALOG_OPERATION,
+            VOCABULARY_CATALOG_PATH,
+        )),
+        (GraphqlOperationKind::Query, VOCABULARY_EXPRESSION_DETAIL_OPERATION) => Ok(query(
+            VOCABULARY_EXPRESSION_DETAIL_OPERATION,
+            VOCABULARY_EXPRESSION_DETAIL_PATH,
+        )),
+        (GraphqlOperationKind::Query, EXPLANATION_DETAIL_OPERATION) => {
+            Ok(query(EXPLANATION_DETAIL_OPERATION, EXPLANATION_DETAIL_PATH))
+        }
+        (GraphqlOperationKind::Query, IMAGE_DETAIL_OPERATION) => {
+            Ok(query(IMAGE_DETAIL_OPERATION, IMAGE_DETAIL_PATH))
+        }
+        (GraphqlOperationKind::Query, SUBSCRIPTION_STATUS_OPERATION) => Ok(query(
+            SUBSCRIPTION_STATUS_OPERATION,
+            SUBSCRIPTION_STATUS_PATH,
+        )),
+        (GraphqlOperationKind::Query, ACTOR_HANDOFF_STATUS_OPERATION) => Ok(query(
+            ACTOR_HANDOFF_STATUS_OPERATION,
+            ACTOR_HANDOFF_STATUS_PATH,
+        )),
+        (GraphqlOperationKind::Query, LEARNING_STATE_OPERATION) => {
+            Ok(query(LEARNING_STATE_OPERATION, LEARNING_STATE_PATH))
+        }
         _ => Err(GatewayFailure::unsupported_operation()),
+    }
+}
+
+fn command_mutation(
+    operation_name: &'static str,
+    downstream_route: &'static str,
+) -> GatewayRoutingDecision {
+    GatewayRoutingDecision {
+        operation_kind: GraphqlOperationKind::Mutation,
+        operation_name: operation_name.to_owned(),
+        downstream_service: COMMAND_API_SERVICE_NAME,
+        downstream_route,
+        visible_guarantee: VisibleGuarantee::AcceptedOnly,
+    }
+}
+
+fn query(
+    operation_name: &'static str,
+    downstream_route: &'static str,
+) -> GatewayRoutingDecision {
+    GatewayRoutingDecision {
+        operation_kind: GraphqlOperationKind::Query,
+        operation_name: operation_name.to_owned(),
+        downstream_service: QUERY_API_SERVICE_NAME,
+        downstream_route,
+        visible_guarantee: VisibleGuarantee::CompletedOrStatusOnly,
     }
 }
 

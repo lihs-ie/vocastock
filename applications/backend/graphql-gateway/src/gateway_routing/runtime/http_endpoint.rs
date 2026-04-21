@@ -3,12 +3,13 @@ use std::fmt::{Display, Formatter};
 use std::io::{BufRead, Write};
 
 use crate::downstream::{
-    relay_register_vocabulary_expression, relay_vocabulary_catalog, RelayClient,
+    relay_generic_command, relay_generic_query, relay_register_vocabulary_expression,
+    relay_vocabulary_catalog, RelayClient,
 };
 use crate::graphql::{
-    allowlisted_operation, failure_envelope::GatewayFailure, UnifiedGraphqlRequest,
-    UnifiedGraphqlRequestEnvelope, REGISTER_VOCABULARY_EXPRESSION_OPERATION,
-    VOCABULARY_CATALOG_OPERATION,
+    allowlisted_operation, failure_envelope::GatewayFailure, GraphqlOperationKind,
+    UnifiedGraphqlRequest, UnifiedGraphqlRequestEnvelope,
+    REGISTER_VOCABULARY_EXPRESSION_OPERATION, VOCABULARY_CATALOG_OPERATION,
 };
 
 use super::service_contract::{
@@ -163,7 +164,22 @@ fn graphql_response(request: &Request, relay_client: &RelayClient) -> RenderedRe
             relay_register_vocabulary_expression(relay_client, &unified_request)
         }
         VOCABULARY_CATALOG_OPERATION => relay_vocabulary_catalog(relay_client, &unified_request),
-        _ => Err(GatewayFailure::unsupported_operation()),
+        _ => match decision.operation_kind {
+            GraphqlOperationKind::Query => relay_generic_query(
+                relay_client,
+                &unified_request,
+                decision.downstream_route,
+                decision.operation_name.as_str(),
+                decision.downstream_service,
+            ),
+            GraphqlOperationKind::Mutation => relay_generic_command(
+                relay_client,
+                &unified_request,
+                decision.downstream_route,
+                decision.operation_name.as_str(),
+                decision.downstream_service,
+            ),
+        },
     };
 
     match body {

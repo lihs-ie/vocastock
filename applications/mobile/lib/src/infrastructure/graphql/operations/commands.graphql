@@ -1,0 +1,49 @@
+mutation RegisterVocabularyExpressionMutation(
+  $input: RegisterVocabularyExpressionInput!
+) {
+  registerVocabularyExpression(input: $input) {
+    accepted
+    outcome
+    errorCategory
+    message {
+      key
+      text
+    }
+  }
+}
+
+mutation RequestExplanationGenerationMutation($input: RequestGenerationInput!) {
+  requestExplanationGeneration(input: $input) {
+    accepted
+    outcome
+    errorCategory
+    message {
+      key
+      text
+    }
+  }
+}
+
+mutation RequestImageGenerationMutation($input: RequestGenerationInput!) {
+  requestImageGeneration(input: $input) {
+    accepted
+    outcome
+    errorCategory
+    message {
+      key
+      text
+    }
+  }
+}
+
+mutation RetryGenerationMutation($input: RetryGenerationInput!) {
+  retryGeneration(input: $input) {
+    accepted
+    outcome
+    errorCategory
+    message {
+      key
+      text
+    }
+  }
+}

@@ -1,0 +1,27 @@
+query VocabularyCatalogQuery {
+  vocabularyCatalog {
+    entries {
+      identifier
+      text
+      registrationStatus
+      explanationStatus
+      imageStatus
+      currentExplanation
+      currentImage
+      registeredAt
+    }
+  }
+}
+
+query VocabularyExpressionDetailQuery($identifier: ID!) {
+  vocabularyExpressionDetail(identifier: $identifier) {
+    identifier
+    text
+    registrationStatus
+    explanationStatus
+    imageStatus
+    currentExplanation
+    currentImage
+    registeredAt
+  }
+}

@@ -1,3 +1,9 @@
 pub const SERVICE_NAME: &str = "query-api";
 pub const VOCABULARY_CATALOG_PATH: &str = "/vocabulary-catalog";
+pub const VOCABULARY_EXPRESSION_DETAIL_PATH: &str = "/vocabulary-expression-detail";
+pub const EXPLANATION_DETAIL_PATH: &str = "/explanation-detail";
+pub const IMAGE_DETAIL_PATH: &str = "/image-detail";
+pub const SUBSCRIPTION_STATUS_PATH: &str = "/subscription-status";
+pub const ACTOR_HANDOFF_STATUS_PATH: &str = "/actor-handoff-status";
+pub const LEARNING_STATE_PATH: &str = "/learning-state";
 pub const ROOT_MESSAGE: &str = "query-api returns completed summaries or status-only catalog items";

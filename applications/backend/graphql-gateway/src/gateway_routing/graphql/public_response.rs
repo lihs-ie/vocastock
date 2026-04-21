@@ -113,6 +113,28 @@ fn wrap_data(operation_name: &str, payload: Value) -> String {
     .to_string()
 }
 
+/// Wrap an arbitrary downstream payload as the root field of a GraphQL
+/// `data` envelope. Used by operations that haven't yet justified their
+/// own schema-aware validator — the gateway still enforces the downstream
+/// returned a valid JSON object and then passes it through.
+pub fn pass_through_success_response(
+    operation_name: &str,
+    payload: Value,
+    service_name: &'static str,
+) -> Result<String, GatewayFailure> {
+    let _ = payload
+        .as_object()
+        .ok_or_else(|| GatewayFailure::downstream_invalid_response(service_name))?;
+    Ok(wrap_data(operation_name, payload))
+}
+
+/// Variant of `pass_through_success_response` that accepts `null` as a
+/// valid body (used when the downstream endpoint models a nullable
+/// GraphQL return type — e.g. `vocabularyExpressionDetail(id)`).
+pub fn pass_through_nullable_response(operation_name: &str, payload: Value) -> String {
+    wrap_data(operation_name, payload)
+}
+
 fn require_string(
     payload_object: &Map<String, Value>,
     key: &str,

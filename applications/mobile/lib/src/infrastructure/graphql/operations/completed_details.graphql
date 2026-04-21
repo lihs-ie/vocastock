@@ -1,0 +1,46 @@
+query ExplanationDetailQuery($identifier: ID!) {
+  explanationDetail(identifier: $identifier) {
+    identifier
+    vocabularyExpression
+    text
+    pronunciation {
+      weak
+      strong
+    }
+    frequency
+    sophistication
+    etymology
+    similarities {
+      value
+      meaning
+      comparison
+    }
+    senses {
+      identifier
+      order
+      label
+      situation
+      nuance
+      examples {
+        value
+        meaning
+        pronunciation
+      }
+      collocations {
+        value
+        meaning
+      }
+    }
+  }
+}
+
+query ImageDetailQuery($identifier: ID!) {
+  imageDetail(identifier: $identifier) {
+    identifier
+    explanation
+    assetReference
+    description
+    senseIdentifier
+    senseLabel
+  }
+}
