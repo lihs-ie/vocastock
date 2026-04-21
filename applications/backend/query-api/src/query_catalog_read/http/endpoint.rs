@@ -5,8 +5,7 @@ use serde::Serialize;
 
 use crate::{
     read_catalog_from_authorization_header, CatalogProjectionSource, CatalogReadError,
-    InMemoryCatalogProjectionSource, StubTokenVerifier, ROOT_MESSAGE, SERVICE_NAME,
-    VOCABULARY_CATALOG_PATH,
+    StubTokenVerifier, ROOT_MESSAGE, SERVICE_NAME, VOCABULARY_CATALOG_PATH,
 };
 
 const FIREBASE_DEPENDENCIES_PATH: &str = "/dependencies/firebase";
@@ -59,7 +58,7 @@ pub fn route_request(
     request: &Request,
     readiness_path: &str,
     verifier: &StubTokenVerifier,
-    source: &InMemoryCatalogProjectionSource,
+    source: &dyn CatalogProjectionSource,
 ) -> RenderedResponse {
     match (request.method.as_str(), request.path.as_str()) {
         ("GET", path) if path == readiness_path => {
@@ -93,7 +92,7 @@ pub fn write_response(writer: &mut impl Write, response: &RenderedResponse) -> s
 fn vocabulary_catalog_response(
     request: &Request,
     verifier: &StubTokenVerifier,
-    source: &impl CatalogProjectionSource,
+    source: &(impl CatalogProjectionSource + ?Sized),
 ) -> RenderedResponse {
     let authorization_header = request.headers.get("authorization").map(String::as_str);
 

@@ -5,8 +5,9 @@ pub mod runtime;
 pub use catalog::{
     read_catalog, read_catalog_from_authorization_header, CatalogProjectionSource,
     CatalogReadError, CatalogReadResponse, CatalogVisibility, CollectionState,
-    InMemoryCatalogProjectionSource, ProjectionFreshness, ProjectionSourceRecord,
-    VocabularyCatalogItem, WorkflowState,
+    FirestoreCatalogProjectionSource, InMemoryCatalogProjectionSource, ProjectionFreshness,
+    ProjectionSourceRecord, VocabularyCatalogItem, WorkflowState, DEFAULT_PROJECT_ID,
+    FIRESTORE_EMULATOR_HOST_ENV, PRODUCTION_ADAPTERS_ENV,
 };
 pub use http::{read_request, route_request, write_response, RenderedResponse, Request};
 pub use runtime::{

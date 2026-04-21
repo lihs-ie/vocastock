@@ -23,7 +23,7 @@ impl CatalogReadError {
 
 pub fn read_catalog(
     actor_context: &VerifiedActorContext,
-    source: &impl CatalogProjectionSource,
+    source: &(impl CatalogProjectionSource + ?Sized),
 ) -> Result<CatalogReadResponse, CatalogReadError> {
     if !actor_context.is_active() {
         return Err(CatalogReadError::InactiveSession);
@@ -51,7 +51,7 @@ pub fn read_catalog(
 pub fn read_catalog_from_authorization_header(
     authorization_header: Option<&str>,
     verifier: &impl TokenVerificationPort,
-    source: &impl CatalogProjectionSource,
+    source: &(impl CatalogProjectionSource + ?Sized),
 ) -> Result<CatalogReadResponse, CatalogReadError> {
     let bearer_token = extract_bearer_token(authorization_header)?;
     let actor_context = verifier

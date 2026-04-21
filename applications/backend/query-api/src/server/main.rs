@@ -34,13 +34,29 @@ fn main() {
     );
 
     let verifier = query_api::StubTokenVerifier;
-    let source = query_api::InMemoryCatalogProjectionSource::default();
+    let source: Box<dyn query_api::CatalogProjectionSource + Send + Sync> =
+        match query_api::FirestoreCatalogProjectionSource::from_env() {
+            Some(firestore) => {
+                println!(
+                    "{} reading catalog from Firestore emulator (FIRESTORE_EMULATOR_HOST set)",
+                    query_api::SERVICE_NAME,
+                );
+                Box::new(firestore)
+            }
+            None => {
+                println!(
+                    "{} reading catalog from the in-memory fixture (set FIRESTORE_EMULATOR_HOST to switch)",
+                    query_api::SERVICE_NAME,
+                );
+                Box::new(query_api::InMemoryCatalogProjectionSource::default())
+            }
+        };
 
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
                 if let Err(error) =
-                    handle_connection(stream, readiness_path.as_str(), &verifier, &source)
+                    handle_connection(stream, readiness_path.as_str(), &verifier, source.as_ref())
                 {
                     eprintln!(
                         "{} request handling error: {}",
@@ -60,7 +76,7 @@ fn handle_connection(
     mut stream: TcpStream,
     readiness_path: &str,
     verifier: &query_api::StubTokenVerifier,
-    source: &query_api::InMemoryCatalogProjectionSource,
+    source: &dyn query_api::CatalogProjectionSource,
 ) -> std::io::Result<()> {
     let request = {
         let mut reader = BufReader::new(&mut stream);

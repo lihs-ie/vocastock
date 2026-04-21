@@ -1,7 +1,12 @@
+mod firestore_source;
 mod model;
 mod read;
 mod source;
 
+pub use firestore_source::{
+    FirestoreCatalogProjectionSource, DEFAULT_PROJECT_ID, FIRESTORE_EMULATOR_HOST_ENV,
+    PRODUCTION_ADAPTERS_ENV,
+};
 pub use model::{
     CatalogReadResponse, CatalogVisibility, CollectionState, ProjectionFreshness,
     VocabularyCatalogItem, WorkflowState,
