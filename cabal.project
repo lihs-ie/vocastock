@@ -1,0 +1,7 @@
+packages:
+  applications/backend/billing-worker
+  applications/backend/explanation-worker
+  applications/backend/image-worker
+
+write-ghc-environment-files: never
+with-compiler: ghc-9.2.8

@@ -1,73 +1,55 @@
 cradle:
-  multi:
+  cabal:
     - path: "./applications/backend/explanation-worker/app"
-      config:
-        cradle:
-          cabal:
-            component: "exe:explanation-worker"
+      component: "exe:explanation-worker"
 
     - path: "./applications/backend/explanation-worker/src"
-      config:
-        cradle:
-          cabal:
-            component: "lib:explanation-worker"
+      component: "lib:explanation-worker"
 
     - path: "./applications/backend/explanation-worker/tests/unit"
-      config:
-        cradle:
-          cabal:
-            component: "test:unit"
+      component: "explanation-worker:test:unit"
 
     - path: "./applications/backend/explanation-worker/tests/feature"
-      config:
-        cradle:
-          cabal:
-            component: "test:feature"
-
-    - path: "./applications/backend/explanation-worker/tests/support/FeatureSupport.hs"
-      config:
-        cradle:
-          cabal:
-            component: "test:feature"
+      component: "explanation-worker:test:feature"
 
     - path: "./applications/backend/explanation-worker/tests/support/TestSupport.hs"
-      config:
-        cradle:
-          cabal:
-            component: "test:unit"
+      component: "explanation-worker:test:unit"
+
+    - path: "./applications/backend/explanation-worker/tests/support/FeatureSupport.hs"
+      component: "explanation-worker:test:feature"
 
     - path: "./applications/backend/image-worker/app"
-      config:
-        cradle:
-          cabal:
-            component: "exe:image-worker"
+      component: "exe:image-worker"
 
     - path: "./applications/backend/image-worker/src"
-      config:
-        cradle:
-          cabal:
-            component: "lib:image-worker"
+      component: "lib:image-worker"
 
     - path: "./applications/backend/image-worker/tests/unit"
-      config:
-        cradle:
-          cabal:
-            component: "test:unit"
+      component: "image-worker:test:unit"
 
     - path: "./applications/backend/image-worker/tests/feature"
-      config:
-        cradle:
-          cabal:
-            component: "test:feature"
-
-    - path: "./applications/backend/image-worker/tests/support/FeatureSupport.hs"
-      config:
-        cradle:
-          cabal:
-            component: "test:feature"
+      component: "image-worker:test:feature"
 
     - path: "./applications/backend/image-worker/tests/support/TestSupport.hs"
-      config:
-        cradle:
-          cabal:
-            component: "test:unit"
+      component: "image-worker:test:unit"
+
+    - path: "./applications/backend/image-worker/tests/support/FeatureSupport.hs"
+      component: "image-worker:test:feature"
+
+    - path: "./applications/backend/billing-worker/app"
+      component: "exe:billing-worker"
+
+    - path: "./applications/backend/billing-worker/src"
+      component: "lib:billing-worker"
+
+    - path: "./applications/backend/billing-worker/tests/unit"
+      component: "billing-worker:test:unit"
+
+    - path: "./applications/backend/billing-worker/tests/feature"
+      component: "billing-worker:test:feature"
+
+    - path: "./applications/backend/billing-worker/tests/support/TestSupport.hs"
+      component: "billing-worker:test:unit"
+
+    - path: "./applications/backend/billing-worker/tests/support/FeatureSupport.hs"
+      component: "billing-worker:test:feature"

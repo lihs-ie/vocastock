@@ -1,0 +1,19 @@
+cradle:
+  cabal:
+    - path: "./app"
+      component: "exe:image-worker"
+
+    - path: "./src"
+      component: "lib:image-worker"
+
+    - path: "./tests/unit"
+      component: "test:unit"
+
+    - path: "./tests/feature"
+      component: "test:feature"
+
+    - path: "./tests/support/TestSupport.hs"
+      component: "test:unit"
+
+    - path: "./tests/support/FeatureSupport.hs"
+      component: "test:feature"
