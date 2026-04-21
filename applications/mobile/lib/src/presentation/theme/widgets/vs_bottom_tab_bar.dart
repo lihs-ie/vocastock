@@ -1,41 +1,41 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../router/router.dart';
 import '../vs_tokens.dart';
 
 /// Bottom tab chrome mirroring `screens.jsx` `VSTabBar`.
 ///
-/// Fixed to the bottom of the AppShell screens (Catalog / Proficiency /
-/// Paywall / Subscription Status). Active tab is inferred from the current
-/// [GoRouter] location so each screen simply drops the bar into its
-/// Scaffold's `bottomNavigationBar` slot.
+/// Driven by the parent shell's current branch index. The shell owns the
+/// selection state so tab switches only swap the body subtree — the tab
+/// bar itself stays pinned across navigations.
 class VsBottomTabBar extends StatelessWidget {
-  const VsBottomTabBar({super.key});
+  const VsBottomTabBar({
+    required this.currentIndex,
+    required this.onTap,
+    super.key,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
 
   static const List<_TabDefinition> _tabs = <_TabDefinition>[
     _TabDefinition(
-      route: AppRoutes.catalog,
       label: '単語帳',
       icon: Icons.menu_book_outlined,
       activeIcon: Icons.menu_book,
     ),
     _TabDefinition(
-      route: AppRoutes.proficiency,
       label: '習熟',
       icon: Icons.layers_outlined,
       activeIcon: Icons.layers,
     ),
     _TabDefinition(
-      route: AppRoutes.paywall,
       label: 'プラン',
       icon: Icons.emoji_events_outlined,
       activeIcon: Icons.emoji_events,
     ),
     _TabDefinition(
-      route: AppRoutes.subscriptionStatus,
       label: '設定',
       icon: Icons.settings_outlined,
       activeIcon: Icons.settings,
@@ -44,7 +44,6 @@ class VsBottomTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
     final bottomInset = MediaQuery.of(context).padding.bottom;
     return ClipRect(
       child: BackdropFilter(
@@ -66,11 +65,11 @@ class VsBottomTabBar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
-                for (final tab in _tabs)
+                for (var index = 0; index < _tabs.length; index++)
                   _TabButton(
-                    tab: tab,
-                    isActive: _isActive(tab.route, location),
-                    onTap: () => context.go(tab.route),
+                    tab: _tabs[index],
+                    isActive: index == currentIndex,
+                    onTap: () => onTap(index),
                   ),
               ],
             ),
@@ -79,30 +78,16 @@ class VsBottomTabBar extends StatelessWidget {
       ),
     );
   }
-
-  static bool _isActive(String tabRoute, String location) {
-    if (tabRoute == location) return true;
-    // Detail screens remain under the catalog tab.
-    if (tabRoute == AppRoutes.catalog) {
-      return location.startsWith('${AppRoutes.vocabularyPrefix}/') ||
-          location.startsWith('${AppRoutes.explanationPrefix}/') ||
-          location.startsWith('${AppRoutes.imagePrefix}/') ||
-          location == AppRoutes.registration;
-    }
-    return false;
-  }
 }
 
 @immutable
 class _TabDefinition {
   const _TabDefinition({
-    required this.route,
     required this.label,
     required this.icon,
     required this.activeIcon,
   });
 
-  final String route;
   final String label;
   final IconData icon;
   final IconData activeIcon;

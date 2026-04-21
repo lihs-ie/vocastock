@@ -12,7 +12,6 @@ import '../../domain/subscription/entitlement.dart';
 import '../../domain/subscription/plan.dart';
 import '../router/router.dart';
 import '../theme/vs_tokens.dart';
-import '../theme/widgets/vs_bottom_tab_bar.dart';
 import '../theme/widgets/vs_chip.dart';
 import '../theme/widgets/vs_section_label.dart';
 import '../theme/widgets/vs_spinner.dart';
@@ -44,7 +43,6 @@ class SubscriptionStatusScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: VsTokens.paper,
-      bottomNavigationBar: const VsBottomTabBar(),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

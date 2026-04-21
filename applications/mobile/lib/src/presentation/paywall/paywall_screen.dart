@@ -10,7 +10,6 @@ import '../../domain/identifier/identifier.dart';
 import '../../domain/subscription/plan.dart';
 import '../router/router.dart';
 import '../theme/vs_tokens.dart';
-import '../theme/widgets/vs_bottom_tab_bar.dart';
 import '../theme/widgets/vs_chip.dart';
 
 /// Spec 013 canonical `Paywall` screen (full-screen route group).
@@ -42,7 +41,6 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
     return Scaffold(
       backgroundColor: VsTokens.paper,
-      bottomNavigationBar: const VsBottomTabBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),

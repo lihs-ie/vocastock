@@ -16,6 +16,7 @@ import '../detail/vocabulary_expression_detail_screen.dart';
 import '../paywall/paywall_screen.dart';
 import '../proficiency/proficiency_screen.dart';
 import '../restricted/restricted_access_screen.dart';
+import '../shell/app_shell.dart';
 import '../subscription/subscription_status_screen.dart';
 
 /// Canonical route paths (spec 013 navigation-topology-contract).
@@ -62,7 +63,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ref.read(subscriptionStatusStreamProvider).value?.state;
       return _redirect(handoff, subscription, state.matchedLocation);
     },
-    routes: [
+    routes: <RouteBase>[
       GoRoute(
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
@@ -70,10 +71,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.sessionResolving,
         builder: (context, state) => const SessionResolvingScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.catalog,
-        builder: (context, state) => const VocabularyCatalogScreen(),
       ),
       GoRoute(
         path: AppRoutes.registration,
@@ -104,20 +101,47 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: AppRoutes.subscriptionStatus,
-        builder: (context, state) => const SubscriptionStatusScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.paywall,
-        builder: (context, state) => const PaywallScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.proficiency,
-        builder: (context, state) => const ProficiencyScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.restricted,
         builder: (context, state) => const RestrictedAccessScreen(),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        branches: <StatefulShellBranch>[
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppRoutes.catalog,
+                builder: (context, state) => const VocabularyCatalogScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppRoutes.proficiency,
+                builder: (context, state) => const ProficiencyScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppRoutes.paywall,
+                builder: (context, state) => const PaywallScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppRoutes.subscriptionStatus,
+                builder: (context, state) =>
+                    const SubscriptionStatusScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );
