@@ -15,6 +15,7 @@ import '../theme/widgets/vs_chip.dart';
 import '../theme/widgets/vs_illustration_panel.dart';
 import '../theme/widgets/vs_section_label.dart';
 import '../theme/widgets/vs_skeleton.dart';
+import '../theme/widgets/vs_snack_bar.dart';
 import '../theme/widgets/vs_wordmark.dart';
 import 'detail_layout_preference.dart';
 
@@ -308,16 +309,11 @@ class _PronunciationButton extends StatelessWidget {
       child: InkWell(
         key: const Key('explanation-detail.pronounce'),
         customBorder: const CircleBorder(),
-        onTap: () {
-          final messenger = ScaffoldMessenger.maybeOf(context);
-          messenger?.showSnackBar(
-            const SnackBar(
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(milliseconds: 900),
-              content: Text('発音機能は spec 022 で実装予定です。'),
-            ),
-          );
-        },
+        onTap: () => VsSnackBar.show(
+          context,
+          message: '発音機能は spec 022 で実装予定です。',
+          duration: const Duration(milliseconds: 900),
+        ),
         child: const SizedBox(
           width: 36,
           height: 36,

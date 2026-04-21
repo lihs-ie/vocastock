@@ -9,6 +9,7 @@ import '../router/router.dart';
 import '../theme/vs_tokens.dart';
 import '../theme/widgets/vs_section_label.dart';
 import '../theme/widgets/vs_settings_row.dart';
+import '../theme/widgets/vs_snack_bar.dart';
 import '../theme/widgets/vs_wordmark.dart';
 
 /// Full Settings screen mirroring `screens.jsx` `VSSettings`.
@@ -134,8 +135,9 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showUnsupported(BuildContext context, String name) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$name は未対応です')),
+    VsSnackBar.show(
+      context,
+      message: '$name は未対応です',
     );
   }
 

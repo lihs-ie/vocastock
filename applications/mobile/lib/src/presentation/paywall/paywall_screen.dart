@@ -12,6 +12,7 @@ import '../../domain/subscription/plan.dart';
 import '../router/router.dart';
 import '../theme/vs_tokens.dart';
 import '../theme/widgets/vs_chip.dart';
+import '../theme/widgets/vs_snack_bar.dart';
 
 /// Spec 013 canonical `Paywall` screen (full-screen route group).
 ///
@@ -169,13 +170,10 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           const Key('paywall.purchase.rejected'),
         ),
     };
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        key: key,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        content: Text(message),
-      ),
+    VsSnackBar.show(
+      context,
+      key: key,
+      message: message,
     );
   }
 }
