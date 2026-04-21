@@ -58,7 +58,10 @@ class _VocabularyRegistrationScreenState
     });
     switch (response) {
       case CommandResponseAccepted():
-        context.go(AppRoutes.catalog);
+        context.go(
+          AppRoutes.registrationGenerating,
+          extra: _textController.text.trim(),
+        );
       case CommandResponseRejected(:final message):
         setState(() {
           _errorText = message.text;

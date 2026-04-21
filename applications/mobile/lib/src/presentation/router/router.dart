@@ -8,6 +8,7 @@ import '../../domain/identifier/identifier.dart';
 import '../../domain/status/subscription_state.dart';
 import '../auth/login_screen.dart';
 import '../auth/session_resolving_screen.dart';
+import '../catalog/explanation_generating_screen.dart';
 import '../catalog/vocabulary_catalog_screen.dart';
 import '../catalog/vocabulary_registration_screen.dart';
 import '../detail/explanation_detail_screen.dart';
@@ -16,6 +17,7 @@ import '../detail/vocabulary_expression_detail_screen.dart';
 import '../paywall/paywall_screen.dart';
 import '../proficiency/proficiency_screen.dart';
 import '../restricted/restricted_access_screen.dart';
+import '../settings/settings_screen.dart';
 import '../shell/app_shell.dart';
 import '../subscription/subscription_status_screen.dart';
 
@@ -25,12 +27,14 @@ class AppRoutes {
   static const sessionResolving = '/session-resolving';
   static const catalog = '/catalog';
   static const registration = '/registration';
+  static const registrationGenerating = '/registration/generating';
   static const vocabularyPrefix = '/vocabulary';
   static const explanationPrefix = '/explanation';
   static const imagePrefix = '/image';
   static const subscriptionStatus = '/subscription';
   static const paywall = '/paywall';
   static const proficiency = '/proficiency';
+  static const settings = '/settings';
   static const restricted = '/restricted';
 }
 
@@ -77,6 +81,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const VocabularyRegistrationScreen(),
       ),
       GoRoute(
+        path: AppRoutes.registrationGenerating,
+        builder: (context, state) => ExplanationGeneratingScreen(
+          text: (state.extra as String?) ?? '',
+        ),
+      ),
+      GoRoute(
         path: '${AppRoutes.vocabularyPrefix}/:identifier',
         builder: (context, state) => VocabularyExpressionDetailScreen(
           identifier: VocabularyExpressionIdentifier(
@@ -99,6 +109,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             state.pathParameters['identifier']!,
           ),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.subscriptionStatus,
+        builder: (context, state) => const SubscriptionStatusScreen(),
       ),
       GoRoute(
         path: AppRoutes.restricted,
@@ -135,9 +149,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
-                path: AppRoutes.subscriptionStatus,
-                builder: (context, state) =>
-                    const SubscriptionStatusScreen(),
+                path: AppRoutes.settings,
+                builder: (context, state) => const SettingsScreen(),
               ),
             ],
           ),
@@ -150,12 +163,14 @@ final routerProvider = Provider<GoRouter>((ref) {
 bool _isAppShellLocation(String location) {
   return location == AppRoutes.catalog ||
       location == AppRoutes.registration ||
+      location == AppRoutes.registrationGenerating ||
       location.startsWith('${AppRoutes.vocabularyPrefix}/') ||
       location.startsWith('${AppRoutes.explanationPrefix}/') ||
       location.startsWith('${AppRoutes.imagePrefix}/') ||
       location == AppRoutes.subscriptionStatus ||
       location == AppRoutes.paywall ||
-      location == AppRoutes.proficiency;
+      location == AppRoutes.proficiency ||
+      location == AppRoutes.settings;
 }
 
 String? _redirect(
@@ -195,6 +210,10 @@ String? _redirect(
 
   if (location == AppRoutes.login ||
       location == AppRoutes.sessionResolving) {
+    return AppRoutes.catalog;
+  }
+  if (location == AppRoutes.subscriptionStatus &&
+      subscription == null) {
     return AppRoutes.catalog;
   }
   return null;

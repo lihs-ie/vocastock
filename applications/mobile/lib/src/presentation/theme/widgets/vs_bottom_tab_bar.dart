@@ -37,8 +37,8 @@ class VsBottomTabBar extends StatelessWidget {
     ),
     _TabDefinition(
       label: '設定',
-      icon: Icons.settings_outlined,
-      activeIcon: Icons.settings,
+      icon: Icons.tune,
+      activeIcon: Icons.tune,
     ),
   ];
 

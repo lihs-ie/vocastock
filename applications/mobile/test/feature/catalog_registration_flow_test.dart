@@ -64,6 +64,9 @@ void main() {
         );
         await tester.tap(find.byKey(const Key('registration.submit')));
         await tester.pumpAndSettle();
+        // Generating animation runs 5 stages x 900ms + 700ms exit.
+        await tester.pump(const Duration(seconds: 6));
+        await tester.pumpAndSettle();
 
         expect(find.byKey(const Key('catalog.list')), findsOneWidget);
         expect(find.text('serendipity'), findsOneWidget);
@@ -97,6 +100,8 @@ void main() {
         'serendipity',
       );
       await tester.tap(find.byKey(const Key('registration.submit')));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
       await tester.pumpAndSettle();
 
       expect(catalog.current.entries.length, equals(1));
