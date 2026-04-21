@@ -94,9 +94,7 @@ fn read_http_response_body<R: BufRead>(reader: &mut R) -> Result<String, ()> {
             let value = value.trim();
             if name == "content-length" {
                 content_length = value.parse::<usize>().ok();
-            } else if name == "transfer-encoding"
-                && value.eq_ignore_ascii_case("chunked")
-            {
+            } else if name == "transfer-encoding" && value.eq_ignore_ascii_case("chunked") {
                 transfer_encoding_chunked = true;
             }
         }
