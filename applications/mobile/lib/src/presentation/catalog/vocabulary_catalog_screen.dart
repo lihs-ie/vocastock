@@ -66,9 +66,19 @@ class _VocabularyCatalogScreenState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       const VsWordmark(size: 15),
-                      VsIconCircle(
-                        icon: Icons.search,
-                        onTap: () {},
+                      Row(
+                        children: <Widget>[
+                          VsIconCircle(
+                            key: const Key('catalog.proficiency'),
+                            icon: Icons.layers_outlined,
+                            onTap: () => context.go(AppRoutes.proficiency),
+                          ),
+                          const SizedBox(width: 8),
+                          VsIconCircle(
+                            icon: Icons.search,
+                            onTap: () {},
+                          ),
+                        ],
                       ),
                     ],
                   ),

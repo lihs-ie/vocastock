@@ -14,6 +14,7 @@ import '../detail/explanation_detail_screen.dart';
 import '../detail/image_detail_screen.dart';
 import '../detail/vocabulary_expression_detail_screen.dart';
 import '../paywall/paywall_screen.dart';
+import '../proficiency/proficiency_screen.dart';
 import '../restricted/restricted_access_screen.dart';
 import '../subscription/subscription_status_screen.dart';
 
@@ -28,6 +29,7 @@ class AppRoutes {
   static const imagePrefix = '/image';
   static const subscriptionStatus = '/subscription';
   static const paywall = '/paywall';
+  static const proficiency = '/proficiency';
   static const restricted = '/restricted';
 }
 
@@ -110,6 +112,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const PaywallScreen(),
       ),
       GoRoute(
+        path: AppRoutes.proficiency,
+        builder: (context, state) => const ProficiencyScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.restricted,
         builder: (context, state) => const RestrictedAccessScreen(),
       ),
@@ -124,7 +130,8 @@ bool _isAppShellLocation(String location) {
       location.startsWith('${AppRoutes.explanationPrefix}/') ||
       location.startsWith('${AppRoutes.imagePrefix}/') ||
       location == AppRoutes.subscriptionStatus ||
-      location == AppRoutes.paywall;
+      location == AppRoutes.paywall ||
+      location == AppRoutes.proficiency;
 }
 
 String? _redirect(
