@@ -1,0 +1,39 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    # Promote selected hints to errors to enforce spec 013 discipline.
+    invalid_annotation_target: ignore
+    missing_required_param: error
+    missing_return: error
+    todo: ignore
+    fixme: ignore
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.gql.dart"
+    - "**/*.var.gql.dart"
+    - "**/*.req.gql.dart"
+    - "**/*.data.gql.dart"
+    - "**/__generated__/**"
+    - "build/**"
+
+linter:
+  rules:
+    # Keep very_good_analysis defaults; customize where spec 013 diverges.
+    public_member_api_docs: false
+    lines_longer_than_80_chars: false
+    one_member_abstracts: false
+    prefer_relative_imports: true
+    always_use_package_imports: false
+    # Doc-only cross references (`[Xxx]`) are a navigation aid; we do not
+    # require the referenced symbols to be in lexical scope.
+    comment_references: false
+    # Conflicts with `strict-inference: true` for test callbacks
+    # (testWidgets + matcher projections). We prefer explicit types for
+    # inference determinism over redundancy-shaming.
+    avoid_types_on_closure_parameters: false
