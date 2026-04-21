@@ -11,6 +11,8 @@ import '../../application/envelope/command_response_envelope.dart';
 import '../../domain/identifier/identifier.dart';
 import '../../domain/status/explanation_generation_status.dart';
 import '../../domain/status/image_generation_status.dart';
+import '../../domain/subscription/entitlement.dart';
+import '../../domain/subscription/plan.dart';
 import '../../domain/vocabulary/vocabulary_expression_entry.dart';
 import '../router/router.dart';
 
@@ -112,7 +114,7 @@ class VocabularyExpressionDetailScreen extends ConsumerWidget {
           if (canRequestImage)
             ElevatedButton(
               key: const Key('detail.request-image'),
-              onPressed: () => unawaited(_requestImage(ref)),
+              onPressed: () => unawaited(_requestImage(context, ref)),
               child: const Text('画像を生成する'),
             ),
           if (imageFailed)
@@ -127,7 +129,25 @@ class VocabularyExpressionDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _requestImage(WidgetRef ref) async {
+  Future<void> _requestImage(BuildContext context, WidgetRef ref) async {
+    final gate = ref.read(subscriptionFeatureGateProvider);
+    final status = ref.read(subscriptionStatusStreamProvider).value;
+    if (status != null) {
+      final decision = gate.evaluate(
+        feature: FeatureKey.imageGeneration,
+        state: status.state,
+        plan: status.plan.tier,
+      );
+      // Deny routes to Restricted (handled by the router redirect on revoked
+      // state); Limited is delegated to usage allowance resolution, and when
+      // the allowance is depleted we open the Paywall.
+      if (decision is FeatureGateLimited &&
+          !status.allowance.canGenerateImage) {
+        if (!context.mounted) return;
+        context.go(AppRoutes.paywall);
+        return;
+      }
+    }
     final command = ref.read(requestImageGenerationCommandProvider);
     await command.requestImage(
       vocabularyExpression: identifier,

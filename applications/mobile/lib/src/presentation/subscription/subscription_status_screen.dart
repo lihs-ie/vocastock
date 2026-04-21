@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../app_bindings.dart';
@@ -10,6 +11,7 @@ import '../../domain/status/subscription_state.dart';
 import '../../domain/subscription/entitlement.dart';
 import '../../domain/subscription/plan.dart';
 import '../../domain/subscription/subscription_status_view.dart';
+import '../router/router.dart';
 
 /// Spec 013 canonical `SubscriptionStatus` screen.
 ///
@@ -35,7 +37,20 @@ class SubscriptionStatusScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('サブスクリプション状態')),
+      appBar: AppBar(
+        title: const Text('サブスクリプション状態'),
+        actions: [
+          IconButton(
+            key: const Key('subscription-status.logout'),
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await ref.read(logoutCommandProvider).signOut();
+              if (!context.mounted) return;
+              context.go(AppRoutes.login);
+            },
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

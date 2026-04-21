@@ -39,9 +39,7 @@ void main() {
       final element = tester.element(find.byType(MaterialApp));
       // Use the stub subscription state setter: expired leaves the catalog
       // reachable. We push /paywall via the app_bindings router.
-      final router = ProviderScope.containerOf(element)
-          .read(routerProvider);
-      router.go('/paywall');
+      ProviderScope.containerOf(element).read(routerProvider).go('/paywall');
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('paywall.plan.standard')), findsOneWidget);
