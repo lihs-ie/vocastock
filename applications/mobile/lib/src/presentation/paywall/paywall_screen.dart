@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../app_bindings.dart';
+import '../../application/envelope/command_response_envelope.dart';
 import '../../domain/identifier/identifier.dart';
 import '../../domain/subscription/plan.dart';
 import '../router/router.dart';
@@ -153,9 +154,28 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
   Future<void> _purchase(PlanCode plan) async {
     final command = ref.read(requestPurchaseCommandProvider);
-    await command.purchase(
+    final response = await command.purchase(
       plan: plan,
       idempotencyKey: IdempotencyKey(_uuidGenerator.v4()),
+    );
+    if (!mounted) return;
+    final (message, key) = switch (response) {
+      CommandResponseAccepted() => (
+          '${_planLabel(plan)} にアップグレードしました。',
+          const Key('paywall.purchase.accepted'),
+        ),
+      CommandResponseRejected(:final message) => (
+          'アップグレードできませんでした: ${message.text}',
+          const Key('paywall.purchase.rejected'),
+        ),
+    };
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        key: key,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        content: Text(message),
+      ),
     );
   }
 }

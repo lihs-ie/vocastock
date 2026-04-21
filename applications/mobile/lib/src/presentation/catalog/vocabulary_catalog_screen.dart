@@ -67,8 +67,9 @@ class _VocabularyCatalogScreenState
                     children: <Widget>[
                       const VsWordmark(size: 15),
                       VsIconCircle(
+                        key: const Key('catalog.search'),
                         icon: Icons.search,
-                        onTap: () {},
+                        onTap: () => _showDeferredSearch(context),
                       ),
                     ],
                   ),
@@ -140,6 +141,17 @@ class _VocabularyCatalogScreenState
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeferredSearch(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        key: Key('catalog.search.deferred-notice'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(milliseconds: 1400),
+        content: Text('検索機能は今後のアップデートで提供予定です。'),
       ),
     );
   }

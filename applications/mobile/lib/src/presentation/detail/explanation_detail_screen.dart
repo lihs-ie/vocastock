@@ -173,13 +173,14 @@ class _ExplanationHeader extends StatelessWidget {
             ),
           ),
           const VsWordmark(size: 13),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Icon(
-              Icons.star_border,
-              size: 18,
-              color: VsTokens.inkSoft,
-            ),
+          const IconButton(
+            key: Key('explanation-detail.bookmark'),
+            onPressed: null,
+            icon: Icon(Icons.star_border, size: 18),
+            color: VsTokens.inkSoft,
+            disabledColor: VsTokens.inkMute,
+            tooltip: 'ブックマークは実装準備中です',
+            splashRadius: 18,
           ),
         ],
       ),
