@@ -15,8 +15,19 @@ library
       ImageWorker.CurrentImageHandoff
       ImageWorker.FailureSummary
       ImageWorker.WorkerRuntime
+      ImageWorker.StabilityAdapter
+      ImageWorker.FirestoreWriter
+      ImageWorker.PullLoop
   build-depends:
       base >=4.15 && <5
+    , aeson
+    , base64-bytestring
+    , bytestring
+    , containers
+    , http-conduit
+    , http-types
+    , text
+    , vocas-worker-core
   default-language: GHC2021
 
 executable image-worker
@@ -43,11 +54,23 @@ test-suite unit
       ImageWorker.CurrentImageHandoffSpec
       ImageWorker.FailureSummarySpec
       ImageWorker.WorkerRuntimeSpec
+      ImageWorker.StabilityAdapterSpec
+      StabilityDevProvider
       TestSupport
   build-depends:
       base >=4.15 && <5
+    , aeson
+    , base64-bytestring
+    , bytestring
+    , http-conduit
+    , http-types
     , image-worker
+    , network
+    , text
+    , wai
+    , warp
   default-language: GHC2021
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
 
 test-suite feature
   type: exitcode-stdio-1.0

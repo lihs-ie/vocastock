@@ -5,6 +5,7 @@ use super::model::{
     VocabularyCatalogItem,
 };
 use super::source::{CatalogProjectionSource, ProjectionSourceRecord};
+use crate::runtime::authorization::extract_bearer_token;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CatalogReadError {
@@ -23,7 +24,7 @@ impl CatalogReadError {
 
 pub fn read_catalog(
     actor_context: &VerifiedActorContext,
-    source: &impl CatalogProjectionSource,
+    source: &(impl CatalogProjectionSource + ?Sized),
 ) -> Result<CatalogReadResponse, CatalogReadError> {
     if !actor_context.is_active() {
         return Err(CatalogReadError::InactiveSession);
@@ -50,36 +51,16 @@ pub fn read_catalog(
 
 pub fn read_catalog_from_authorization_header(
     authorization_header: Option<&str>,
-    verifier: &impl TokenVerificationPort,
-    source: &impl CatalogProjectionSource,
+    verifier: &(impl TokenVerificationPort + ?Sized),
+    source: &(impl CatalogProjectionSource + ?Sized),
 ) -> Result<CatalogReadResponse, CatalogReadError> {
-    let bearer_token = extract_bearer_token(authorization_header)?;
+    let bearer_token =
+        extract_bearer_token(authorization_header).map_err(CatalogReadError::Auth)?;
     let actor_context = verifier
         .verify(bearer_token)
         .map_err(CatalogReadError::Auth)?;
 
     read_catalog(&actor_context, source)
-}
-
-fn extract_bearer_token(authorization_header: Option<&str>) -> Result<&str, CatalogReadError> {
-    let header_value = authorization_header
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .ok_or(CatalogReadError::Auth(
-            shared_auth::TokenVerificationError::MissingToken,
-        ))?;
-
-    let (scheme, token) = header_value.split_once(' ').ok_or(CatalogReadError::Auth(
-        shared_auth::TokenVerificationError::InvalidToken,
-    ))?;
-
-    if !scheme.eq_ignore_ascii_case("bearer") || token.trim().is_empty() {
-        return Err(CatalogReadError::Auth(
-            shared_auth::TokenVerificationError::InvalidToken,
-        ));
-    }
-
-    Ok(token.trim())
 }
 
 fn map_projection_record(record: ProjectionSourceRecord) -> VocabularyCatalogItem {

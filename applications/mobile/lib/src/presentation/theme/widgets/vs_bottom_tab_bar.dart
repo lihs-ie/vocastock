@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../platform_insets.dart';
 import '../vs_tokens.dart';
 
 /// Bottom tab chrome mirroring `screens.jsx` `VSTabBar`.
@@ -44,7 +45,7 @@ class VsBottomTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final bottomPad = PlatformInsets.tabBarBottomPadding(context);
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
@@ -56,12 +57,7 @@ class VsBottomTabBar extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              0,
-              8,
-              0,
-              bottomInset > 0 ? bottomInset : 12,
-            ),
+            padding: EdgeInsets.fromLTRB(0, 8, 0, bottomPad),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[

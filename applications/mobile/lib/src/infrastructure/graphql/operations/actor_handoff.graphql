@@ -1,0 +1,15 @@
+query ActorHandoffStatusQuery {
+  actorHandoffStatus {
+    actor
+    session
+    authAccount
+    sessionState
+  }
+}
+
+query LearningStateQuery($identifier: ID!) {
+  learningState(identifier: $identifier) {
+    vocabularyExpression
+    proficiency
+  }
+}

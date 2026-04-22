@@ -1,0 +1,10 @@
+[package]
+name = "shared-pubsub"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Shared PubSub emulator REST publisher for vocastock dispatch adapters"
+
+[dependencies]
+serde_json = "1"
+shared-firestore = { path = "../shared-firestore" }

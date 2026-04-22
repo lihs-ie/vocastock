@@ -1,0 +1,35 @@
+query SubscriptionStatusQuery {
+  subscriptionStatus {
+    state
+    plan
+    entitlement
+    allowance {
+      remainingExplanationGenerations
+      remainingImageGenerations
+    }
+  }
+}
+
+mutation RequestPurchaseMutation($input: RequestPurchaseInput!) {
+  requestPurchase(input: $input) {
+    accepted
+    outcome
+    errorCategory
+    message {
+      key
+      text
+    }
+  }
+}
+
+mutation RequestRestorePurchaseMutation($input: RequestRestorePurchaseInput!) {
+  requestRestorePurchase(input: $input) {
+    accepted
+    outcome
+    errorCategory
+    message {
+      key
+      text
+    }
+  }
+}

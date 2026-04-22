@@ -6,15 +6,16 @@ COPY applications/backend/billing-worker/cabal.project cabal.project
 COPY applications/backend/billing-worker/billing-worker.cabal billing-worker.cabal
 COPY applications/backend/billing-worker/app app
 COPY applications/backend/billing-worker/src src
-COPY applications/backend/billing-worker/tests/feature tests/feature
-COPY applications/backend/billing-worker/tests/support tests/support
-COPY applications/backend/billing-worker/tests/unit tests/unit
+COPY applications/backend/billing-worker/tests tests
+COPY packages/haskell/vocas-worker-core /workspace/packages/haskell/vocas-worker-core
 
+RUN env CABAL_DIR=/tmp/cabal cabal update
 RUN env CABAL_DIR=/tmp/cabal cabal install exe:billing-worker \
     --disable-tests \
     --install-method=copy \
     --installdir=/out \
-    --overwrite-policy=always
+    --overwrite-policy=always \
+    --project-file=cabal.project
 
 FROM debian:bookworm-slim AS runtime
 

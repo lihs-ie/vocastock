@@ -31,3 +31,14 @@ mod shared_auth;
 mod shared_runtime;
 #[path = "unit/register_command_api/runtime/stub_token_verifier.rs"]
 mod stub_token_verifier;
+
+#[path = "unit/register_command_api/runtime/firestore_command_store.rs"]
+mod firestore_command_store_tests;
+#[path = "unit/register_command_api/runtime/firestore_mutation_command_store.rs"]
+mod firestore_mutation_command_store_tests;
+#[path = "unit/register_command_api/command/mutation_acceptance.rs"]
+mod mutation_acceptance;
+#[path = "unit/register_command_api/command/mutation_request.rs"]
+mod mutation_request;
+#[path = "unit/register_command_api/runtime/pubsub_dispatch_port.rs"]
+mod pubsub_dispatch_port_tests;

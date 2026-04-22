@@ -15,6 +15,21 @@ impl TokenVerificationPort for StubTokenVerifier {
             "" => Err(shared_auth::TokenVerificationError::MissingToken),
             "valid-learner-token" => Ok(sample_actor_context("actor:learner")),
             "valid-other-token" => Ok(sample_actor_context("actor:other")),
+            // Tokens below resolve to the Firebase Auth UIDs that
+            // `firebase/seed/fixtures.json` provisions, matching the
+            // query-api stub so feature tests can share credentials.
+            "valid-demo-token" => Ok(seeded_actor_context(
+                "stub-actor-demo",
+                "stub-account-demo",
+                "stub-session-demo",
+                SessionState::Active,
+            )),
+            "valid-free-token" => Ok(seeded_actor_context(
+                "stub-actor-free",
+                "stub-account-free",
+                "stub-session-free",
+                SessionState::Active,
+            )),
             "reauth-token" => Err(shared_auth::TokenVerificationError::ReauthRequired),
             _ => Err(shared_auth::TokenVerificationError::InvalidToken),
         }
@@ -27,5 +42,19 @@ fn sample_actor_context(actor_reference: &str) -> VerifiedActorContext {
         AuthAccountReference::new(format!("auth:{actor_reference}")),
         SessionReference::new(format!("session:{actor_reference}")),
         SessionState::Active,
+    )
+}
+
+fn seeded_actor_context(
+    actor: &str,
+    auth_account: &str,
+    session: &str,
+    session_state: SessionState,
+) -> VerifiedActorContext {
+    VerifiedActorContext::new(
+        ActorReference::new(actor),
+        AuthAccountReference::new(auth_account),
+        SessionReference::new(session),
+        session_state,
     )
 }

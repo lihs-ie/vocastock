@@ -1,7 +1,7 @@
 module TestSupport
   ( assertEqual,
     assertTrue,
-    runNamed
+    runNamed,
   )
 where
 

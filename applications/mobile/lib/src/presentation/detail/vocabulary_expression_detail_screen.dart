@@ -467,33 +467,51 @@ class _ProficiencyRow extends StatelessWidget {
       _ProficiencyLevel(label: '定着', color: VsTokens.profInternalized),
       _ProficiencyLevel(label: '自在', color: VsTokens.profFluent),
     ];
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        for (final level in levels) ...<Widget>[
-          Expanded(
-            child: Opacity(
-              opacity: 0.55,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: VsTokens.paperSoft,
-                  border: Border.all(color: VsTokens.inkHair),
-                  borderRadius: BorderRadius.circular(VsTokens.radiusSm),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  level.label,
-                  style: TextStyle(
-                    fontFamily: VsTokens.sans,
-                    fontSize: 11,
-                    color: level.color,
+        Row(
+          key: const Key('vocabulary-expression-detail.proficiency-row'),
+          children: <Widget>[
+            for (final level in levels) ...<Widget>[
+              Expanded(
+                child: Opacity(
+                  opacity: 0.55,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: VsTokens.paperSoft,
+                      border: Border.all(color: VsTokens.inkHair),
+                      borderRadius:
+                          BorderRadius.circular(VsTokens.radiusSm),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      level.label,
+                      style: TextStyle(
+                        fontFamily: VsTokens.sans,
+                        fontSize: 11,
+                        color: level.color,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              if (level != levels.last) const SizedBox(width: 4),
+            ],
+          ],
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          '習熟度の更新はサーバー API の準備中です。',
+          key: Key('vocabulary-expression-detail.proficiency-note'),
+          style: TextStyle(
+            fontFamily: VsTokens.sans,
+            fontSize: 10,
+            fontStyle: FontStyle.italic,
+            color: VsTokens.inkMute,
           ),
-          if (level != levels.last) const SizedBox(width: 4),
-        ],
+        ),
       ],
     );
   }

@@ -27,8 +27,6 @@ check_dependency() {
 }
 
 check_dependency "firestore" "${FIRESTORE_EMULATOR_HOST:-}"
-check_dependency "storage" "${STORAGE_EMULATOR_HOST:-}"
-check_dependency "auth" "${FIREBASE_AUTH_EMULATOR_HOST:-}"
 check_dependency "pubsub" "${PUBSUB_EMULATOR_HOST:-}"
 
 export VOCAS_WORKER_NAME="${worker_name}"

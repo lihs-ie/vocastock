@@ -14,11 +14,21 @@ library
       ExplanationWorker.FailureSummary
       ExplanationWorker.RuntimeHttp
       ExplanationWorker.WorkerRuntime
+      ExplanationWorker.AnthropicAdapter
+      ExplanationWorker.FirestoreWriter
+      ExplanationWorker.PullLoop
   build-depends:
       base >=4.15 && <5
     , aeson
+    , bytestring
+    , containers
+    , http-conduit
+    , http-types
     , servant
     , servant-server
+    , text
+    , time
+    , vocas-worker-core
     , wai
     , warp
   default-language: GHC2021
@@ -46,17 +56,23 @@ test-suite unit
       ExplanationWorker.FailureSummarySpec
       ExplanationWorker.RuntimeHttpSpec
       ExplanationWorker.WorkerRuntimeSpec
+      ExplanationWorker.AnthropicAdapterSpec
+      AnthropicDevProvider
       TestSupport
   build-depends:
       base >=4.15 && <5
     , aeson
     , bytestring
     , explanation-worker
+    , http-conduit
     , http-types
+    , network
     , text
     , wai
     , wai-extra
+    , warp
   default-language: GHC2021
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
 
 test-suite feature
   type: exitcode-stdio-1.0

@@ -1,0 +1,45 @@
+cabal-version: 3.4
+name: vocas-worker-core
+version: 0.1.0.0
+synopsis: Shared PubSub / Firestore / Storage REST client for vocastock workers
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  exposed-modules:
+      Vocas.Worker.Core
+      Vocas.Worker.Core.Env
+      Vocas.Worker.Core.Http
+      Vocas.Worker.Core.PubSub
+      Vocas.Worker.Core.Firestore
+      Vocas.Worker.Core.Storage
+      Vocas.Worker.Core.MessageEnvelope
+  build-depends:
+      base >=4.15 && <5
+    , aeson >=2.1
+    , base64-bytestring >=1.2
+    , bytestring
+    , containers
+    , http-conduit >=2.3
+    , http-types
+    , text
+    , time
+    , unordered-containers
+  default-language: GHC2021
+  ghc-options: -Wall -Wcompat -Wunused-imports
+
+test-suite unit
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs: tests/unit
+  other-modules:
+      EnvSpec
+      MessageEnvelopeSpec
+      FirestoreSpec
+  build-depends:
+      base >=4.15 && <5
+    , aeson
+    , bytestring
+    , text
+    , vocas-worker-core
+  default-language: GHC2021

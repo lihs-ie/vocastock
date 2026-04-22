@@ -6,11 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../app_bindings.dart';
+import '../../application/envelope/command_response_envelope.dart';
 import '../../domain/identifier/identifier.dart';
 import '../../domain/subscription/plan.dart';
 import '../router/router.dart';
 import '../theme/vs_tokens.dart';
 import '../theme/widgets/vs_chip.dart';
+import '../theme/widgets/vs_snack_bar.dart';
 
 /// Spec 013 canonical `Paywall` screen (full-screen route group).
 ///
@@ -153,9 +155,25 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
   Future<void> _purchase(PlanCode plan) async {
     final command = ref.read(requestPurchaseCommandProvider);
-    await command.purchase(
+    final response = await command.purchase(
       plan: plan,
       idempotencyKey: IdempotencyKey(_uuidGenerator.v4()),
+    );
+    if (!mounted) return;
+    final (message, key) = switch (response) {
+      CommandResponseAccepted() => (
+          '${_planLabel(plan)} にアップグレードしました。',
+          const Key('paywall.purchase.accepted'),
+        ),
+      CommandResponseRejected(:final message) => (
+          'アップグレードできませんでした: ${message.text}',
+          const Key('paywall.purchase.rejected'),
+        ),
+    };
+    VsSnackBar.show(
+      context,
+      key: key,
+      message: message,
     );
   }
 }

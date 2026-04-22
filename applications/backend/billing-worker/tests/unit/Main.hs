@@ -1,11 +1,14 @@
 module Main (main) where
 
+import qualified BillingWorker.AllowanceResetSpec
 import qualified BillingWorker.BillingPersistenceSpec
 import qualified BillingWorker.CurrentSubscriptionHandoffSpec
 import qualified BillingWorker.EntitlementRecalcPortSpec
 import qualified BillingWorker.FailureSummarySpec
 import qualified BillingWorker.NotificationPortSpec
 import qualified BillingWorker.PurchaseVerificationPortSpec
+import qualified BillingWorker.StripeLiveSpec
+import qualified BillingWorker.StripePortSpec
 import qualified BillingWorker.SubscriptionAuthorityPortSpec
 import qualified BillingWorker.WorkItemContractSpec
 import qualified BillingWorker.WorkerRuntimeSpec
@@ -23,3 +26,6 @@ main = do
   BillingWorker.CurrentSubscriptionHandoffSpec.run
   BillingWorker.WorkflowStateMachineSpec.run
   BillingWorker.WorkerRuntimeSpec.run
+  BillingWorker.AllowanceResetSpec.run
+  BillingWorker.StripePortSpec.run
+  BillingWorker.StripeLiveSpec.run

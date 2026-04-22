@@ -14,12 +14,20 @@ class CompletedImageDetail {
     required this.explanation,
     required this.assetReference,
     required this.description,
+    this.senseIdentifier,
+    this.senseLabel,
   });
 
   final VisualImageIdentifier identifier;
   final ExplanationIdentifier explanation;
   final String assetReference;
   final String description;
+
+  /// Sense this image illustrates; null means "overall / head-word" image.
+  final String? senseIdentifier;
+
+  /// Short Japanese label of the associated sense (for UI overlays).
+  final String? senseLabel;
 
   @override
   bool operator ==(Object other) =>
@@ -28,7 +36,9 @@ class CompletedImageDetail {
           other.identifier == identifier &&
           other.explanation == explanation &&
           other.assetReference == assetReference &&
-          other.description == description);
+          other.description == description &&
+          other.senseIdentifier == senseIdentifier &&
+          other.senseLabel == senseLabel);
 
   @override
   int get hashCode => Object.hash(
@@ -36,5 +46,7 @@ class CompletedImageDetail {
         explanation,
         assetReference,
         description,
+        senseIdentifier,
+        senseLabel,
       );
 }

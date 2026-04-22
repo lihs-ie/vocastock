@@ -5,9 +5,14 @@ use std::net::{TcpListener, TcpStream};
 use crate::command::CommandFailure;
 use crate::http::{
     read_request, render_command_failure, route_request, write_response, RequestReadError,
+    RouteContext,
 };
 
-use super::{InMemoryCommandStore, InMemoryDispatchPort, StubTokenVerifier, SERVICE_NAME};
+use super::{
+    CommandStore, DispatchPort, FirestoreCommandStore, FirestoreMutationCommandStore,
+    InMemoryCommandStore, InMemoryDispatchPort, MutationCommandStore, PubSubDispatchPort,
+    StubTokenVerifier, SERVICE_NAME,
+};
 
 const DEFAULT_HOST: &str = "0.0.0.0";
 const DEFAULT_PORT: u16 = 18181;
@@ -46,16 +51,62 @@ pub fn run_server() {
     println!("{}", startup_message(&config));
 
     let verifier = StubTokenVerifier;
-    let store = InMemoryCommandStore::default();
-    let dispatcher = InMemoryDispatchPort::default();
+    let register_store: Box<dyn CommandStore> = match FirestoreCommandStore::from_env() {
+        Some(firestore) => {
+            println!(
+                "{} register store wired to Firestore emulator",
+                SERVICE_NAME,
+            );
+            Box::new(firestore)
+        }
+        None => {
+            println!(
+                "{} register store using in-memory fixture (set VOCAS_PRODUCTION_ADAPTERS=true + FIRESTORE_EMULATOR_HOST to switch)",
+                SERVICE_NAME,
+            );
+            Box::new(InMemoryCommandStore::default())
+        }
+    };
+    let mutation_store: Option<Box<dyn MutationCommandStore>> =
+        FirestoreMutationCommandStore::from_env().map(|s| Box::new(s) as Box<_>);
+    let dispatcher: Box<dyn DispatchPort> = match PubSubDispatchPort::from_env() {
+        Some(pubsub) => {
+            println!("{} dispatcher wired to PubSub emulator", SERVICE_NAME,);
+            Box::new(pubsub)
+        }
+        None => {
+            println!(
+                "{} dispatcher using in-memory fixture (set VOCAS_PRODUCTION_ADAPTERS=true + PUBSUB_EMULATOR_HOST to switch)",
+                SERVICE_NAME,
+            );
+            Box::new(InMemoryDispatchPort::default())
+        }
+    };
 
-    run_accept_loop(
-        listener,
-        config.readiness_path.as_str(),
-        &verifier,
-        &store,
-        &dispatcher,
-    );
+    if mutation_store.is_some() {
+        println!(
+            "{} mutation store wired to Firestore emulator",
+            SERVICE_NAME,
+        );
+    } else {
+        println!(
+            "{} mutation store unavailable (5 new mutation endpoints will return DOWNSTREAM_UNAVAILABLE)",
+            SERVICE_NAME,
+        );
+    }
+
+    for stream in listener.incoming() {
+        let ctx = RouteContext {
+            readiness_path: config.readiness_path.as_str(),
+            verifier: &verifier,
+            register_store: register_store.as_ref(),
+            mutation_store: mutation_store.as_deref(),
+            dispatcher: dispatcher.as_ref(),
+        };
+        if let Err(error) = serve_incoming_stream(stream, &ctx) {
+            eprintln!("{} stream handling error: {}", SERVICE_NAME, error);
+        }
+    }
 }
 
 pub fn bind_listener(config: &ServerConfig) -> std::io::Result<TcpListener> {
@@ -69,17 +120,9 @@ pub fn startup_message(config: &ServerConfig) -> String {
     )
 }
 
-pub fn run_accept_loop(
-    listener: TcpListener,
-    readiness_path: &str,
-    verifier: &StubTokenVerifier,
-    store: &InMemoryCommandStore,
-    dispatcher: &InMemoryDispatchPort,
-) {
+pub fn run_accept_loop(listener: TcpListener, ctx: &RouteContext<'_>) {
     for stream in listener.incoming() {
-        if let Err(error) =
-            serve_incoming_stream(stream, readiness_path, verifier, store, dispatcher)
-        {
+        if let Err(error) = serve_incoming_stream(stream, ctx) {
             eprintln!("{} stream handling error: {}", SERVICE_NAME, error);
         }
     }
@@ -87,28 +130,19 @@ pub fn run_accept_loop(
 
 pub fn serve_incoming_stream(
     stream: std::io::Result<TcpStream>,
-    readiness_path: &str,
-    verifier: &StubTokenVerifier,
-    store: &InMemoryCommandStore,
-    dispatcher: &InMemoryDispatchPort,
+    ctx: &RouteContext<'_>,
 ) -> std::io::Result<()> {
     match stream {
-        Ok(stream) => handle_connection(stream, readiness_path, verifier, store, dispatcher),
+        Ok(stream) => handle_connection(stream, ctx),
         Err(error) => Err(error),
     }
 }
 
-pub fn handle_connection(
-    mut stream: TcpStream,
-    readiness_path: &str,
-    verifier: &StubTokenVerifier,
-    store: &InMemoryCommandStore,
-    dispatcher: &InMemoryDispatchPort,
-) -> std::io::Result<()> {
+pub fn handle_connection(mut stream: TcpStream, ctx: &RouteContext<'_>) -> std::io::Result<()> {
     let response = {
         let mut reader = BufReader::new(&mut stream);
         match read_request(&mut reader) {
-            Ok(request) => route_request(&request, readiness_path, verifier, store, dispatcher),
+            Ok(request) => route_request(&request, ctx),
             Err(RequestReadError::PayloadTooLarge { max_length, .. }) => {
                 render_command_failure(&CommandFailure::payload_too_large(max_length))
             }

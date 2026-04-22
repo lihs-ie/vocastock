@@ -7,11 +7,13 @@ import '../../domain/status/explanation_generation_status.dart';
 import '../../domain/status/image_generation_status.dart';
 import '../../domain/vocabulary/vocabulary_expression_entry.dart';
 import '../router/router.dart';
+import '../theme/platform_insets.dart';
 import '../theme/vs_tokens.dart';
 import '../theme/widgets/vs_chip.dart';
 import '../theme/widgets/vs_icon_circle.dart';
 import '../theme/widgets/vs_illustration_panel.dart';
 import '../theme/widgets/vs_pill_tabs.dart';
+import '../theme/widgets/vs_snack_bar.dart';
 import '../theme/widgets/vs_spinner.dart';
 import '../theme/widgets/vs_wordmark.dart';
 
@@ -48,10 +50,15 @@ class _VocabularyCatalogScreenState
 
     return Scaffold(
       backgroundColor: VsTokens.paper,
-      floatingActionButton: FloatingActionButton(
-        key: const Key('catalog.add'),
-        onPressed: () => context.go(AppRoutes.registration),
-        child: const Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(
+          bottom: PlatformInsets.floatingBottomOffset(context) - 16,
+        ),
+        child: FloatingActionButton(
+          key: const Key('catalog.add'),
+          onPressed: () => context.go(AppRoutes.registration),
+          child: const Icon(Icons.add),
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -67,8 +74,9 @@ class _VocabularyCatalogScreenState
                     children: <Widget>[
                       const VsWordmark(size: 15),
                       VsIconCircle(
+                        key: const Key('catalog.search'),
                         icon: Icons.search,
-                        onTap: () {},
+                        onTap: () => _showDeferredSearch(context),
                       ),
                     ],
                   ),
@@ -141,6 +149,15 @@ class _VocabularyCatalogScreenState
           ],
         ),
       ),
+    );
+  }
+
+  void _showDeferredSearch(BuildContext context) {
+    VsSnackBar.show(
+      context,
+      key: const Key('catalog.search.deferred-notice'),
+      message: '検索機能は今後のアップデートで提供予定です。',
+      duration: const Duration(milliseconds: 1400),
     );
   }
 

@@ -1,7 +1,11 @@
+-- Workspace-level cabal project. Each Haskell worker also retains a
+-- package-local `cabal.project` so builds scoped to a single worker
+-- (e.g. Docker multi-stage `cargo`-equivalent) continue to work.
 packages:
-  applications/backend/billing-worker
+  packages/haskell/vocas-worker-core
   applications/backend/explanation-worker
   applications/backend/image-worker
+  applications/backend/billing-worker
 
-write-ghc-environment-files: never
 with-compiler: ghc-9.2.8
+write-ghc-environment-files: never

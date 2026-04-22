@@ -1,5 +1,6 @@
 module Main (main) where
 
+import qualified ExplanationWorker.AnthropicAdapterSpec
 import qualified ExplanationWorker.CurrentExplanationHandoffSpec
 import qualified ExplanationWorker.ExplanationPersistenceSpec
 import qualified ExplanationWorker.FailureSummarySpec
@@ -19,3 +20,4 @@ main = do
   ExplanationWorker.RuntimeHttpSpec.run
   ExplanationWorker.WorkflowStateMachineSpec.run
   ExplanationWorker.WorkerRuntimeSpec.run
+  ExplanationWorker.AnthropicAdapterSpec.run

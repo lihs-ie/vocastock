@@ -1,3 +1,7 @@
-packages: .
-write-ghc-environment-files: never
+-- Docker multi-stage build copies vocas-worker-core alongside the
+-- worker source, so this project file lists both packages explicitly.
+packages:
+  .
+  ../../../packages/haskell/vocas-worker-core
 with-compiler: ghc-9.2.8
+write-ghc-environment-files: never

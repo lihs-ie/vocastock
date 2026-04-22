@@ -1,6 +1,4 @@
-use crate::runtime::{
-    status_handle_for, InMemoryCommandStore, InMemoryDispatchPort, REGISTERED_STATE,
-};
+use crate::runtime::{status_handle_for, CommandStore, DispatchPort, REGISTERED_STATE};
 
 use super::request::RegisterVocabularyExpressionCommand;
 use super::response::{
@@ -11,8 +9,8 @@ use super::response::{
 #[allow(clippy::result_large_err)]
 pub fn accept_register_command(
     command: &RegisterVocabularyExpressionCommand,
-    store: &InMemoryCommandStore,
-    dispatcher: &InMemoryDispatchPort,
+    store: &(impl CommandStore + ?Sized),
+    dispatcher: &(impl DispatchPort + ?Sized),
 ) -> Result<AcceptedCommandResult, CommandFailure> {
     match store.plan(command) {
         crate::runtime::StoreDecision::ReplayExisting(result) => Ok(result.replay()),
