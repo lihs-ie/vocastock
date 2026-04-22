@@ -6,9 +6,7 @@ COPY applications/backend/image-worker/cabal.project cabal.project
 COPY applications/backend/image-worker/image-worker.cabal image-worker.cabal
 COPY applications/backend/image-worker/app app
 COPY applications/backend/image-worker/src src
-COPY applications/backend/image-worker/tests/feature tests/feature
-COPY applications/backend/image-worker/tests/support tests/support
-COPY applications/backend/image-worker/tests/unit tests/unit
+COPY applications/backend/image-worker/tests tests
 COPY packages/haskell/vocas-worker-core /workspace/packages/haskell/vocas-worker-core
 
 RUN env CABAL_DIR=/tmp/cabal cabal update
