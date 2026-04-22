@@ -1,4 +1,5 @@
-use command_api::{DispatchPlan, InMemoryCommandStore, InMemoryDispatchPort, STATUS_HANDLE_PREFIX};
+use crate::support::{InMemoryCommandStore, InMemoryDispatchPort};
+use command_api::{DispatchPlan, STATUS_HANDLE_PREFIX};
 
 #[test]
 fn runtime_module_exports_store_dispatch_and_constants() {

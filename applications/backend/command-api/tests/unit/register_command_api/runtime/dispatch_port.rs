@@ -1,4 +1,5 @@
-use command_api::{DispatchOutcome, DispatchRequest, InMemoryDispatchPort};
+use crate::support::InMemoryDispatchPort;
+use command_api::{DispatchOutcome, DispatchRequest};
 
 #[test]
 fn dispatch_port_records_requests_and_accepts_normal_work() {

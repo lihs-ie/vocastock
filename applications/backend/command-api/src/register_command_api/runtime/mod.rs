@@ -8,12 +8,11 @@ pub mod server_loop;
 pub mod service_contract;
 
 pub use command_store::{
-    CommandStore, InMemoryCommandStore, PlannedNewRegistration, PlannedReuseRegistration,
-    StoreDecision, StoredRegistration,
+    CommandStore, PlannedNewRegistration, PlannedReuseRegistration, StoreDecision,
+    StoredRegistration,
 };
 pub use dispatch_port::{
     DispatchKind, DispatchOutcome, DispatchPlan, DispatchPort, DispatchRequest,
-    InMemoryDispatchPort,
 };
 pub use firestore_command_store::{
     parse_idempotency_document, parse_registration_document, FirestoreCommandStore,

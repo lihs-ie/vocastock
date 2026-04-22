@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DispatchKind {
     /// `registerVocabularyExpression` と `requestExplanationGeneration`
@@ -108,41 +106,9 @@ impl DispatchPlan {
 }
 
 /// Port for workflow dispatch. Implementations decide how a command
-/// reaches downstream workers: the in-memory variant records requests
-/// for tests, while the production adapter publishes to PubSub.
+/// reaches downstream workers: the PubSub-backed production adapter
+/// lives in `pubsub_dispatch_port`; the deterministic in-memory double
+/// consumed by unit tests lives under `tests/support/dispatch_port.rs`.
 pub trait DispatchPort {
     fn dispatch(&self, request: DispatchRequest) -> DispatchPlan;
-}
-
-#[derive(Debug, Default)]
-pub struct InMemoryDispatchPort {
-    requests: Mutex<Vec<DispatchRequest>>,
-}
-
-impl InMemoryDispatchPort {
-    pub fn dispatch(&self, request: DispatchRequest) -> DispatchPlan {
-        self.requests
-            .lock()
-            .expect("dispatch port lock poisoned")
-            .push(request.clone());
-
-        if request.idempotency_key.contains("dispatch-fail") {
-            DispatchPlan::failed()
-        } else {
-            DispatchPlan::accepted()
-        }
-    }
-
-    pub fn recorded_requests(&self) -> Vec<DispatchRequest> {
-        self.requests
-            .lock()
-            .expect("dispatch port lock poisoned")
-            .clone()
-    }
-}
-
-impl DispatchPort for InMemoryDispatchPort {
-    fn dispatch(&self, request: DispatchRequest) -> DispatchPlan {
-        Self::dispatch(self, request)
-    }
 }

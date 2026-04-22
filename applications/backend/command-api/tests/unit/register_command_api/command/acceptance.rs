@@ -1,9 +1,8 @@
 use command_api::{
-    accept_register_command, InMemoryCommandStore, InMemoryDispatchPort,
-    EXPLANATION_STATE_NOT_STARTED, EXPLANATION_STATE_QUEUED,
+    accept_register_command, EXPLANATION_STATE_NOT_STARTED, EXPLANATION_STATE_QUEUED,
 };
 
-use crate::support::{active_actor, command};
+use crate::support::{active_actor, command, InMemoryCommandStore, InMemoryDispatchPort};
 
 #[test]
 fn accept_new_command_commits_registration_and_dispatches_when_requested() {

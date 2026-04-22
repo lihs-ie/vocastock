@@ -1,5 +1,9 @@
+pub mod command_store;
+pub mod dispatch_port;
 pub mod stub_token_verifier;
 
+pub use command_store::InMemoryCommandStore;
+pub use dispatch_port::InMemoryDispatchPort;
 pub use stub_token_verifier::StubTokenVerifier;
 
 use std::cell::RefCell;

@@ -1,10 +1,9 @@
 use command_api::{
-    AcceptanceOutcome, AcceptedCommandFields, AcceptedCommandResult, InMemoryCommandStore,
-    StateSummary, StoreDecision, TargetReference, EXPLANATION_STATE_NOT_STARTED,
-    EXPLANATION_STATE_QUEUED,
+    AcceptanceOutcome, AcceptedCommandFields, AcceptedCommandResult, StateSummary, StoreDecision,
+    TargetReference, EXPLANATION_STATE_NOT_STARTED, EXPLANATION_STATE_QUEUED,
 };
 
-use crate::support::{active_actor, command, other_actor};
+use crate::support::{active_actor, command, other_actor, InMemoryCommandStore};
 
 #[test]
 fn new_registration_plan_uses_normalized_text_and_dispatch_rule() {

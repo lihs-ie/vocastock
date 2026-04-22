@@ -1,11 +1,13 @@
 use std::io::Cursor;
 
 use command_api::{
-    read_request, route_request, write_response, InMemoryCommandStore, InMemoryDispatchPort,
-    RenderedResponse, RequestReadError, RouteContext,
+    read_request, route_request, write_response, RenderedResponse, RequestReadError, RouteContext,
 };
 
-use crate::support::{active_actor, env_lock, register_command_json, request, StubTokenVerifier};
+use crate::support::{
+    active_actor, env_lock, register_command_json, request, InMemoryCommandStore,
+    InMemoryDispatchPort, StubTokenVerifier,
+};
 
 fn ctx<'a>(
     verifier: &'a StubTokenVerifier,

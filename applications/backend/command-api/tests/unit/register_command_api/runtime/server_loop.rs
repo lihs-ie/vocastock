@@ -3,12 +3,13 @@ use std::net::{TcpListener, TcpStream};
 use std::thread;
 
 use command_api::{
-    bind_listener, handle_connection, serve_incoming_stream, startup_message, InMemoryCommandStore,
-    InMemoryDispatchPort, RouteContext, ServerConfig,
+    bind_listener, handle_connection, serve_incoming_stream, startup_message, RouteContext,
+    ServerConfig,
 };
 
 use crate::support::env_lock;
 use crate::support::StubTokenVerifier;
+use crate::support::{InMemoryCommandStore, InMemoryDispatchPort};
 
 fn scoped_ctx<'a>(
     verifier: &'a StubTokenVerifier,
