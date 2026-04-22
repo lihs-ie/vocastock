@@ -51,12 +51,22 @@ export FIRESTORE_EMULATOR_HOST="host.docker.internal:${FIREBASE_FIRESTORE_PORT}"
 export STORAGE_EMULATOR_HOST="host.docker.internal:${FIREBASE_STORAGE_PORT}"
 export FIREBASE_AUTH_EMULATOR_HOST="host.docker.internal:${FIREBASE_AUTH_PORT}"
 export PUBSUB_EMULATOR_HOST="host.docker.internal:${FIREBASE_PUBSUB_PORT}"
+# Workers require their external-API credentials at startup (the real
+# API calls are only made when a PubSub message arrives; during smoke
+# the queue stays empty, so sentinel values are sufficient to pass the
+# startup validation and let the pull loop idle).
+export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-sk-ant-smoke-placeholder}"
+export STABILITY_API_KEY="${STABILITY_API_KEY:-sk-stability-smoke-placeholder}"
+export STRIPE_SECRET_KEY="${STRIPE_SECRET_KEY:-sk_test_smoke_placeholder}"
 
 env_file="$(vocas_prepare_application_smoke_env_file "$base_env_file")"
 # vocas_prepare_application_smoke_env_file appends FIRESTORE/STORAGE/AUTH/PUBSUB
 # entries only when the corresponding host env vars are non-empty, so the
 # exports above make them land in $env_file.
 printf "VOCAS_PRODUCTION_ADAPTERS=%s\n" "$VOCAS_PRODUCTION_ADAPTERS" >> "$env_file"
+printf "ANTHROPIC_API_KEY=%s\n" "$ANTHROPIC_API_KEY" >> "$env_file"
+printf "STABILITY_API_KEY=%s\n" "$STABILITY_API_KEY" >> "$env_file"
+printf "STRIPE_SECRET_KEY=%s\n" "$STRIPE_SECRET_KEY" >> "$env_file"
 
 vocas_load_env_file "$env_file"
 
