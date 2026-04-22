@@ -1,0 +1,6 @@
+query LearningStateQuery($identifier: ID!) {
+  learningState(identifier: $identifier) {
+    vocabularyExpression
+    proficiency
+  }
+}
