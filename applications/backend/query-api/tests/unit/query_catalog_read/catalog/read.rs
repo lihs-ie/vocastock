@@ -1,12 +1,12 @@
 use query_api::{
     read_catalog, read_catalog_from_authorization_header, CatalogReadError, CatalogVisibility,
-    CollectionState, InMemoryCatalogProjectionSource, ProjectionFreshness, ProjectionSourceRecord,
-    WorkflowState,
+    CollectionState, ProjectionFreshness, ProjectionSourceRecord, WorkflowState,
 };
 use shared_auth::TokenVerificationError;
 
-use crate::support::StubTokenVerifier;
-use crate::support::{active_actor, custom_source, reauth_actor};
+use crate::support::{
+    active_actor, custom_source, reauth_actor, InMemoryCatalogProjectionSource, StubTokenVerifier,
+};
 
 #[test]
 fn empty_collection_returns_successful_empty_response() {

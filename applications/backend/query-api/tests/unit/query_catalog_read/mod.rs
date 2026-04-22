@@ -1,8 +1,8 @@
+use crate::support::InMemoryCatalogProjectionSource;
 use crate::support::StubTokenVerifier;
 use query_api::{
-    CatalogReadError, CatalogVisibility, CollectionState, InMemoryCatalogProjectionSource,
-    ProjectionFreshness, ProjectionSourceRecord, WorkflowState, ROOT_MESSAGE, SERVICE_NAME,
-    VOCABULARY_CATALOG_PATH,
+    CatalogReadError, CatalogVisibility, CollectionState, ProjectionFreshness,
+    ProjectionSourceRecord, WorkflowState, ROOT_MESSAGE, SERVICE_NAME, VOCABULARY_CATALOG_PATH,
 };
 
 #[test]

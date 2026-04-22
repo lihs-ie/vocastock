@@ -1,8 +1,6 @@
-use query_api::{
-    CatalogProjectionSource, InMemoryCatalogProjectionSource, ProjectionSourceRecord, WorkflowState,
-};
+use query_api::{CatalogProjectionSource, ProjectionSourceRecord, WorkflowState};
 
-use crate::support::{active_actor, empty_actor, other_actor};
+use crate::support::{active_actor, empty_actor, other_actor, InMemoryCatalogProjectionSource};
 
 #[test]
 fn projection_source_record_new_maps_fields() {

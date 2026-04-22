@@ -12,6 +12,4 @@ pub use read::{read_catalog, read_catalog_from_authorization_header, CatalogRead
 pub use shared_firestore::{
     DEFAULT_PROJECT_ID, FIRESTORE_EMULATOR_HOST_ENV, PRODUCTION_ADAPTERS_ENV,
 };
-pub use source::{
-    CatalogProjectionSource, InMemoryCatalogProjectionSource, ProjectionSourceRecord,
-};
+pub use source::{CatalogProjectionSource, ProjectionSourceRecord};

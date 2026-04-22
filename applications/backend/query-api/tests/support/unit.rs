@@ -1,5 +1,7 @@
+pub mod catalog_projection_source;
 pub mod stub_token_verifier;
 
+pub use catalog_projection_source::InMemoryCatalogProjectionSource;
 pub use stub_token_verifier::StubTokenVerifier;
 
 use std::cell::RefCell;
@@ -7,8 +9,8 @@ use std::collections::{BTreeMap, HashMap};
 
 use query_api::{
     AllowanceRecord, CollocationRecord, ExplanationDetailRecord, ExplanationDetailSource,
-    ImageDetailRecord, ImageDetailSource, InMemoryCatalogProjectionSource, ProjectionSourceRecord,
-    PronunciationRecord, SenseExampleRecord, SenseRecord, SimilarityRecord, SubscriptionRecord,
+    ImageDetailRecord, ImageDetailSource, ProjectionSourceRecord, PronunciationRecord,
+    SenseExampleRecord, SenseRecord, SimilarityRecord, SubscriptionRecord,
     SubscriptionStatusSource, VocabularyExpressionDetailRecord, VocabularyExpressionDetailSource,
 };
 use shared_auth::{

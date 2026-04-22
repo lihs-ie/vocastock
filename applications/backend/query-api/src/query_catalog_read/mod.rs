@@ -14,9 +14,9 @@ pub use actor_handoff_status::{
 pub use catalog::{
     read_catalog, read_catalog_from_authorization_header, CatalogProjectionSource,
     CatalogReadError, CatalogReadResponse, CatalogVisibility, CollectionState,
-    FirestoreCatalogProjectionSource, InMemoryCatalogProjectionSource, ProjectionFreshness,
-    ProjectionSourceRecord, VocabularyCatalogItem, WorkflowState, DEFAULT_PROJECT_ID,
-    FIRESTORE_EMULATOR_HOST_ENV, PRODUCTION_ADAPTERS_ENV,
+    FirestoreCatalogProjectionSource, ProjectionFreshness, ProjectionSourceRecord,
+    VocabularyCatalogItem, WorkflowState, DEFAULT_PROJECT_ID, FIRESTORE_EMULATOR_HOST_ENV,
+    PRODUCTION_ADAPTERS_ENV,
 };
 pub use explanation_detail::{
     read_explanation_detail, read_explanation_detail_from_authorization_header, CollocationRecord,
