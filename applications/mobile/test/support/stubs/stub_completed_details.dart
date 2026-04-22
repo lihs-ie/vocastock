@@ -1,14 +1,14 @@
-import '../../application/reader/completed_detail_readers.dart';
-import '../../domain/explanation/explanation_detail.dart';
-import '../../domain/explanation/frequency_level.dart';
-import '../../domain/explanation/pronunciation.dart';
-import '../../domain/explanation/sense.dart';
-import '../../domain/explanation/similar_expression.dart';
-import '../../domain/explanation/sophistication_level.dart';
-import '../../domain/identifier/identifier.dart';
-import '../../domain/status/explanation_generation_status.dart';
-import '../../domain/status/image_generation_status.dart';
-import '../../domain/visual/visual_image_detail.dart';
+import 'package:vocastock_mobile/src/application/reader/completed_detail_readers.dart';
+import 'package:vocastock_mobile/src/domain/explanation/explanation_detail.dart';
+import 'package:vocastock_mobile/src/domain/explanation/frequency_level.dart';
+import 'package:vocastock_mobile/src/domain/explanation/pronunciation.dart';
+import 'package:vocastock_mobile/src/domain/explanation/sense.dart';
+import 'package:vocastock_mobile/src/domain/explanation/similar_expression.dart';
+import 'package:vocastock_mobile/src/domain/explanation/sophistication_level.dart';
+import 'package:vocastock_mobile/src/domain/identifier/identifier.dart';
+import 'package:vocastock_mobile/src/domain/status/explanation_generation_status.dart';
+import 'package:vocastock_mobile/src/domain/status/image_generation_status.dart';
+import 'package:vocastock_mobile/src/domain/visual/visual_image_detail.dart';
 import 'stub_vocabulary_catalog.dart';
 
 /// Reads completed explanation / image payloads from a [StubVocabularyCatalog].

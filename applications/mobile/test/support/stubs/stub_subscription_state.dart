@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import '../../application/command/purchase_commands.dart';
-import '../../application/envelope/command_error.dart';
-import '../../application/envelope/command_response_envelope.dart';
-import '../../application/reader/subscription_status_reader.dart';
-import '../../domain/common/user_facing_message.dart';
-import '../../domain/identifier/identifier.dart';
-import '../../domain/status/subscription_state.dart';
-import '../../domain/subscription/entitlement.dart';
-import '../../domain/subscription/plan.dart';
-import '../../domain/subscription/subscription_status_view.dart';
-import '../../domain/subscription/usage_allowance.dart';
+import 'package:vocastock_mobile/src/application/command/purchase_commands.dart';
+import 'package:vocastock_mobile/src/application/envelope/command_error.dart';
+import 'package:vocastock_mobile/src/application/envelope/command_response_envelope.dart';
+import 'package:vocastock_mobile/src/application/reader/subscription_status_reader.dart';
+import 'package:vocastock_mobile/src/domain/common/user_facing_message.dart';
+import 'package:vocastock_mobile/src/domain/identifier/identifier.dart';
+import 'package:vocastock_mobile/src/domain/status/subscription_state.dart';
+import 'package:vocastock_mobile/src/domain/subscription/entitlement.dart';
+import 'package:vocastock_mobile/src/domain/subscription/plan.dart';
+import 'package:vocastock_mobile/src/domain/subscription/subscription_status_view.dart';
+import 'package:vocastock_mobile/src/domain/subscription/usage_allowance.dart';
 
 /// In-memory adapter for subscription reads and purchase commands.
 ///

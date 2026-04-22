@@ -27,35 +27,14 @@ import 'infrastructure/graphql/adapters/ferry_completed_details.dart';
 import 'infrastructure/graphql/adapters/ferry_subscription.dart';
 import 'infrastructure/graphql/adapters/ferry_vocabulary_catalog.dart';
 import 'infrastructure/graphql/graphql_client.dart';
-import 'infrastructure/stub/stub_actor_handoff_controller.dart';
-import 'infrastructure/stub/stub_completed_details.dart';
-import 'infrastructure/stub/stub_subscription_state.dart';
-import 'infrastructure/stub/stub_vocabulary_catalog.dart';
 
 /// Composition root for the mobile client.
 ///
-/// The presentation layer must only `ref.watch` the `application`-layer
-/// providers declared here. Infrastructure bindings can be swapped via
-/// `ProviderScope(overrides: ...)` in tests without the presentation layer
-/// knowing which adapter is being used (spec 024 plan.md dependency rules).
-
-/// Build-time flag that re-points every reader / command from the
-/// in-memory stubs to the ferry + Firebase adapters driven by the local
-/// emulator stack. Flip on with
-/// `flutter run --dart-define=USE_LIVE_BACKEND=true`.
-const bool useLiveBackend =
-    bool.fromEnvironment('USE_LIVE_BACKEND');
-
-/// Stub implementation of the auth handoff controller.
-///
-/// Kept available for every Flutter unit / widget / feature test. Live
-/// adapter (Firebase Auth) is wired via [useLiveBackend].
-final stubActorHandoffControllerProvider =
-    Provider<StubActorHandoffController>((ref) {
-  final controller = StubActorHandoffController();
-  ref.onDispose(controller.dispose);
-  return controller;
-});
+/// Every application-layer port resolves to the Firebase + ferry live
+/// adapter. Tests inject in-memory stubs via
+/// `ProviderScope(overrides: [<port>.overrideWithValue(stub), ...])` —
+/// the stubs live under `test/support/stubs/` and never link into the
+/// release binary (spec 024 plan.md dependency rules).
 
 final firebaseActorHandoffControllerProvider =
     Provider<FirebaseActorHandoffController>((ref) {
@@ -64,26 +43,17 @@ final firebaseActorHandoffControllerProvider =
   return controller;
 });
 
-final actorHandoffReaderProvider = Provider<ActorHandoffReader>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(firebaseActorHandoffControllerProvider);
-  }
-  return ref.watch(stubActorHandoffControllerProvider);
-});
+final actorHandoffReaderProvider = Provider<ActorHandoffReader>(
+  (ref) => ref.watch(firebaseActorHandoffControllerProvider),
+);
 
-final loginCommandProvider = Provider<LoginCommand>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(firebaseActorHandoffControllerProvider);
-  }
-  return ref.watch(stubActorHandoffControllerProvider);
-});
+final loginCommandProvider = Provider<LoginCommand>(
+  (ref) => ref.watch(firebaseActorHandoffControllerProvider),
+);
 
-final logoutCommandProvider = Provider<LogoutCommand>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(firebaseActorHandoffControllerProvider);
-  }
-  return ref.watch(stubActorHandoffControllerProvider);
-});
+final logoutCommandProvider = Provider<LogoutCommand>(
+  (ref) => ref.watch(firebaseActorHandoffControllerProvider),
+);
 
 /// Streams the current handoff status, starting with the controller's current
 /// value so subscribers do not miss the initial state.
@@ -99,7 +69,7 @@ final actorHandoffStatusProvider = StreamProvider<ActorHandoffStatus>((ref) {
   return controller.stream;
 });
 
-/// Ferry `Client` used by every GraphQL adapter in live mode.
+/// Ferry `Client` used by every GraphQL adapter.
 final graphqlClientProvider = Provider<Client>((ref) {
   final client = GraphQLClientFactory.create(
     tokenSupplier: FirebaseAuthTokenSupplier(),
@@ -113,18 +83,12 @@ final subscriptionFeatureGateProvider = Provider<SubscriptionFeatureGate>((ref) 
   return const SubscriptionFeatureGate();
 });
 
-/// Learning state reader — currently stub-only across both modes because
-/// spec 005 `LearningState` aggregate is not yet exposed through the
-/// GraphQL gateway.
+/// Learning state reader — returns a null object across the production
+/// binding because spec 005 `LearningState` aggregate is not yet exposed
+/// through the GraphQL gateway. The proficiency screen renders the
+/// "未分類" bucket when no level is reported.
 final learningStateReaderProvider = Provider<LearningStateReader>((ref) {
-  return const StubLearningStateReader();
-});
-
-/// Stub vocabulary catalog backing both the reader and registration command.
-final stubVocabularyCatalogProvider = Provider<StubVocabularyCatalog>((ref) {
-  final catalog = StubVocabularyCatalog();
-  ref.onDispose(catalog.dispose);
-  return catalog;
+  return const NullLearningStateReader();
 });
 
 final ferryVocabularyCatalogProvider =
@@ -136,75 +100,45 @@ final ferryVocabularyCatalogProvider =
   return catalog;
 });
 
-final vocabularyCatalogReaderProvider = Provider<VocabularyCatalogReader>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferryVocabularyCatalogProvider);
-  }
-  return ref.watch(stubVocabularyCatalogProvider);
-});
+final vocabularyCatalogReaderProvider = Provider<VocabularyCatalogReader>(
+  (ref) => ref.watch(ferryVocabularyCatalogProvider),
+);
 
 final registerVocabularyExpressionCommandProvider =
-    Provider<RegisterVocabularyExpressionCommand>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferryVocabularyCatalogProvider);
-  }
-  return ref.watch(stubVocabularyCatalogProvider);
-});
+    Provider<RegisterVocabularyExpressionCommand>(
+  (ref) => ref.watch(ferryVocabularyCatalogProvider),
+);
 
 final vocabularyExpressionDetailReaderProvider =
-    Provider<VocabularyExpressionDetailReader>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferryVocabularyCatalogProvider);
-  }
-  return ref.watch(stubVocabularyCatalogProvider);
-});
+    Provider<VocabularyExpressionDetailReader>(
+  (ref) => ref.watch(ferryVocabularyCatalogProvider),
+);
 
 final requestExplanationGenerationCommandProvider =
-    Provider<RequestExplanationGenerationCommand>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferryVocabularyCatalogProvider);
-  }
-  return ref.watch(stubVocabularyCatalogProvider);
-});
+    Provider<RequestExplanationGenerationCommand>(
+  (ref) => ref.watch(ferryVocabularyCatalogProvider),
+);
 
 final requestImageGenerationCommandProvider =
-    Provider<RequestImageGenerationCommand>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferryVocabularyCatalogProvider);
-  }
-  return ref.watch(stubVocabularyCatalogProvider);
-});
+    Provider<RequestImageGenerationCommand>(
+  (ref) => ref.watch(ferryVocabularyCatalogProvider),
+);
 
-final retryGenerationCommandProvider = Provider<RetryGenerationCommand>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferryVocabularyCatalogProvider);
-  }
-  return ref.watch(stubVocabularyCatalogProvider);
-});
-
-final stubCompletedDetailsProvider = Provider<StubCompletedDetails>((ref) {
-  return StubCompletedDetails(ref.watch(stubVocabularyCatalogProvider));
-});
+final retryGenerationCommandProvider = Provider<RetryGenerationCommand>(
+  (ref) => ref.watch(ferryVocabularyCatalogProvider),
+);
 
 final ferryCompletedDetailsProvider = Provider<FerryCompletedDetails>((ref) {
   return FerryCompletedDetails(client: ref.watch(graphqlClientProvider));
 });
 
-final explanationDetailReaderProvider =
-    Provider<ExplanationDetailReader>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferryCompletedDetailsProvider);
-  }
-  return ref.watch(stubCompletedDetailsProvider);
-});
+final explanationDetailReaderProvider = Provider<ExplanationDetailReader>(
+  (ref) => ref.watch(ferryCompletedDetailsProvider),
+);
 
-final visualImageDetailReaderProvider =
-    Provider<VisualImageDetailReader>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferryCompletedDetailsProvider);
-  }
-  return ref.watch(stubCompletedDetailsProvider);
-});
+final visualImageDetailReaderProvider = Provider<VisualImageDetailReader>(
+  (ref) => ref.watch(ferryCompletedDetailsProvider),
+);
 
 // Reason: AutoDisposeStreamProviderFamily / AutoDisposeFutureProviderFamily
 // type names are not part of riverpod 3.x's stable public API surface.
@@ -224,13 +158,6 @@ final imageDetailFutureProvider = FutureProvider.autoDispose
       ref.watch(visualImageDetailReaderProvider).readImage(identifier),
 );
 
-final stubSubscriptionStateProvider =
-    Provider<StubSubscriptionState>((ref) {
-  final state = StubSubscriptionState();
-  ref.onDispose(state.dispose);
-  return state;
-});
-
 final ferrySubscriptionStateProvider =
     Provider<FerrySubscriptionState>((ref) {
   final state = FerrySubscriptionState(
@@ -240,29 +167,18 @@ final ferrySubscriptionStateProvider =
   return state;
 });
 
-final subscriptionStatusReaderProvider =
-    Provider<SubscriptionStatusReader>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferrySubscriptionStateProvider);
-  }
-  return ref.watch(stubSubscriptionStateProvider);
-});
+final subscriptionStatusReaderProvider = Provider<SubscriptionStatusReader>(
+  (ref) => ref.watch(ferrySubscriptionStateProvider),
+);
 
-final requestPurchaseCommandProvider =
-    Provider<RequestPurchaseCommand>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferrySubscriptionStateProvider);
-  }
-  return ref.watch(stubSubscriptionStateProvider);
-});
+final requestPurchaseCommandProvider = Provider<RequestPurchaseCommand>(
+  (ref) => ref.watch(ferrySubscriptionStateProvider),
+);
 
 final requestRestorePurchaseCommandProvider =
-    Provider<RequestRestorePurchaseCommand>((ref) {
-  if (useLiveBackend) {
-    return ref.watch(ferrySubscriptionStateProvider);
-  }
-  return ref.watch(stubSubscriptionStateProvider);
-});
+    Provider<RequestRestorePurchaseCommand>(
+  (ref) => ref.watch(ferrySubscriptionStateProvider),
+);
 
 final subscriptionStatusStreamProvider =
     StreamProvider<SubscriptionStatusView>((ref) {

@@ -3,7 +3,7 @@ import 'package:vocastock_mobile/src/application/envelope/command_error.dart';
 import 'package:vocastock_mobile/src/application/envelope/command_response_envelope.dart';
 import 'package:vocastock_mobile/src/domain/identifier/identifier.dart';
 import 'package:vocastock_mobile/src/domain/vocabulary/vocabulary_expression_entry.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_vocabulary_catalog.dart';
+import '../../../support/stubs/stub_vocabulary_catalog.dart';
 
 void main() {
   group('StubVocabularyCatalog', () {

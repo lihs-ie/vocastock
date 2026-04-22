@@ -4,10 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vocastock_mobile/src/app.dart';
 import 'package:vocastock_mobile/src/app_bindings.dart';
 import 'package:vocastock_mobile/src/domain/identifier/identifier.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_actor_handoff_controller.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_subscription_state.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_vocabulary_catalog.dart';
 import 'package:vocastock_mobile/src/presentation/router/router.dart';
+import '../../support/stubs/stub_actor_handoff_controller.dart';
+import '../../support/stubs/stub_learning_state_reader.dart';
+import '../../support/stubs/stub_subscription_state.dart';
+import '../../support/stubs/stub_vocabulary_catalog.dart';
 
 void main() {
   group('ProficiencyScreen', () {
@@ -28,9 +29,20 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            stubActorHandoffControllerProvider.overrideWithValue(handoff),
-            stubVocabularyCatalogProvider.overrideWithValue(catalog),
-            stubSubscriptionStateProvider.overrideWithValue(subscription),
+            actorHandoffReaderProvider.overrideWithValue(handoff),
+            loginCommandProvider.overrideWithValue(handoff),
+            logoutCommandProvider.overrideWithValue(handoff),
+            vocabularyCatalogReaderProvider.overrideWithValue(catalog),
+            registerVocabularyExpressionCommandProvider.overrideWithValue(catalog),
+            vocabularyExpressionDetailReaderProvider.overrideWithValue(catalog),
+            requestExplanationGenerationCommandProvider.overrideWithValue(catalog),
+            requestImageGenerationCommandProvider.overrideWithValue(catalog),
+            retryGenerationCommandProvider.overrideWithValue(catalog),
+            subscriptionStatusReaderProvider.overrideWithValue(subscription),
+            requestPurchaseCommandProvider.overrideWithValue(subscription),
+            requestRestorePurchaseCommandProvider.overrideWithValue(subscription),
+            learningStateReaderProvider
+                .overrideWithValue(const StubLearningStateReader()),
           ],
           child: const VocastockApp(),
         ),
@@ -62,9 +74,20 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            stubActorHandoffControllerProvider.overrideWithValue(handoff),
-            stubVocabularyCatalogProvider.overrideWithValue(catalog),
-            stubSubscriptionStateProvider.overrideWithValue(subscription),
+            actorHandoffReaderProvider.overrideWithValue(handoff),
+            loginCommandProvider.overrideWithValue(handoff),
+            logoutCommandProvider.overrideWithValue(handoff),
+            vocabularyCatalogReaderProvider.overrideWithValue(catalog),
+            registerVocabularyExpressionCommandProvider.overrideWithValue(catalog),
+            vocabularyExpressionDetailReaderProvider.overrideWithValue(catalog),
+            requestExplanationGenerationCommandProvider.overrideWithValue(catalog),
+            requestImageGenerationCommandProvider.overrideWithValue(catalog),
+            retryGenerationCommandProvider.overrideWithValue(catalog),
+            subscriptionStatusReaderProvider.overrideWithValue(subscription),
+            requestPurchaseCommandProvider.overrideWithValue(subscription),
+            requestRestorePurchaseCommandProvider.overrideWithValue(subscription),
+            learningStateReaderProvider
+                .overrideWithValue(const StubLearningStateReader()),
           ],
           child: const VocastockApp(),
         ),

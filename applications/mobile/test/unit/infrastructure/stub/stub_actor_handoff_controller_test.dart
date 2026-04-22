@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vocastock_mobile/src/domain/auth/actor_handoff_status.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_actor_handoff_controller.dart';
+import '../../../support/stubs/stub_actor_handoff_controller.dart';
 
 void main() {
   group('StubActorHandoffController', () {

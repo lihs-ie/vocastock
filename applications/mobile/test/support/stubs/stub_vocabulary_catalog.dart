@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import '../../application/command/generation_commands.dart';
-import '../../application/command/register_vocabulary_expression_command.dart';
-import '../../application/envelope/command_error.dart';
-import '../../application/envelope/command_response_envelope.dart';
-import '../../application/reader/vocabulary_catalog_reader.dart';
-import '../../application/reader/vocabulary_expression_detail_reader.dart';
-import '../../domain/common/user_facing_message.dart';
-import '../../domain/identifier/identifier.dart';
-import '../../domain/status/explanation_generation_status.dart';
-import '../../domain/status/image_generation_status.dart';
-import '../../domain/status/registration_status.dart';
-import '../../domain/vocabulary/vocabulary_expression_entry.dart';
+import 'package:vocastock_mobile/src/application/command/generation_commands.dart';
+import 'package:vocastock_mobile/src/application/command/register_vocabulary_expression_command.dart';
+import 'package:vocastock_mobile/src/application/envelope/command_error.dart';
+import 'package:vocastock_mobile/src/application/envelope/command_response_envelope.dart';
+import 'package:vocastock_mobile/src/application/reader/vocabulary_catalog_reader.dart';
+import 'package:vocastock_mobile/src/application/reader/vocabulary_expression_detail_reader.dart';
+import 'package:vocastock_mobile/src/domain/common/user_facing_message.dart';
+import 'package:vocastock_mobile/src/domain/identifier/identifier.dart';
+import 'package:vocastock_mobile/src/domain/status/explanation_generation_status.dart';
+import 'package:vocastock_mobile/src/domain/status/image_generation_status.dart';
+import 'package:vocastock_mobile/src/domain/status/registration_status.dart';
+import 'package:vocastock_mobile/src/domain/vocabulary/vocabulary_expression_entry.dart';
 
 /// In-memory adapter that backs the catalog reader, detail reader, and all
 /// registration / generation commands.

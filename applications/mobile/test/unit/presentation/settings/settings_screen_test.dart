@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vocastock_mobile/src/app.dart';
 import 'package:vocastock_mobile/src/app_bindings.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_actor_handoff_controller.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_subscription_state.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_vocabulary_catalog.dart';
 import 'package:vocastock_mobile/src/presentation/router/router.dart';
+import '../../../support/stubs/stub_actor_handoff_controller.dart';
+import '../../../support/stubs/stub_subscription_state.dart';
+import '../../../support/stubs/stub_vocabulary_catalog.dart';
 
 Future<void> _pumpSettings(WidgetTester tester) async {
   final handoff = StubActorHandoffController();
@@ -19,9 +19,18 @@ Future<void> _pumpSettings(WidgetTester tester) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        stubActorHandoffControllerProvider.overrideWithValue(handoff),
-        stubVocabularyCatalogProvider.overrideWithValue(catalog),
-        stubSubscriptionStateProvider.overrideWithValue(subscription),
+        actorHandoffReaderProvider.overrideWithValue(handoff),
+        loginCommandProvider.overrideWithValue(handoff),
+        logoutCommandProvider.overrideWithValue(handoff),
+        vocabularyCatalogReaderProvider.overrideWithValue(catalog),
+        registerVocabularyExpressionCommandProvider.overrideWithValue(catalog),
+        vocabularyExpressionDetailReaderProvider.overrideWithValue(catalog),
+        requestExplanationGenerationCommandProvider.overrideWithValue(catalog),
+        requestImageGenerationCommandProvider.overrideWithValue(catalog),
+        retryGenerationCommandProvider.overrideWithValue(catalog),
+        subscriptionStatusReaderProvider.overrideWithValue(subscription),
+        requestPurchaseCommandProvider.overrideWithValue(subscription),
+        requestRestorePurchaseCommandProvider.overrideWithValue(subscription),
       ],
       child: const VocastockApp(),
     ),

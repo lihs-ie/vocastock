@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import '../../application/auth/actor_handoff_reader.dart';
-import '../../application/auth/login_command.dart';
-import '../../application/auth/logout_command.dart';
-import '../../domain/auth/actor_handoff_status.dart';
-import '../../domain/common/actor_reference.dart';
-import '../../domain/common/user_facing_message.dart';
-import '../../domain/identifier/identifier.dart';
+import 'package:vocastock_mobile/src/application/auth/actor_handoff_reader.dart';
+import 'package:vocastock_mobile/src/application/auth/login_command.dart';
+import 'package:vocastock_mobile/src/application/auth/logout_command.dart';
+import 'package:vocastock_mobile/src/domain/auth/actor_handoff_status.dart';
+import 'package:vocastock_mobile/src/domain/common/actor_reference.dart';
+import 'package:vocastock_mobile/src/domain/common/user_facing_message.dart';
+import 'package:vocastock_mobile/src/domain/identifier/identifier.dart';
 
 /// In-memory stub used while backend auth endpoints are still being wired up.
 ///

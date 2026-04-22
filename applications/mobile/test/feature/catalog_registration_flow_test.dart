@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vocastock_mobile/src/app.dart';
 import 'package:vocastock_mobile/src/app_bindings.dart';
 import 'package:vocastock_mobile/src/domain/identifier/identifier.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_actor_handoff_controller.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_vocabulary_catalog.dart';
+import '../support/stubs/stub_actor_handoff_controller.dart';
+import '../support/stubs/stub_vocabulary_catalog.dart';
 
 Future<void> _pumpAsSignedInUser(
   WidgetTester tester, {
@@ -15,8 +15,15 @@ Future<void> _pumpAsSignedInUser(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        stubActorHandoffControllerProvider.overrideWithValue(handoff),
-        stubVocabularyCatalogProvider.overrideWithValue(catalog),
+        actorHandoffReaderProvider.overrideWithValue(handoff),
+        loginCommandProvider.overrideWithValue(handoff),
+        logoutCommandProvider.overrideWithValue(handoff),
+        vocabularyCatalogReaderProvider.overrideWithValue(catalog),
+        registerVocabularyExpressionCommandProvider.overrideWithValue(catalog),
+        vocabularyExpressionDetailReaderProvider.overrideWithValue(catalog),
+        requestExplanationGenerationCommandProvider.overrideWithValue(catalog),
+        requestImageGenerationCommandProvider.overrideWithValue(catalog),
+        retryGenerationCommandProvider.overrideWithValue(catalog),
       ],
       child: const VocastockApp(),
     ),

@@ -3,31 +3,21 @@ import '../../domain/status/proficiency_level.dart';
 
 /// Reads the learner's proficiency assignment for a VocabularyExpression.
 ///
-/// Real implementation depends on spec 005 LearningState aggregate; until
-/// that reader lands, a stub derives the level deterministically from the
-/// entry identifier so the Proficiency screen has something to render.
+/// Real implementation depends on spec 005 LearningState aggregate once it
+/// is exposed through the GraphQL gateway. Until then the production
+/// binding returns [NullLearningStateReader], which reports no proficiency
+/// for every entry so the Proficiency screen renders an empty bucket
+/// instead of fabricated categories.
 abstract class LearningStateReader {
   ProficiencyLevel? proficiencyFor(VocabularyExpressionIdentifier identifier);
 }
 
-class StubLearningStateReader implements LearningStateReader {
-  const StubLearningStateReader();
-
-  static const List<ProficiencyLevel> _levels = <ProficiencyLevel>[
-    ProficiencyLevel.learning,
-    ProficiencyLevel.learned,
-    ProficiencyLevel.internalized,
-    ProficiencyLevel.fluent,
-  ];
+class NullLearningStateReader implements LearningStateReader {
+  const NullLearningStateReader();
 
   @override
   ProficiencyLevel? proficiencyFor(
     VocabularyExpressionIdentifier identifier,
-  ) {
-    final hash = identifier.value.codeUnits.fold<int>(
-      0,
-      (acc, unit) => (acc + unit) & 0xff,
-    );
-    return _levels[hash % _levels.length];
-  }
+  ) =>
+      null;
 }

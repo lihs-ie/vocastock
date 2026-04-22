@@ -6,9 +6,9 @@ import 'package:vocastock_mobile/src/app_bindings.dart';
 import 'package:vocastock_mobile/src/domain/identifier/identifier.dart';
 import 'package:vocastock_mobile/src/domain/status/subscription_state.dart';
 import 'package:vocastock_mobile/src/domain/subscription/plan.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_actor_handoff_controller.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_subscription_state.dart';
-import 'package:vocastock_mobile/src/infrastructure/stub/stub_vocabulary_catalog.dart';
+import '../support/stubs/stub_actor_handoff_controller.dart';
+import '../support/stubs/stub_subscription_state.dart';
+import '../support/stubs/stub_vocabulary_catalog.dart';
 
 Future<void> _pumpSignedIn(
   WidgetTester tester, {
@@ -19,9 +19,18 @@ Future<void> _pumpSignedIn(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        stubActorHandoffControllerProvider.overrideWithValue(handoff),
-        stubVocabularyCatalogProvider.overrideWithValue(catalog),
-        stubSubscriptionStateProvider.overrideWithValue(subscription),
+        actorHandoffReaderProvider.overrideWithValue(handoff),
+        loginCommandProvider.overrideWithValue(handoff),
+        logoutCommandProvider.overrideWithValue(handoff),
+        vocabularyCatalogReaderProvider.overrideWithValue(catalog),
+        registerVocabularyExpressionCommandProvider.overrideWithValue(catalog),
+        vocabularyExpressionDetailReaderProvider.overrideWithValue(catalog),
+        requestExplanationGenerationCommandProvider.overrideWithValue(catalog),
+        requestImageGenerationCommandProvider.overrideWithValue(catalog),
+        retryGenerationCommandProvider.overrideWithValue(catalog),
+        subscriptionStatusReaderProvider.overrideWithValue(subscription),
+        requestPurchaseCommandProvider.overrideWithValue(subscription),
+        requestRestorePurchaseCommandProvider.overrideWithValue(subscription),
       ],
       child: const VocastockApp(),
     ),
