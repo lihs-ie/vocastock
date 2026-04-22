@@ -114,6 +114,39 @@ jobs:
           path: .artifacts/ci
           if-no-files-found: ignore
 
+  haskell-quality:
+    name: haskell-quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    needs: toolchain-validate
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: haskell-actions/setup@afc480a23d21cefb1f9b5a63b16bc3bfdaf5b937 # v2.7.11
+        with:
+          ghc-version: '9.2.8'
+          cabal-version: '3.14.2.0'
+      - name: Cache cabal store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/store
+            ~/.cabal/packages
+            dist-newstyle
+          key: haskell-${{ runner.os }}-ghc9.2.8-${{ hashFiles('cabal.project', '**/*.cabal') }}
+          restore-keys: |
+            haskell-${{ runner.os }}-ghc9.2.8-
+      - name: cabal update
+        run: cabal update
+      - name: cabal build (workspace)
+        run: cabal build all
+      - name: cabal test (unit suites)
+        run: |
+          cabal test vocas-worker-core:unit \
+                     explanation-worker:unit \
+                     image-worker:unit \
+                     billing-worker:unit \
+                     --test-show-details=direct
+
   android-build-smoke:
     name: android-build-smoke
     runs-on: ubuntu-24.04
@@ -177,6 +210,7 @@ jobs:
       - emulator-smoke
       - application-container-smoke
       - rust-quality
+      - haskell-quality
       - android-build-smoke
       - vulnerability-scan
     steps:
