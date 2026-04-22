@@ -14,11 +14,21 @@ library
       ExplanationWorker.FailureSummary
       ExplanationWorker.RuntimeHttp
       ExplanationWorker.WorkerRuntime
+      ExplanationWorker.AnthropicAdapter
+      ExplanationWorker.FirestoreWriter
+      ExplanationWorker.PullLoop
   build-depends:
       base >=4.15 && <5
     , aeson
+    , bytestring
+    , containers
+    , http-conduit
+    , http-types
     , servant
     , servant-server
+    , text
+    , time
+    , vocas-worker-core
     , wai
     , warp
   default-language: GHC2021

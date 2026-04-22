@@ -16,11 +16,13 @@ import System.IO
     stdout
   )
 
+import ExplanationWorker.PullLoop (runPullLoop)
 import ExplanationWorker.RuntimeHttp
   ( internalHttpEnabled,
     internalHttpPort,
     startInternalRuntimeServer
   )
+import Data.Char (toLower)
 
 data WorkerMode
   = StableRunMode
@@ -69,13 +71,29 @@ workerMain workerConfig = do
   case workerMode workerConfig of
     ValidateMode -> pure ()
     StableRunMode -> do
-      threadDelay (workerStableRunSeconds workerConfig * 1000000)
-      putStrLn $
-        "[vocastock] " ++ workerName workerConfig ++ " entered stable-run mode"
-      forever $ do
-        putStrLn $
-          "[vocastock] " ++ workerName workerConfig ++ " awaiting queue/subscription work"
-        threadDelay (workerPollIntervalSeconds workerConfig * 1000000)
+      productionMode <- resolveProductionMode
+      if productionMode
+        then runPullLoop
+        else stableRunFallback workerConfig
+
+stableRunFallback :: WorkerConfig -> IO ()
+stableRunFallback workerConfig = do
+  threadDelay (workerStableRunSeconds workerConfig * 1000000)
+  putStrLn $
+    "[vocastock] " ++ workerName workerConfig ++ " entered stable-run mode"
+  forever $ do
+    putStrLn $
+      "[vocastock] " ++ workerName workerConfig ++ " awaiting queue/subscription work"
+    threadDelay (workerPollIntervalSeconds workerConfig * 1000000)
+
+resolveProductionMode :: IO Bool
+resolveProductionMode = do
+  raw <- lookupEnv "VOCAS_PRODUCTION_ADAPTERS"
+  pure $ case fmap (map toLower) raw of
+    Just "true" -> True
+    Just "1" -> True
+    Just "yes" -> True
+    _ -> False
 
 lookupOrDefault :: String -> String -> IO String
 lookupOrDefault key defaultValue = do
