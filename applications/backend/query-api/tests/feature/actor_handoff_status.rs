@@ -3,8 +3,9 @@ use crate::support::{assert_contains, FeatureRuntime};
 #[test]
 fn actor_handoff_status_reports_session_context_for_seeded_actors() {
     let runtime = FeatureRuntime::start_with_production_adapters();
+    let demo_bearer = runtime.demo_bearer();
 
-    let demo = runtime.get("/actor-handoff-status", Some("Bearer valid-demo-token"));
+    let demo = runtime.get("/actor-handoff-status", Some(demo_bearer.as_str()));
     assert_eq!(demo.status, 200);
     assert_contains(
         &demo.body,
@@ -13,13 +14,13 @@ fn actor_handoff_status_reports_session_context_for_seeded_actors() {
     );
     assert_contains(
         &demo.body,
-        "\"session\":\"stub-session-demo\"",
-        "demo actor handoff surfaces the stub session",
+        "\"session\":\"session:stub-actor-demo\"",
+        "demo actor handoff surfaces the Firebase-derived session id",
     );
     assert_contains(
         &demo.body,
-        "\"authAccount\":\"stub-account-demo\"",
-        "demo actor handoff surfaces the auth account",
+        "\"authAccount\":\"auth:demo@vocastock.test\"",
+        "demo actor handoff surfaces the Firebase-derived auth account",
     );
     assert_contains(
         &demo.body,
@@ -27,21 +28,13 @@ fn actor_handoff_status_reports_session_context_for_seeded_actors() {
         "seeded demo session is ACTIVE",
     );
 
-    let reauth = runtime.get("/actor-handoff-status", Some("Bearer reauth-token"));
-    assert_eq!(
-        reauth.status, 200,
-        "reauth-required tokens still receive the handoff view so clients can observe the state"
-    );
-    assert_contains(
-        &reauth.body,
-        "\"sessionState\":\"INACTIVE\"",
-        "reauth-required maps to INACTIVE at the contract surface",
-    );
-    assert_contains(
-        &reauth.body,
-        "\"actor\":null",
-        "inactive view nulls out actor",
-    );
+    // FirebaseAuthTokenVerifier rejects non-id-token strings outright, so
+    // the legacy reauth-token 200 + INACTIVE path (which depended on the
+    // synthetic StubTokenVerifier returning ReauthRequired) no longer
+    // applies. Unit tests for actor_handoff_status::read still exercise
+    // the ReauthRequired branch against a port double.
+    let invalid_token = runtime.get("/actor-handoff-status", Some("Bearer not-a-real-token"));
+    assert_eq!(invalid_token.status, 401);
 
     let missing_token = runtime.get("/actor-handoff-status", None);
     assert_eq!(missing_token.status, 401);

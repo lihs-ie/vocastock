@@ -3,6 +3,8 @@ use crate::support::{assert_contains, assert_not_contains, FeatureRuntime};
 #[test]
 fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() {
     let runtime = FeatureRuntime::start_with_production_adapters();
+    let demo_bearer = runtime.demo_bearer();
+    let free_bearer = runtime.free_bearer();
 
     let root = runtime.get("/", None);
     assert_eq!(root.status, 200);
@@ -39,7 +41,7 @@ fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() 
         "firebase dependency report",
     );
 
-    let populated = runtime.get("/vocabulary-catalog", Some("Bearer valid-demo-token"));
+    let populated = runtime.get("/vocabulary-catalog", Some(demo_bearer.as_str()));
     assert_eq!(populated.status, 200);
     assert_contains(
         &populated.body,
@@ -67,7 +69,7 @@ fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() 
         "catalog populated response",
     );
 
-    let empty = runtime.get("/vocabulary-catalog", Some("Bearer valid-free-token"));
+    let empty = runtime.get("/vocabulary-catalog", Some(free_bearer.as_str()));
     assert_eq!(empty.status, 200);
     assert_contains(&empty.body, "\"items\":[]", "empty catalog response");
     assert_contains(
@@ -84,12 +86,16 @@ fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() 
         "missing token response",
     );
 
-    let reauth = runtime.get("/vocabulary-catalog", Some("Bearer reauth-token"));
-    assert_eq!(reauth.status, 403);
+    // The FirebaseAuthTokenVerifier rejects non-id-token strings with
+    // 401 InvalidToken rather than the synthetic 403 ReauthRequired path
+    // the stub used to surface. The ReauthRequired branch is unit-tested
+    // against a port double in query_catalog_read::catalog::read.
+    let invalid_token = runtime.get("/vocabulary-catalog", Some("Bearer not-a-real-token"));
+    assert_eq!(invalid_token.status, 401);
     assert_contains(
-        &reauth.body,
-        "session requires reauthentication",
-        "reauth response",
+        &invalid_token.body,
+        "invalid bearer token",
+        "invalid token response",
     );
 
     let not_found = runtime.get("/unknown", None);

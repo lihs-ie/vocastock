@@ -22,6 +22,11 @@ const DEFAULT_FIRESTORE_PORT: u16 = 18080;
 const DEFAULT_STORAGE_PORT: u16 = 19199;
 const DEFAULT_AUTH_PORT: u16 = 19099;
 const DEFAULT_PUBSUB_PORT: u16 = 18085;
+const DEFAULT_EMULATOR_API_KEY: &str = "demo-emulator-api-key";
+const DEMO_EMAIL: &str = "demo@vocastock.test";
+const DEMO_PASSWORD: &str = "demo1234";
+const FREE_EMAIL: &str = "free@vocastock.test";
+const FREE_PASSWORD: &str = "free1234";
 const DEFAULT_READINESS_PATH: &str = "/readyz";
 const DEFAULT_READY_BUDGET_SECONDS: u64 = 120;
 const DEFAULT_EMULATOR_READY_BUDGET_SECONDS: &str = "300";
@@ -180,6 +185,38 @@ impl FeatureRuntime {
 
     pub fn auth_port(&self) -> u16 {
         self.auth_port
+    }
+
+    /// Signs the seeded demo user in through the Firebase Auth emulator
+    /// and returns a `Bearer <id_token>` string ready for HTTP request
+    /// headers.
+    pub fn demo_bearer(&self) -> String {
+        self.obtain_bearer(DEMO_EMAIL, DEMO_PASSWORD)
+    }
+
+    pub fn free_bearer(&self) -> String {
+        self.obtain_bearer(FREE_EMAIL, FREE_PASSWORD)
+    }
+
+    fn obtain_bearer(&self, email: &str, password: &str) -> String {
+        let path = format!(
+            "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={}",
+            DEFAULT_EMULATOR_API_KEY
+        );
+        let body = format!(
+            r#"{{"email":"{}","password":"{}","returnSecureToken":true}}"#,
+            email, password
+        );
+        let host_port = format!("127.0.0.1:{}", self.auth_port);
+        let response = shared_firestore::execute_post(&host_port, &path, &body)
+            .unwrap_or_else(|error| panic!("failed to sign in {email}: {error:?}"));
+        let payload: Value = serde_json::from_str(&response)
+            .unwrap_or_else(|error| panic!("failed to parse sign-in response: {error}"));
+        let token = payload
+            .get("idToken")
+            .and_then(|value| value.as_str())
+            .unwrap_or_else(|| panic!("sign-in response missing idToken: {response}"));
+        format!("Bearer {token}")
     }
 
     pub fn get(&self, path: &str) -> HttpResponse {

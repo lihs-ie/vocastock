@@ -3,10 +3,11 @@ use crate::support::{assert_contains, FeatureRuntime};
 #[test]
 fn vocabulary_expression_detail_reads_seeded_record_from_firestore_emulator() {
     let runtime = FeatureRuntime::start_with_production_adapters();
+    let demo_bearer = runtime.demo_bearer();
 
     let populated = runtime.get(
         "/vocabulary-expression-detail?identifier=stub-vocab-0000",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
     );
     assert_eq!(populated.status, 200);
     assert_contains(
@@ -37,7 +38,7 @@ fn vocabulary_expression_detail_reads_seeded_record_from_firestore_emulator() {
 
     let missing_record = runtime.get(
         "/vocabulary-expression-detail?identifier=stub-vocab-does-not-exist",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
     );
     assert_eq!(missing_record.status, 200);
     assert_eq!(
@@ -46,10 +47,8 @@ fn vocabulary_expression_detail_reads_seeded_record_from_firestore_emulator() {
         "non-existent identifier yields JSON null so GraphQL nullable fields stay consistent"
     );
 
-    let missing_identifier = runtime.get(
-        "/vocabulary-expression-detail",
-        Some("Bearer valid-demo-token"),
-    );
+    let missing_identifier =
+        runtime.get("/vocabulary-expression-detail", Some(demo_bearer.as_str()));
     assert_eq!(missing_identifier.status, 400);
     assert_contains(
         &missing_identifier.body,

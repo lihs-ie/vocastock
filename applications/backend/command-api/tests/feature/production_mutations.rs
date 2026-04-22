@@ -46,11 +46,12 @@ fn post_body(
 #[test]
 fn production_adapters_path_accepts_register_and_five_mutations() {
     let runtime = FeatureRuntime::start_with_production_adapters();
+    let demo_bearer = runtime.demo_bearer();
 
     // --- register vocabulary expression ---
     let register = runtime.post_raw(
         "/commands/register-vocabulary-expression",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         post_body(
             "registerVocabularyExpression",
             "stub-actor-demo",
@@ -69,7 +70,7 @@ fn production_adapters_path_accepts_register_and_five_mutations() {
     // --- request explanation generation ---
     let explanation = runtime.post_raw(
         "/commands/request-explanation-generation",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         post_body(
             "requestExplanationGeneration",
             "stub-actor-demo",
@@ -93,7 +94,7 @@ fn production_adapters_path_accepts_register_and_five_mutations() {
     // --- request image generation ---
     let image = runtime.post_raw(
         "/commands/request-image-generation",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         post_body(
             "requestImageGeneration",
             "stub-actor-demo",
@@ -112,7 +113,7 @@ fn production_adapters_path_accepts_register_and_five_mutations() {
     // --- retry generation ---
     let retry = runtime.post_raw(
         "/commands/retry-generation",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         post_body(
             "retryGeneration",
             "stub-actor-demo",
@@ -134,7 +135,7 @@ fn production_adapters_path_accepts_register_and_five_mutations() {
     // --- request purchase ---
     let purchase = runtime.post_raw(
         "/commands/request-purchase",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         post_body(
             "requestPurchase",
             "stub-actor-demo",
@@ -153,7 +154,7 @@ fn production_adapters_path_accepts_register_and_five_mutations() {
     // --- request restore purchase ---
     let restore = runtime.post_raw(
         "/commands/request-restore-purchase",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         post_body(
             "requestRestorePurchase",
             "stub-actor-demo",
@@ -172,7 +173,7 @@ fn production_adapters_path_accepts_register_and_five_mutations() {
     // --- idempotency replay returns the same envelope without re-dispatch ---
     let replay = runtime.post_raw(
         "/commands/request-explanation-generation",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         post_body(
             "requestExplanationGeneration",
             "stub-actor-demo",
@@ -187,7 +188,7 @@ fn production_adapters_path_accepts_register_and_five_mutations() {
     // --- idempotency conflict surfaces VALIDATION_FAILED ---
     let conflict = runtime.post_raw(
         "/commands/request-explanation-generation",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         post_body(
             "requestExplanationGeneration",
             "stub-actor-demo",

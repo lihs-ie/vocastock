@@ -22,6 +22,11 @@ const DEFAULT_READY_BUDGET_SECONDS: u64 = 120;
 const DEFAULT_EMULATOR_READY_BUDGET_SECONDS: &str = "300";
 const FEATURE_REUSE_ENV: &str = "VOCAS_FEATURE_REUSE_RUNNING";
 const FEATURE_SKIP_BUILD_ENV: &str = "VOCAS_FEATURE_SKIP_BUILD";
+const DEFAULT_EMULATOR_API_KEY: &str = "demo-emulator-api-key";
+const DEMO_EMAIL: &str = "demo@vocastock.test";
+const DEMO_PASSWORD: &str = "demo1234";
+const FREE_EMAIL: &str = "free@vocastock.test";
+const FREE_PASSWORD: &str = "free1234";
 
 struct ApplicationPorts {
     gateway: u16,
@@ -167,6 +172,39 @@ impl FeatureRuntime {
 
     pub fn request(&self, method: &str, path: &str, authorization: Option<&str>) -> HttpResponse {
         http_request("127.0.0.1", self.query_port, method, path, authorization)
+    }
+
+    /// Signs the seeded user in against the Firebase Auth emulator's REST
+    /// identity toolkit endpoint and returns the freshly minted ID token.
+    /// The emulator ignores the API key but still expects the query
+    /// parameter; a sentinel is used.
+    pub fn obtain_id_token(&self, email: &str, password: &str) -> String {
+        let path = format!(
+            "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={}",
+            DEFAULT_EMULATOR_API_KEY
+        );
+        let body = format!(
+            r#"{{"email":"{}","password":"{}","returnSecureToken":true}}"#,
+            email, password
+        );
+        let host_port = format!("127.0.0.1:{}", self.auth_port);
+        let response = shared_firestore::execute_post(&host_port, &path, &body)
+            .unwrap_or_else(|error| panic!("failed to sign in {email}: {error:?}"));
+        let payload: serde_json::Value = serde_json::from_str(&response)
+            .unwrap_or_else(|error| panic!("failed to parse sign-in response: {error}"));
+        payload
+            .get("idToken")
+            .and_then(|value| value.as_str())
+            .map(|value| value.to_owned())
+            .unwrap_or_else(|| panic!("sign-in response missing idToken: {response}"))
+    }
+
+    pub fn demo_bearer(&self) -> String {
+        format!("Bearer {}", self.obtain_id_token(DEMO_EMAIL, DEMO_PASSWORD))
+    }
+
+    pub fn free_bearer(&self) -> String {
+        format!("Bearer {}", self.obtain_id_token(FREE_EMAIL, FREE_PASSWORD))
     }
 
     fn should_reuse_running_emulators(&self) -> bool {

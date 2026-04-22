@@ -33,7 +33,12 @@ fn main() {
         readiness_path
     );
 
-    let verifier = query_api::StubTokenVerifier;
+    let verifier = shared_auth::FirebaseAuthTokenVerifier::from_env().unwrap_or_else(|| {
+        panic!(
+            "{} requires FIREBASE_AUTH_EMULATOR_HOST to be set — StubTokenVerifier is test-only",
+            query_api::SERVICE_NAME,
+        )
+    });
     let catalog_source: Box<dyn query_api::CatalogProjectionSource> =
         Box::new(query_api::FirestoreCatalogProjectionSource::from_env().unwrap_or_else(|| {
             panic!(

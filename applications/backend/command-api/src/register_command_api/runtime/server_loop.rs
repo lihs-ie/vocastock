@@ -8,9 +8,11 @@ use crate::http::{
     RouteContext,
 };
 
+use shared_auth::FirebaseAuthTokenVerifier;
+
 use super::{
     CommandStore, DispatchPort, FirestoreCommandStore, FirestoreMutationCommandStore,
-    MutationCommandStore, PubSubDispatchPort, StubTokenVerifier, SERVICE_NAME,
+    MutationCommandStore, PubSubDispatchPort, SERVICE_NAME,
 };
 
 const DEFAULT_HOST: &str = "0.0.0.0";
@@ -49,7 +51,12 @@ pub fn run_server() {
 
     println!("{}", startup_message(&config));
 
-    let verifier = StubTokenVerifier;
+    let verifier = FirebaseAuthTokenVerifier::from_env().unwrap_or_else(|| {
+        panic!(
+            "{} requires FIREBASE_AUTH_EMULATOR_HOST to be set — StubTokenVerifier is test-only",
+            SERVICE_NAME,
+        )
+    });
     let register_store: Box<dyn CommandStore> =
         Box::new(FirestoreCommandStore::from_env().unwrap_or_else(|| {
             panic!(

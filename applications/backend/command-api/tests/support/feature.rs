@@ -23,6 +23,9 @@ const DEFAULT_READY_BUDGET_SECONDS: u64 = 120;
 const DEFAULT_EMULATOR_READY_BUDGET_SECONDS: &str = "300";
 const FEATURE_REUSE_ENV: &str = "VOCAS_FEATURE_REUSE_RUNNING";
 const FEATURE_SKIP_BUILD_ENV: &str = "VOCAS_FEATURE_SKIP_BUILD";
+const DEFAULT_EMULATOR_API_KEY: &str = "demo-emulator-api-key";
+const DEMO_EMAIL: &str = "demo@vocastock.test";
+const DEMO_PASSWORD: &str = "demo1234";
 
 struct ApplicationPorts {
     gateway: u16,
@@ -163,6 +166,30 @@ impl FeatureRuntime {
             authorization,
             Some(body),
         )
+    }
+
+    /// Signs the seeded demo user in through the Firebase Auth emulator
+    /// and returns a `Bearer <id_token>` string ready for HTTP request
+    /// headers. The emulator ignores the API key but still expects it.
+    pub fn demo_bearer(&self) -> String {
+        let path = format!(
+            "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={}",
+            DEFAULT_EMULATOR_API_KEY
+        );
+        let body = format!(
+            r#"{{"email":"{}","password":"{}","returnSecureToken":true}}"#,
+            DEMO_EMAIL, DEMO_PASSWORD
+        );
+        let host_port = format!("127.0.0.1:{}", self.auth_port);
+        let response = shared_firestore::execute_post(&host_port, &path, &body)
+            .unwrap_or_else(|error| panic!("failed to sign in demo user: {error:?}"));
+        let payload: serde_json::Value = serde_json::from_str(&response)
+            .unwrap_or_else(|error| panic!("failed to parse demo sign-in response: {error}"));
+        let token = payload
+            .get("idToken")
+            .and_then(|value| value.as_str())
+            .unwrap_or_else(|| panic!("demo sign-in response missing idToken: {response}"));
+        format!("Bearer {token}")
     }
 
     fn should_reuse_running_emulators(&self) -> bool {

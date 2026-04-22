@@ -8,6 +8,8 @@ use crate::support::{
 #[test]
 fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_services() {
     let runtime = FeatureRuntime::start();
+    let demo_bearer = runtime.demo_bearer();
+    let free_bearer = runtime.free_bearer();
 
     let root = runtime.get("/");
     assert_eq!(root.status, 200);
@@ -42,7 +44,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let accepted = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         Some("client-accepted"),
         &register_mutation_payload("feature-accepted", "  Mixed   Case  ", None),
     );
@@ -65,7 +67,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let replay = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         Some("client-accepted"),
         &register_mutation_payload("feature-accepted", "  Mixed   Case  ", None),
     );
@@ -78,7 +80,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let reused = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         Some("client-reused"),
         &register_mutation_payload("feature-reuse", "mixed case", None),
     );
@@ -91,7 +93,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let not_started = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         Some("client-not-started"),
         &register_mutation_payload("feature-no-dispatch", "silent term", Some(false)),
     );
@@ -113,14 +115,14 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let conflict_first = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         Some("client-conflict"),
         &register_mutation_payload("feature-conflict", "conflict one", None),
     );
     assert_eq!(conflict_first.status, 200);
     let conflict = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         Some("client-conflict"),
         &register_mutation_payload("feature-conflict", "conflict two", None),
     );
@@ -133,7 +135,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let catalog = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         Some("client-catalog"),
         &catalog_query_payload(),
     );
@@ -153,7 +155,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let empty_catalog = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-free-token"),
+        Some(free_bearer.as_str()),
         Some("client-empty-catalog"),
         &catalog_query_payload(),
     );
@@ -182,23 +184,28 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
         "missing auth response",
     );
 
-    let reauth = runtime.post_json(
+    // Invalid ID tokens flow through Firebase Auth verification: the
+    // REST lookup rejects them and the gateway surfaces the downstream
+    // 401 as an `downstream-auth-failed` envelope. The legacy
+    // reauth-token → 403 "reauthentication" assertion depended on the
+    // StubTokenVerifier returning ReauthRequired for a synthetic token;
+    // unit tests cover the ReauthRequired branch directly against a
+    // port double.
+    let invalid = runtime.post_json(
         "/graphql",
-        Some("Bearer reauth-token"),
-        Some("client-reauth"),
+        Some("Bearer invalid-id-token"),
+        Some("client-invalid"),
         &catalog_query_payload(),
     );
-    assert_eq!(reauth.status, 403);
-    assert_contains(
-        &reauth.body,
-        "\"code\":\"downstream-auth-failed\"",
-        "reauth response",
+    assert!(
+        invalid.status == 401 || invalid.status == 403,
+        "invalid id token yields 401/403, got {}",
+        invalid.status
     );
-    assert_contains(&reauth.body, "reauthentication", "reauth response");
 
     let unsupported = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         Some("client-unsupported"),
         &unsupported_query_payload(),
     );
@@ -211,7 +218,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let ambiguous = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
         Some("client-ambiguous"),
         &ambiguous_query_payload(),
     );

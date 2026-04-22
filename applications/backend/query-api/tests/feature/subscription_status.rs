@@ -3,8 +3,10 @@ use crate::support::{assert_contains, FeatureRuntime};
 #[test]
 fn subscription_status_reflects_seeded_plans_per_actor() {
     let runtime = FeatureRuntime::start_with_production_adapters();
+    let demo_bearer = runtime.demo_bearer();
+    let free_bearer = runtime.free_bearer();
 
-    let demo = runtime.get("/subscription-status", Some("Bearer valid-demo-token"));
+    let demo = runtime.get("/subscription-status", Some(demo_bearer.as_str()));
     assert_eq!(demo.status, 200);
     assert_contains(
         &demo.body,
@@ -32,7 +34,7 @@ fn subscription_status_reflects_seeded_plans_per_actor() {
         "allowance counters round-trip through integerValue parsing",
     );
 
-    let free = runtime.get("/subscription-status", Some("Bearer valid-free-token"));
+    let free = runtime.get("/subscription-status", Some(free_bearer.as_str()));
     assert_eq!(free.status, 200);
     assert_contains(
         &free.body,

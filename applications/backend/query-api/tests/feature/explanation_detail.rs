@@ -3,10 +3,11 @@ use crate::support::{assert_contains, FeatureRuntime};
 #[test]
 fn explanation_detail_reads_nested_firestore_document() {
     let runtime = FeatureRuntime::start_with_production_adapters();
+    let demo_bearer = runtime.demo_bearer();
 
     let populated = runtime.get(
         "/explanation-detail?identifier=stub-exp-for-stub-vocab-0000",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
     );
     assert_eq!(populated.status, 200);
     assert_contains(
@@ -47,7 +48,7 @@ fn explanation_detail_reads_nested_firestore_document() {
 
     let missing_record = runtime.get(
         "/explanation-detail?identifier=stub-exp-missing",
-        Some("Bearer valid-demo-token"),
+        Some(demo_bearer.as_str()),
     );
     assert_eq!(missing_record.status, 200);
     assert_eq!(missing_record.body.trim(), "null");
