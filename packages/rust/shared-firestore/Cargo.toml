@@ -1,0 +1,9 @@
+[package]
+name = "shared-firestore"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Shared Firestore emulator REST helpers for vocastock read/write adapters"
+
+[dependencies]
+serde_json = "1"

@@ -1,12 +1,11 @@
 use serde_json::Value;
 use shared_auth::VerifiedActorContext;
+use shared_firestore::{
+    execute_get, percent_encode_path, production_adapters_enabled, read_nullable_string_field,
+    read_string_field, resolve_emulator_host, resolve_project_id,
+};
 
 use super::source::{VocabularyExpressionDetailRecord, VocabularyExpressionDetailSource};
-use crate::catalog::firestore_http::{
-    execute_get, percent_encode_path, production_adapters_enabled, resolve_emulator_host,
-    resolve_project_id,
-};
-use crate::catalog::firestore_value::{read_nullable_string_field, read_string_field};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FirestoreVocabularyExpressionDetailSource {

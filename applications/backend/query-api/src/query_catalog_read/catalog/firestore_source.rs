@@ -8,12 +8,11 @@
 
 use serde_json::Value;
 use shared_auth::VerifiedActorContext;
-
-use super::firestore_http::{
-    execute_get, percent_encode_path, production_adapters_enabled, resolve_emulator_host,
-    resolve_project_id,
+use shared_firestore::{
+    execute_get, percent_encode_path, production_adapters_enabled, read_string_field,
+    resolve_emulator_host, resolve_project_id,
 };
-use super::firestore_value::read_string_field;
+
 use super::model::WorkflowState;
 use super::source::{CatalogProjectionSource, ProjectionSourceRecord};
 

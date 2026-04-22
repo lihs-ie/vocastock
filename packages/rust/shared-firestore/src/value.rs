@@ -1,15 +1,11 @@
-//! Shared helpers for parsing the Firestore REST representation of
-//! document fields. The REST envelope wraps each value in a typed
-//! object (e.g. `{"stringValue":"foo"}`), so individual readers need to
-//! reach through that wrapper to recover the native value.
+//! Helpers for parsing the Firestore REST envelope.
 //!
-//! Kept in the `catalog` module so it stays co-located with the first
-//! Firestore adapter while the remaining detail readers adopt the same
-//! convention. Access is `pub(crate)` — sibling modules only.
+//! Firestore wraps each field in a typed object (`{"stringValue":"foo"}`).
+//! These helpers reach through that wrapper to recover the native value.
 
 use serde_json::{Map, Value};
 
-pub(crate) fn read_string_field(fields: &Map<String, Value>, key: &str) -> Option<String> {
+pub fn read_string_field(fields: &Map<String, Value>, key: &str) -> Option<String> {
     fields
         .get(key)
         .and_then(Value::as_object)
@@ -18,10 +14,10 @@ pub(crate) fn read_string_field(fields: &Map<String, Value>, key: &str) -> Optio
         .map(str::to_owned)
 }
 
-/// Returns `Some(Some(..))` when the field exists and holds a
-/// `stringValue`, `Some(None)` when it is explicitly `nullValue`, and
-/// `None` when the key is absent entirely.
-pub(crate) fn read_nullable_string_field(
+/// Returns `Some(Some(..))` when the field holds a `stringValue`,
+/// `Some(None)` when it is explicitly `nullValue`, and `None` when the
+/// key is absent entirely.
+pub fn read_nullable_string_field(
     fields: &Map<String, Value>,
     key: &str,
 ) -> Option<Option<String>> {
@@ -35,7 +31,7 @@ pub(crate) fn read_nullable_string_field(
         .map(|value| Some(value.to_owned()))
 }
 
-pub(crate) fn read_integer_field(fields: &Map<String, Value>, key: &str) -> Option<i64> {
+pub fn read_integer_field(fields: &Map<String, Value>, key: &str) -> Option<i64> {
     let field = fields.get(key)?.as_object()?;
     if let Some(raw) = field.get("integerValue") {
         if let Some(as_number) = raw.as_i64() {
@@ -48,7 +44,7 @@ pub(crate) fn read_integer_field(fields: &Map<String, Value>, key: &str) -> Opti
     None
 }
 
-pub(crate) fn read_map_field<'a>(
+pub fn read_map_field<'a>(
     fields: &'a Map<String, Value>,
     key: &str,
 ) -> Option<&'a Map<String, Value>> {
@@ -61,10 +57,7 @@ pub(crate) fn read_map_field<'a>(
         .as_object()
 }
 
-pub(crate) fn read_array_field<'a>(
-    fields: &'a Map<String, Value>,
-    key: &str,
-) -> Option<&'a Vec<Value>> {
+pub fn read_array_field<'a>(fields: &'a Map<String, Value>, key: &str) -> Option<&'a Vec<Value>> {
     fields
         .get(key)?
         .as_object()?
@@ -74,11 +67,8 @@ pub(crate) fn read_array_field<'a>(
         .as_array()
 }
 
-/// When iterating an `arrayValue.values` array, each element is a
-/// Firestore value wrapper. For array elements whose entries are
-/// maps, descend through `mapValue.fields` to reach the nested field
-/// map.
-pub(crate) fn value_as_map(value: &Value) -> Option<&Map<String, Value>> {
+/// Extract a nested field map from an `arrayValue.values` entry.
+pub fn value_as_map(value: &Value) -> Option<&Map<String, Value>> {
     value
         .as_object()?
         .get("mapValue")?

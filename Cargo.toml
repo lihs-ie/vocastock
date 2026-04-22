@@ -4,6 +4,8 @@ members = [
   "applications/backend/command-api",
   "applications/backend/query-api",
   "packages/rust/shared-auth",
+  "packages/rust/shared-firestore",
+  "packages/rust/shared-pubsub",
   "packages/rust/shared-runtime",
 ]
 resolver = "2"

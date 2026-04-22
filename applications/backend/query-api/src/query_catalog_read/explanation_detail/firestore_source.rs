@@ -1,17 +1,14 @@
 use serde_json::{Map, Value};
 use shared_auth::VerifiedActorContext;
+use shared_firestore::{
+    execute_get, percent_encode_path, production_adapters_enabled, read_array_field,
+    read_integer_field, read_map_field, read_nullable_string_field, read_string_field,
+    resolve_emulator_host, resolve_project_id, value_as_map,
+};
 
 use super::source::{
     CollocationRecord, ExplanationDetailRecord, ExplanationDetailSource, PronunciationRecord,
     SenseExampleRecord, SenseRecord, SimilarityRecord,
-};
-use crate::catalog::firestore_http::{
-    execute_get, percent_encode_path, production_adapters_enabled, resolve_emulator_host,
-    resolve_project_id,
-};
-use crate::catalog::firestore_value::{
-    read_array_field, read_integer_field, read_map_field, read_nullable_string_field,
-    read_string_field, value_as_map,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
