@@ -239,9 +239,7 @@ impl FeatureRuntime {
         // topics/subscriptions. `production_adapters=true` tests exercise the
         // Firestore + PubSub adapters, which require the `workflow.*` and
         // `billing.*` topics to exist before command-api publishes.
-        let seed_script = self
-            .repo_root
-            .join("firebase/seed/seed.mjs");
+        let seed_script = self.repo_root.join("firebase/seed/seed.mjs");
         let mut command = Command::new("node");
         command
             .arg(path_arg(seed_script))
@@ -251,9 +249,9 @@ impl FeatureRuntime {
             .env("FIREBASE_STORAGE_PORT", self.storage_port.to_string())
             .env("FIREBASE_AUTH_PORT", self.auth_port.to_string())
             .env("FIREBASE_PUBSUB_PORT", self.pubsub_port.to_string());
-        let output = command
-            .output()
-            .unwrap_or_else(|error| panic!("failed to execute node firebase/seed/seed.mjs: {error}"));
+        let output = command.output().unwrap_or_else(|error| {
+            panic!("failed to execute node firebase/seed/seed.mjs: {error}")
+        });
         if !output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
