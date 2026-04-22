@@ -6,16 +6,9 @@ build-type: Simple
 library
   hs-source-dirs: src
   exposed-modules:
-      ExplanationWorker.WorkItemContract
-      ExplanationWorker.WorkflowStateMachine
-      ExplanationWorker.GenerationPort
-      ExplanationWorker.ExplanationPersistence
-      ExplanationWorker.CurrentExplanationHandoff
-      ExplanationWorker.FailureSummary
-      ExplanationWorker.RuntimeHttp
-      ExplanationWorker.WorkerRuntime
       ExplanationWorker.AnthropicAdapter
       ExplanationWorker.FirestoreWriter
+      ExplanationWorker.GenerationPort
       ExplanationWorker.PullLoop
   build-depends:
       base >=4.15 && <5
@@ -24,13 +17,24 @@ library
     , containers
     , http-conduit
     , http-types
-    , servant
-    , servant-server
     , text
     , time
     , vocas-worker-core
-    , wai
-    , warp
+  default-language: GHC2021
+
+library scenarios
+  visibility: public
+  hs-source-dirs: tests/support-lib
+  exposed-modules:
+      ExplanationWorker.CurrentExplanationHandoff
+      ExplanationWorker.ExplanationPersistence
+      ExplanationWorker.FailureSummary
+      ExplanationWorker.WorkerRuntime
+      ExplanationWorker.WorkflowStateMachine
+      ExplanationWorker.WorkItemContract
+  build-depends:
+      base >=4.15 && <5
+    , explanation-worker
   default-language: GHC2021
 
 executable explanation-worker
@@ -48,15 +52,14 @@ test-suite unit
       tests/unit
       tests/support
   other-modules:
-      ExplanationWorker.WorkItemContractSpec
-      ExplanationWorker.WorkflowStateMachineSpec
-      ExplanationWorker.GenerationPortSpec
-      ExplanationWorker.ExplanationPersistenceSpec
-      ExplanationWorker.CurrentExplanationHandoffSpec
-      ExplanationWorker.FailureSummarySpec
-      ExplanationWorker.RuntimeHttpSpec
-      ExplanationWorker.WorkerRuntimeSpec
       ExplanationWorker.AnthropicAdapterSpec
+      ExplanationWorker.CurrentExplanationHandoffSpec
+      ExplanationWorker.ExplanationPersistenceSpec
+      ExplanationWorker.FailureSummarySpec
+      ExplanationWorker.GenerationPortSpec
+      ExplanationWorker.WorkItemContractSpec
+      ExplanationWorker.WorkerRuntimeSpec
+      ExplanationWorker.WorkflowStateMachineSpec
       AnthropicDevProvider
       TestSupport
   build-depends:
@@ -64,6 +67,7 @@ test-suite unit
     , aeson
     , bytestring
     , explanation-worker
+    , explanation-worker:scenarios
     , http-conduit
     , http-types
     , network
@@ -90,6 +94,7 @@ test-suite feature
     , directory
     , filepath
     , explanation-worker
+    , explanation-worker:scenarios
     , process
     , time
   default-language: GHC2021

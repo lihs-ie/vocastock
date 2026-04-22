@@ -4,11 +4,6 @@ import Control.Concurrent (threadDelay)
 import Control.Monad (forever)
 import Data.Char (toLower)
 import ExplanationWorker.PullLoop (runPullLoop)
-import ExplanationWorker.RuntimeHttp
-  ( internalHttpEnabled,
-    internalHttpPort,
-    startInternalRuntimeServer
-  )
 import System.Environment (lookupEnv)
 import System.IO
   ( BufferMode (LineBuffering),
@@ -25,9 +20,7 @@ data WorkerConfig = WorkerConfig
   { workerName :: String,
     workerMode :: WorkerMode,
     workerStableRunSeconds :: Int,
-    workerPollIntervalSeconds :: Int,
-    workerInternalHttpEnabled :: Bool,
-    workerInternalHttpPort :: Int
+    workerPollIntervalSeconds :: Int
   }
 
 main :: IO ()
@@ -42,21 +35,16 @@ loadWorkerConfigFromEnvironment = do
   workerModeValue <- lookupOrDefault "VOCAS_WORKER_RUN_MODE" "stable"
   stableRunEnv <- lookupEnv "VOCAS_WORKER_STABLE_RUN_SECONDS"
   pollIntervalEnv <- lookupEnv "VOCAS_WORKER_POLL_INTERVAL_SECONDS"
-  internalHttpEnabledValue <- lookupEnv "VOCAS_INTERNAL_HTTP_ENABLED"
-  internalHttpPortValue <- lookupEnv "VOCAS_INTERNAL_HTTP_PORT"
   pure
     WorkerConfig
       { workerName = workerNameValue,
         workerMode = parseWorkerMode workerModeValue,
         workerStableRunSeconds = readIntOrDefault stableRunEnv 10,
-        workerPollIntervalSeconds = readIntOrDefault pollIntervalEnv 30,
-        workerInternalHttpEnabled = internalHttpEnabled internalHttpEnabledValue,
-        workerInternalHttpPort = internalHttpPort internalHttpPortValue
+        workerPollIntervalSeconds = readIntOrDefault pollIntervalEnv 30
       }
 
 workerMain :: WorkerConfig -> IO ()
-workerMain workerConfig = do
-  maybeStartInternalHttp workerConfig
+workerMain workerConfig =
   case workerMode workerConfig of
     ValidateMode -> pure ()
     StableRunMode -> do
@@ -106,11 +94,3 @@ parseWorkerMode workerModeValue =
   case workerModeValue of
     "validate" -> ValidateMode
     _ -> StableRunMode
-
-maybeStartInternalHttp :: WorkerConfig -> IO ()
-maybeStartInternalHttp workerConfig =
-  if workerInternalHttpEnabled workerConfig
-    then do
-      _ <- startInternalRuntimeServer (workerName workerConfig) (workerInternalHttpPort workerConfig)
-      pure ()
-    else pure ()
