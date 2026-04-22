@@ -7,13 +7,15 @@ use shared_auth::TokenVerificationPort;
 use crate::{
     read_actor_handoff_status_from_authorization_header, read_catalog_from_authorization_header,
     read_explanation_detail_from_authorization_header, read_image_detail_from_authorization_header,
+    read_learning_state_from_authorization_header,
     read_subscription_status_from_authorization_header,
     read_vocabulary_expression_detail_from_authorization_header, ActorHandoffStatusError,
     CatalogProjectionSource, CatalogReadError, ExplanationDetailError, ExplanationDetailSource,
-    ImageDetailError, ImageDetailSource, SubscriptionStatusError, SubscriptionStatusSource,
-    VocabularyExpressionDetailError, VocabularyExpressionDetailSource, ACTOR_HANDOFF_STATUS_PATH,
-    EXPLANATION_DETAIL_PATH, IMAGE_DETAIL_PATH, ROOT_MESSAGE, SERVICE_NAME,
-    SUBSCRIPTION_STATUS_PATH, VOCABULARY_CATALOG_PATH, VOCABULARY_EXPRESSION_DETAIL_PATH,
+    ImageDetailError, ImageDetailSource, LearningStateError, LearningStateSource,
+    SubscriptionStatusError, SubscriptionStatusSource, VocabularyExpressionDetailError,
+    VocabularyExpressionDetailSource, ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH,
+    IMAGE_DETAIL_PATH, LEARNING_STATE_PATH, ROOT_MESSAGE, SERVICE_NAME, SUBSCRIPTION_STATUS_PATH,
+    VOCABULARY_CATALOG_PATH, VOCABULARY_EXPRESSION_DETAIL_PATH,
 };
 
 const FIREBASE_DEPENDENCIES_PATH: &str = "/dependencies/firebase";
@@ -49,6 +51,7 @@ pub struct RouteContext<'a> {
     pub explanation_detail_source: Option<&'a dyn ExplanationDetailSource>,
     pub image_detail_source: Option<&'a dyn ImageDetailSource>,
     pub subscription_status_source: Option<&'a dyn SubscriptionStatusSource>,
+    pub learning_state_source: Option<&'a dyn LearningStateSource>,
 }
 
 pub fn read_request(reader: &mut impl BufRead) -> std::io::Result<Request> {
@@ -91,6 +94,7 @@ pub fn route_request(request: &Request, ctx: &RouteContext<'_>) -> RenderedRespo
         ("GET", EXPLANATION_DETAIL_PATH) => explanation_detail_response(request, query, ctx),
         ("GET", IMAGE_DETAIL_PATH) => image_detail_response(request, query, ctx),
         ("GET", SUBSCRIPTION_STATUS_PATH) => subscription_status_response(request, ctx),
+        ("GET", LEARNING_STATE_PATH) => learning_state_response(request, query, ctx),
         ("GET", ACTOR_HANDOFF_STATUS_PATH) => actor_handoff_status_response(request, ctx),
         (
             "POST" | "PUT" | "PATCH" | "DELETE",
@@ -99,6 +103,7 @@ pub fn route_request(request: &Request, ctx: &RouteContext<'_>) -> RenderedRespo
             | EXPLANATION_DETAIL_PATH
             | IMAGE_DETAIL_PATH
             | SUBSCRIPTION_STATUS_PATH
+            | LEARNING_STATE_PATH
             | ACTOR_HANDOFF_STATUS_PATH,
         ) => json_response(
             "405 Method Not Allowed",
@@ -246,6 +251,36 @@ fn subscription_status_response(request: &Request, ctx: &RouteContext<'_>) -> Re
             subscription_status_error_status(&error),
             &ErrorResponse {
                 message: error.user_message(),
+            },
+        ),
+    }
+}
+
+fn learning_state_response(
+    request: &Request,
+    query: Option<&str>,
+    ctx: &RouteContext<'_>,
+) -> RenderedResponse {
+    let Some(source) = ctx.learning_state_source else {
+        return detail_source_unavailable();
+    };
+    let Some(identifier) = require_identifier(query) else {
+        return missing_identifier_response();
+    };
+    let authorization_header = request.headers.get("authorization").map(String::as_str);
+
+    match read_learning_state_from_authorization_header(
+        authorization_header,
+        Some(identifier.as_str()),
+        ctx.verifier,
+        source,
+    ) {
+        Ok(Some(view)) => json_response("200 OK", &view),
+        Ok(None) => detail_not_found_response(),
+        Err(error) => json_response(
+            learning_state_error_status(&error),
+            &ErrorResponse {
+                message: learning_state_error_message(&error),
             },
         ),
     }
@@ -440,6 +475,23 @@ fn actor_handoff_status_error_status(error: &ActorHandoffStatusError) -> &'stati
         ActorHandoffStatusError::Auth(shared_auth::TokenVerificationError::ReauthRequired) => {
             "403 Forbidden"
         }
+    }
+}
+
+fn learning_state_error_status(error: &LearningStateError) -> &'static str {
+    match error {
+        LearningStateError::MissingToken | LearningStateError::InvalidToken => "401 Unauthorized",
+        LearningStateError::ReauthRequired => "403 Forbidden",
+        LearningStateError::MissingIdentifier => "400 Bad Request",
+    }
+}
+
+fn learning_state_error_message(error: &LearningStateError) -> &'static str {
+    match error {
+        LearningStateError::MissingToken => "missing bearer token",
+        LearningStateError::InvalidToken => "invalid bearer token",
+        LearningStateError::ReauthRequired => "session requires reauthentication",
+        LearningStateError::MissingIdentifier => "identifier is required",
     }
 }
 

@@ -86,6 +86,14 @@ fn main() {
             )
         }),
     );
+    let learning_state_source: Box<dyn query_api::LearningStateSource> = Box::new(
+        query_api::FirestoreLearningStateSource::from_env().unwrap_or_else(|| {
+            panic!(
+                "{} requires Firestore emulator for learning state",
+                query_api::SERVICE_NAME,
+            )
+        }),
+    );
     println!(
         "{} detail readers wired to Firestore emulator",
         query_api::SERVICE_NAME,
@@ -104,6 +112,7 @@ fn main() {
                     explanation_detail_source: Some(explanation_detail_source.as_ref()),
                     image_detail_source: Some(image_detail_source.as_ref()),
                     subscription_status_source: Some(subscription_status_source.as_ref()),
+                    learning_state_source: Some(learning_state_source.as_ref()),
                 };
                 if let Err(error) = handle_connection(stream, &ctx) {
                     eprintln!(

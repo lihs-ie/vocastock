@@ -9,9 +9,10 @@ use std::collections::{BTreeMap, HashMap};
 
 use query_api::{
     AllowanceRecord, CollocationRecord, ExplanationDetailRecord, ExplanationDetailSource,
-    ImageDetailRecord, ImageDetailSource, ProjectionSourceRecord, PronunciationRecord,
-    SenseExampleRecord, SenseRecord, SimilarityRecord, SubscriptionRecord,
-    SubscriptionStatusSource, VocabularyExpressionDetailRecord, VocabularyExpressionDetailSource,
+    ImageDetailRecord, ImageDetailSource, LearningStateRecord, LearningStateSource,
+    ProjectionSourceRecord, PronunciationRecord, SenseExampleRecord, SenseRecord, SimilarityRecord,
+    SubscriptionRecord, SubscriptionStatusSource, VocabularyExpressionDetailRecord,
+    VocabularyExpressionDetailSource,
 };
 use shared_auth::{
     ActorReference, AuthAccountReference, SessionReference, SessionState, VerifiedActorContext,
@@ -191,6 +192,51 @@ impl SubscriptionStatusTestSource {
 impl SubscriptionStatusSource for SubscriptionStatusTestSource {
     fn record_for(&self, actor_context: &VerifiedActorContext) -> Option<SubscriptionRecord> {
         self.records.get(actor_context.actor().as_str()).cloned()
+    }
+}
+
+pub struct LearningStateTestSource {
+    records: HashMap<(String, String), LearningStateRecord>,
+}
+
+impl LearningStateTestSource {
+    pub fn empty() -> Self {
+        Self {
+            records: HashMap::new(),
+        }
+    }
+
+    pub fn with_record(actor: &str, record: LearningStateRecord) -> Self {
+        let mut records = HashMap::new();
+        records.insert(
+            (actor.to_owned(), record.vocabulary_expression.clone()),
+            record,
+        );
+        Self { records }
+    }
+}
+
+impl LearningStateSource for LearningStateTestSource {
+    fn record_for(
+        &self,
+        actor_context: &VerifiedActorContext,
+        vocabulary_expression: &str,
+    ) -> Option<LearningStateRecord> {
+        self.records
+            .get(&(
+                actor_context.actor().as_str().to_owned(),
+                vocabulary_expression.to_owned(),
+            ))
+            .cloned()
+    }
+}
+
+pub fn sample_learning_state_record() -> LearningStateRecord {
+    LearningStateRecord {
+        vocabulary_expression: "stub-vocab-0000".to_owned(),
+        proficiency: "learned".to_owned(),
+        created_at: "2026-04-05T10:00:00.000Z".to_owned(),
+        updated_at: "2026-04-20T08:30:00.000Z".to_owned(),
     }
 }
 

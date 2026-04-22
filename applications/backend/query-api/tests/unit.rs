@@ -56,3 +56,10 @@ mod subscription_status_source;
 mod actor_handoff_status_model;
 #[path = "unit/query_catalog_read/actor_handoff_status/read.rs"]
 mod actor_handoff_status_read;
+
+#[path = "unit/query_catalog_read/learning_state/model.rs"]
+mod learning_state_model;
+#[path = "unit/query_catalog_read/learning_state/read.rs"]
+mod learning_state_read;
+#[path = "unit/query_catalog_read/learning_state/source.rs"]
+mod learning_state_source;

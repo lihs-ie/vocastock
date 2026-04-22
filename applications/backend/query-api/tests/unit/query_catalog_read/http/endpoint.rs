@@ -25,6 +25,7 @@ fn base_context<'a>(
         explanation_detail_source: None,
         image_detail_source: None,
         subscription_status_source: None,
+        learning_state_source: None,
     }
 }
 

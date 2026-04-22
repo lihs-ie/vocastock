@@ -18,3 +18,6 @@ mod subscription_status;
 
 #[path = "feature/actor_handoff_status.rs"]
 mod actor_handoff_status;
+
+#[path = "feature/learning_state.rs"]
+mod learning_state;

@@ -170,12 +170,20 @@ async function seedFirestore(firestore, actors) {
       await actorRef.collection("images").doc(image.id).set(image);
     }
 
+    for (const learningState of actor.learningStates ?? []) {
+      await actorRef
+        .collection("learningStates")
+        .doc(learningState.id)
+        .set(learningState);
+    }
+
     const vocabCount = actor.vocabularyExpressions?.length ?? 0;
     const explanationCount = actor.explanations?.length ?? 0;
     const imageCount = actor.images?.length ?? 0;
+    const learningStateCount = actor.learningStates?.length ?? 0;
     console.log(
       `[vocastock]   firestore:  ✓ actor=${actor.id} ` +
-        `(${vocabCount} vocabs, ${explanationCount} explanations, ${imageCount} images)`,
+        `(${vocabCount} vocabs, ${explanationCount} explanations, ${imageCount} images, ${learningStateCount} learningStates)`,
     );
   }
 }

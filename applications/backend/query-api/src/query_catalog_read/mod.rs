@@ -3,6 +3,7 @@ pub mod catalog;
 pub mod explanation_detail;
 pub mod http;
 pub mod image_detail;
+pub mod learning_state;
 pub mod runtime;
 pub mod subscription_status;
 pub mod vocabulary_expression_detail;
@@ -31,6 +32,11 @@ pub use http::{
 pub use image_detail::{
     read_image_detail, read_image_detail_from_authorization_header, FirestoreImageDetailSource,
     ImageDetailError, ImageDetailRecord, ImageDetailSource, ImageDetailView,
+};
+pub use learning_state::{
+    read_learning_state, read_learning_state_from_authorization_header,
+    FirestoreLearningStateSource, LearningStateError, LearningStateRecord, LearningStateSource,
+    LearningStateView, ProficiencyLevel,
 };
 pub use runtime::{
     ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH, IMAGE_DETAIL_PATH, LEARNING_STATE_PATH,
