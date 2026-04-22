@@ -69,6 +69,16 @@ jobs:
           path: .artifacts/ci
           if-no-files-found: ignore
 
+  no-mocks-in-production:
+    name: no-mocks-in-production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    needs: toolchain-validate
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Guard production code paths
+        run: bash scripts/ci/verify_no_mock_in_production.sh
+
   application-container-smoke:
     name: application-container-smoke
     runs-on: ubuntu-24.04
@@ -209,6 +219,7 @@ jobs:
       - flutter-static-checks
       - emulator-smoke
       - application-container-smoke
+      - no-mocks-in-production
       - rust-quality
       - haskell-quality
       - android-build-smoke
