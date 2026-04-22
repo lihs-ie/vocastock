@@ -30,11 +30,23 @@ const projectId = process.env.FIREBASE_PROJECT ?? "demo-vocastock";
 const authPort = process.env.FIREBASE_AUTH_PORT ?? "19099";
 const firestorePort = process.env.FIREBASE_FIRESTORE_PORT ?? "18080";
 const storagePort = process.env.FIREBASE_STORAGE_PORT ?? "19199";
+const pubsubPort = process.env.FIREBASE_PUBSUB_PORT ?? "18085";
 
 // firebase-admin reads these env vars to target the emulator.
 process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${firestorePort}`;
 process.env.FIREBASE_AUTH_EMULATOR_HOST = `127.0.0.1:${authPort}`;
 process.env.FIREBASE_STORAGE_EMULATOR_HOST = `127.0.0.1:${storagePort}`;
+process.env.PUBSUB_EMULATOR_HOST = `127.0.0.1:${pubsubPort}`;
+
+// Topic / subscription pairs created at seed time so command-api can
+// publish without having to auto-create on first publish. Workers pull
+// from the `.sub` subscriptions.
+const PUBSUB_TOPICS = [
+  "workflow.explanation-jobs",
+  "workflow.image-jobs",
+  "workflow.retry-jobs",
+  "billing.purchase-jobs",
+];
 
 const resetFlag = process.argv.includes("--reset");
 
@@ -59,6 +71,7 @@ async function main() {
   await seedAuth(auth, fixtures.auth?.users ?? []);
   await seedFirestore(firestore, fixtures.firestore?.actors ?? []);
   await seedStorage(bucket, fixtures.storage?.placeholders ?? []);
+  await seedPubSub(projectId, PUBSUB_TOPICS);
 
   console.log("[vocastock] seed completed");
   console.log(
@@ -165,6 +178,58 @@ async function seedFirestore(firestore, actors) {
         `(${vocabCount} vocabs, ${explanationCount} explanations, ${imageCount} images)`,
     );
   }
+}
+
+async function seedPubSub(projectId, topics) {
+  // The PubSub emulator exposes the same REST surface as production
+  // Google PubSub. Creating a topic is idempotent (emulator returns 409
+  // when it already exists); we treat that as success.
+  const host = process.env.PUBSUB_EMULATOR_HOST;
+  if (!host) {
+    console.log("[vocastock]   pubsub:   skipped (PUBSUB_EMULATOR_HOST not set)");
+    return;
+  }
+  for (const topic of topics) {
+    await ensureTopic(host, projectId, topic);
+    await ensureSubscription(host, projectId, topic, `${topic}.sub`);
+  }
+}
+
+async function ensureTopic(host, projectId, topicId) {
+  const url = `http://${host}/v1/projects/${projectId}/topics/${topicId}`;
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (response.ok || response.status === 409) {
+    console.log(`[vocastock]   pubsub:     ✓ topic=${topicId}`);
+    return;
+  }
+  const body = await response.text();
+  throw new Error(
+    `failed to create pubsub topic ${topicId}: HTTP ${response.status} ${body}`,
+  );
+}
+
+async function ensureSubscription(host, projectId, topicId, subscriptionId) {
+  const url = `http://${host}/v1/projects/${projectId}/subscriptions/${subscriptionId}`;
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      topic: `projects/${projectId}/topics/${topicId}`,
+      ackDeadlineSeconds: 30,
+    }),
+  });
+  if (response.ok || response.status === 409) {
+    console.log(`[vocastock]   pubsub:     ✓ subscription=${subscriptionId}`);
+    return;
+  }
+  const body = await response.text();
+  throw new Error(
+    `failed to create pubsub subscription ${subscriptionId}: HTTP ${response.status} ${body}`,
+  );
 }
 
 async function seedStorage(bucket, placeholders) {

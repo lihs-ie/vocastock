@@ -7,6 +7,8 @@ COPY applications/backend/graphql-gateway applications/backend/graphql-gateway
 COPY applications/backend/command-api applications/backend/command-api
 COPY applications/backend/query-api applications/backend/query-api
 COPY packages/rust/shared-auth packages/rust/shared-auth
+COPY packages/rust/shared-firestore packages/rust/shared-firestore
+COPY packages/rust/shared-pubsub packages/rust/shared-pubsub
 COPY packages/rust/shared-runtime packages/rust/shared-runtime
 
 RUN cargo build --release --bin command-api
