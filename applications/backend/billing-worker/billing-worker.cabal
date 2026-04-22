@@ -8,19 +8,9 @@ library
   exposed-modules:
       BillingWorker.AllowanceReset
       BillingWorker.BillingJob
-      BillingWorker.BillingPersistence
-      BillingWorker.CurrentSubscriptionHandoff
-      BillingWorker.EntitlementRecalcPort
-      BillingWorker.FailureSummary
-      BillingWorker.NotificationPort
       BillingWorker.PullLoop
-      BillingWorker.PurchaseVerificationPort
       BillingWorker.StripePort
-      BillingWorker.SubscriptionAuthorityPort
       BillingWorker.SubscriptionPersistence
-      BillingWorker.WorkerRuntime
-      BillingWorker.WorkflowStateMachine
-      BillingWorker.WorkItemContract
   build-depends:
       base >=4.15 && <5
     , aeson
@@ -31,6 +21,24 @@ library
     , text
     , time
     , vocas-worker-core
+  default-language: GHC2021
+
+library scenarios
+  visibility: public
+  hs-source-dirs: tests/support-lib
+  exposed-modules:
+      BillingWorker.BillingPersistence
+      BillingWorker.CurrentSubscriptionHandoff
+      BillingWorker.EntitlementRecalcPort
+      BillingWorker.FailureSummary
+      BillingWorker.NotificationPort
+      BillingWorker.PurchaseVerificationPort
+      BillingWorker.SubscriptionAuthorityPort
+      BillingWorker.WorkerRuntime
+      BillingWorker.WorkflowStateMachine
+      BillingWorker.WorkItemContract
+  build-depends:
+      base >=4.15 && <5
   default-language: GHC2021
 
 executable billing-worker
@@ -68,6 +76,7 @@ test-suite unit
     , aeson
     , bytestring
     , billing-worker
+    , billing-worker:scenarios
     , http-conduit
     , http-types
     , network
@@ -91,6 +100,7 @@ test-suite feature
   build-depends:
       base >=4.15 && <5
     , billing-worker
+    , billing-worker:scenarios
     , containers
     , directory
     , filepath
