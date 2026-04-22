@@ -6,11 +6,21 @@ build-type: Simple
 library
   hs-source-dirs: src
   exposed-modules:
-      BillingWorker.WorkItemContract
-      BillingWorker.StripePort
       BillingWorker.AllowanceReset
-      BillingWorker.SubscriptionPersistence
+      BillingWorker.BillingJob
+      BillingWorker.BillingPersistence
+      BillingWorker.CurrentSubscriptionHandoff
+      BillingWorker.EntitlementRecalcPort
+      BillingWorker.FailureSummary
+      BillingWorker.NotificationPort
       BillingWorker.PullLoop
+      BillingWorker.PurchaseVerificationPort
+      BillingWorker.StripePort
+      BillingWorker.SubscriptionAuthorityPort
+      BillingWorker.SubscriptionPersistence
+      BillingWorker.WorkerRuntime
+      BillingWorker.WorkflowStateMachine
+      BillingWorker.WorkItemContract
   build-depends:
       base >=4.15 && <5
     , aeson
@@ -39,8 +49,18 @@ test-suite unit
       tests/support
   other-modules:
       BillingWorker.AllowanceResetSpec
-      BillingWorker.StripePortSpec
+      BillingWorker.BillingPersistenceSpec
+      BillingWorker.CurrentSubscriptionHandoffSpec
+      BillingWorker.EntitlementRecalcPortSpec
+      BillingWorker.FailureSummarySpec
+      BillingWorker.NotificationPortSpec
+      BillingWorker.PurchaseVerificationPortSpec
       BillingWorker.StripeLiveSpec
+      BillingWorker.StripePortSpec
+      BillingWorker.SubscriptionAuthorityPortSpec
+      BillingWorker.WorkItemContractSpec
+      BillingWorker.WorkerRuntimeSpec
+      BillingWorker.WorkflowStateMachineSpec
       StripeDevProvider
       TestSupport
   build-depends:
@@ -57,3 +77,23 @@ test-suite unit
     , warp
   default-language: GHC2021
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
+
+test-suite feature
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests/feature
+      tests/support
+  other-modules:
+      BillingWorker.FeatureSpec
+      FeatureSupport
+      TestSupport
+  build-depends:
+      base >=4.15 && <5
+    , billing-worker
+    , containers
+    , directory
+    , filepath
+    , process
+    , time
+  default-language: GHC2021

@@ -1,18 +1,31 @@
 module Main (main) where
 
 import qualified BillingWorker.AllowanceResetSpec
+import qualified BillingWorker.BillingPersistenceSpec
+import qualified BillingWorker.CurrentSubscriptionHandoffSpec
+import qualified BillingWorker.EntitlementRecalcPortSpec
+import qualified BillingWorker.FailureSummarySpec
+import qualified BillingWorker.NotificationPortSpec
+import qualified BillingWorker.PurchaseVerificationPortSpec
 import qualified BillingWorker.StripeLiveSpec
 import qualified BillingWorker.StripePortSpec
-import System.Exit (exitFailure, exitSuccess)
+import qualified BillingWorker.SubscriptionAuthorityPortSpec
+import qualified BillingWorker.WorkItemContractSpec
+import qualified BillingWorker.WorkerRuntimeSpec
+import qualified BillingWorker.WorkflowStateMachineSpec
 
 main :: IO ()
 main = do
-  results <-
-    sequence
-      [ BillingWorker.AllowanceResetSpec.run,
-        BillingWorker.StripePortSpec.run,
-        BillingWorker.StripeLiveSpec.run
-      ]
-  if all id results
-    then exitSuccess
-    else exitFailure
+  BillingWorker.WorkItemContractSpec.run
+  BillingWorker.FailureSummarySpec.run
+  BillingWorker.PurchaseVerificationPortSpec.run
+  BillingWorker.SubscriptionAuthorityPortSpec.run
+  BillingWorker.EntitlementRecalcPortSpec.run
+  BillingWorker.NotificationPortSpec.run
+  BillingWorker.BillingPersistenceSpec.run
+  BillingWorker.CurrentSubscriptionHandoffSpec.run
+  BillingWorker.WorkflowStateMachineSpec.run
+  BillingWorker.WorkerRuntimeSpec.run
+  BillingWorker.AllowanceResetSpec.run
+  BillingWorker.StripePortSpec.run
+  BillingWorker.StripeLiveSpec.run

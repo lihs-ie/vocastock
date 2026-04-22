@@ -19,3 +19,4 @@ API service は `HTTP readiness endpoint` を canonical success signal とし、
 - application smoke: `bash /Users/lihs/workspace/vocastock/scripts/ci/run_application_container_smoke.sh`
 - explanation-worker validation: `application-container-smoke.summary` に `success` / `retryable-failure` / `terminal-failure` が別 record で残る
 - image-worker validation: `application-container-smoke.summary` に `success` / `retryable-failure` / `terminal-failure` が別 record で残る
+- billing-worker validation: `application-container-smoke.summary` に `success` / `retryable-failure` / `terminal-failure` / `notification-reconciled` が別 record で残る

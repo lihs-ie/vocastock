@@ -25,7 +25,7 @@ import BillingWorker.StripePort
     resolveStripeConfig,
   )
 import BillingWorker.SubscriptionPersistence (writeSubscriptionState)
-import BillingWorker.WorkItemContract
+import BillingWorker.BillingJob
   ( Plan (..),
     planCodeText,
     planForCode,

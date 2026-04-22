@@ -18,19 +18,15 @@ import BillingWorker.StripePort
 import StripeDevProvider (DevProviderScenario (..), withDevProvider)
 import TestSupport (assertEqual, assertTrue, runNamed)
 
-run :: IO Bool
+run :: IO ()
 run = runNamed "BillingWorker.StripePort (live fixture)" $ do
-  results <-
-    sequence
-      [ caseCreateSuccess,
-        caseCreateRetryable,
-        caseCreateThrottled,
-        caseCreateTerminal,
-        caseCreateMalformed,
-        caseListWithSubscription,
-        caseListEmpty
-      ]
-  pure (all id results)
+  caseCreateSuccess
+  caseCreateRetryable
+  caseCreateThrottled
+  caseCreateTerminal
+  caseCreateMalformed
+  caseListWithSubscription
+  caseListEmpty
 
 configFor :: Int -> StripeConfig
 configFor port =
@@ -49,7 +45,7 @@ invokeList port = do
   manager <- Http.newManager Http.tlsManagerSettings
   listActiveSubscriptions (configFor port) manager "cus_stub_demo"
 
-caseCreateSuccess :: IO Bool
+caseCreateSuccess :: IO ()
 caseCreateSuccess = withDevProvider ScenarioSuccess $ \port -> do
   outcome <- invokeCreate port
   case outcome of
@@ -57,35 +53,35 @@ caseCreateSuccess = withDevProvider ScenarioSuccess $ \port -> do
       assertEqual "subscription id" "sub_test_created" subscriptionId
     other -> assertTrue ("expected success got " <> show other) False
 
-caseCreateRetryable :: IO Bool
+caseCreateRetryable :: IO ()
 caseCreateRetryable = withDevProvider ScenarioRetryable5xx $ \port -> do
   outcome <- invokeCreate port
   case outcome of
     StripeRetryable _ -> assertTrue "retryable outcome" True
     other -> assertTrue ("expected retryable got " <> show other) False
 
-caseCreateThrottled :: IO Bool
+caseCreateThrottled :: IO ()
 caseCreateThrottled = withDevProvider ScenarioThrottled429 $ \port -> do
   outcome <- invokeCreate port
   case outcome of
     StripeRetryable _ -> assertTrue "throttle as retryable" True
     other -> assertTrue ("expected retryable got " <> show other) False
 
-caseCreateTerminal :: IO Bool
+caseCreateTerminal :: IO ()
 caseCreateTerminal = withDevProvider ScenarioTerminal400 $ \port -> do
   outcome <- invokeCreate port
   case outcome of
     StripeTerminal _ -> assertTrue "terminal outcome" True
     other -> assertTrue ("expected terminal got " <> show other) False
 
-caseCreateMalformed :: IO Bool
+caseCreateMalformed :: IO ()
 caseCreateMalformed = withDevProvider ScenarioMalformedBody $ \port -> do
   outcome <- invokeCreate port
   case outcome of
     StripeTerminal _ -> assertTrue "malformed body terminal" True
     other -> assertTrue ("expected terminal got " <> show other) False
 
-caseListWithSubscription :: IO Bool
+caseListWithSubscription :: IO ()
 caseListWithSubscription = withDevProvider ScenarioSuccess $ \port -> do
   outcome <- invokeList port
   case outcome of
@@ -93,7 +89,7 @@ caseListWithSubscription = withDevProvider ScenarioSuccess $ \port -> do
       assertEqual "existing subscription id" "sub_test_existing" subscriptionId
     other -> assertTrue ("expected existing sub got " <> show other) False
 
-caseListEmpty :: IO Bool
+caseListEmpty :: IO ()
 caseListEmpty = withDevProvider ScenarioRestoreEmpty $ \port -> do
   outcome <- invokeList port
   case outcome of

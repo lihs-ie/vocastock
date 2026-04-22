@@ -13,7 +13,7 @@ module BillingWorker.AllowanceReset
 where
 
 import Data.Text (Text)
-import BillingWorker.WorkItemContract (Plan (..))
+import BillingWorker.BillingJob (Plan (..))
 
 data Allowance = Allowance
   { allowanceExplanations :: Int,

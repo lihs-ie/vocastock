@@ -2,10 +2,10 @@
 set -eu
 
 worker_name="${VOCAS_WORKER_NAME:-billing-worker}"
+stable_window="${VOCAS_WORKER_STABLE_RUN_SECONDS:-10}"
+poll_interval="${VOCAS_WORKER_POLL_INTERVAL_SECONDS:-30}"
 
 echo "[vocastock] ${worker_name} booting as long-running consumer"
-
-trap 'echo "[vocastock] ${worker_name} stopping"; exit 0' TERM INT
 
 check_dependency() {
   dependency_name="$1"
@@ -30,5 +30,7 @@ check_dependency "firestore" "${FIRESTORE_EMULATOR_HOST:-}"
 check_dependency "pubsub" "${PUBSUB_EMULATOR_HOST:-}"
 
 export VOCAS_WORKER_NAME="${worker_name}"
+export VOCAS_WORKER_STABLE_RUN_SECONDS="${stable_window}"
+export VOCAS_WORKER_POLL_INTERVAL_SECONDS="${poll_interval}"
 
 exec /usr/local/bin/billing-worker "$@"

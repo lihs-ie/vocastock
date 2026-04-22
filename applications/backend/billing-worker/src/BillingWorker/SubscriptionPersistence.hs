@@ -22,7 +22,7 @@ import BillingWorker.AllowanceReset
     entitlementForPlan,
     stateForPlan,
   )
-import BillingWorker.WorkItemContract (Plan, planCodeText)
+import BillingWorker.BillingJob (Plan, planCodeText)
 import Vocas.Worker.Core.Firestore
   ( FirestoreClient,
     FirestoreError,
