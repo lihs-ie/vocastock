@@ -5,7 +5,7 @@ packages:
   packages/haskell/vocas-worker-core
   applications/backend/explanation-worker
   applications/backend/image-worker
--- billing-worker joins the workspace once Phase D creates its cabal file.
+  applications/backend/billing-worker
 
 with-compiler: ghc-9.2.8
 write-ghc-environment-files: never

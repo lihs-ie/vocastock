@@ -2,8 +2,6 @@
 set -eu
 
 worker_name="${VOCAS_WORKER_NAME:-billing-worker}"
-stable_window="${VOCAS_WORKER_STABLE_RUN_SECONDS:-10}"
-poll_interval="${VOCAS_WORKER_POLL_INTERVAL_SECONDS:-30}"
 
 echo "[vocastock] ${worker_name} booting as long-running consumer"
 
@@ -29,14 +27,8 @@ check_dependency() {
 }
 
 check_dependency "firestore" "${FIRESTORE_EMULATOR_HOST:-}"
-check_dependency "storage" "${STORAGE_EMULATOR_HOST:-}"
-check_dependency "auth" "${FIREBASE_AUTH_EMULATOR_HOST:-}"
 check_dependency "pubsub" "${PUBSUB_EMULATOR_HOST:-}"
 
-sleep "${stable_window}"
-echo "[vocastock] ${worker_name} entered stable-run mode"
+export VOCAS_WORKER_NAME="${worker_name}"
 
-while :; do
-  echo "[vocastock] ${worker_name} awaiting queue/subscription work"
-  sleep "${poll_interval}"
-done
+exec /usr/local/bin/billing-worker "$@"

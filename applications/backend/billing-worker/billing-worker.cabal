@@ -1,0 +1,51 @@
+cabal-version: 3.4
+name: billing-worker
+version: 0.1.0.0
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  exposed-modules:
+      BillingWorker.WorkItemContract
+      BillingWorker.StripePort
+      BillingWorker.AllowanceReset
+      BillingWorker.SubscriptionPersistence
+      BillingWorker.PullLoop
+  build-depends:
+      base >=4.15 && <5
+    , aeson
+    , bytestring
+    , containers
+    , http-conduit
+    , http-types
+    , text
+    , time
+    , vocas-worker-core
+  default-language: GHC2021
+
+executable billing-worker
+  main-is: Main.hs
+  hs-source-dirs: app
+  build-depends:
+      base >=4.15 && <5
+    , billing-worker
+  default-language: GHC2021
+
+test-suite unit
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests/unit
+      tests/support
+  other-modules:
+      BillingWorker.AllowanceResetSpec
+      BillingWorker.StripePortSpec
+      TestSupport
+  build-depends:
+      base >=4.15 && <5
+    , aeson
+    , bytestring
+    , billing-worker
+    , text
+    , vocas-worker-core
+  default-language: GHC2021
