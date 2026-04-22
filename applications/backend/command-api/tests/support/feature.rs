@@ -9,7 +9,6 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::thread::sleep;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-
 const COMMAND_API_SERVICE: &str = "command-api";
 const EMULATOR_CONTAINER_NAME: &str = "vocastock-firebase-emulators";
 const DEFAULT_GRAPHQL_GATEWAY_PORT: u16 = 18180;
