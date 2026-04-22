@@ -21,6 +21,7 @@ const DEFAULT_QUERY_API_PORT: u16 = 18182;
 const DEFAULT_FIRESTORE_PORT: u16 = 18080;
 const DEFAULT_STORAGE_PORT: u16 = 19199;
 const DEFAULT_AUTH_PORT: u16 = 19099;
+const DEFAULT_PUBSUB_PORT: u16 = 18085;
 const DEFAULT_READINESS_PATH: &str = "/readyz";
 const DEFAULT_READY_BUDGET_SECONDS: u64 = 120;
 const DEFAULT_EMULATOR_READY_BUDGET_SECONDS: &str = "300";
@@ -34,6 +35,7 @@ struct ApplicationPorts {
     firestore: u16,
     storage: u16,
     auth: u16,
+    pubsub: u16,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -107,6 +109,7 @@ impl FeatureRuntime {
         let storage_port =
             port_from_env(&firebase_env, "FIREBASE_STORAGE_PORT", DEFAULT_STORAGE_PORT);
         let auth_port = port_from_env(&firebase_env, "FIREBASE_AUTH_PORT", DEFAULT_AUTH_PORT);
+        let pubsub_port = port_from_env(&firebase_env, "FIREBASE_PUBSUB_PORT", DEFAULT_PUBSUB_PORT);
 
         let app_env_file = ensure_application_env_file(&repo_root);
         let app_env = load_env_file(app_env_file.clone());
@@ -136,6 +139,7 @@ impl FeatureRuntime {
             firestore: firestore_port,
             storage: storage_port,
             auth: auth_port,
+            pubsub: pubsub_port,
         };
 
         let env_file =
@@ -158,6 +162,7 @@ impl FeatureRuntime {
         if !runtime.should_reuse_running_emulators() {
             runtime.start_emulators();
         }
+        runtime.seed_emulators();
 
         runtime.remove_stale_application_containers();
         runtime.start_services();
@@ -242,6 +247,16 @@ impl FeatureRuntime {
             ],
         );
         self.started_emulators = true;
+    }
+
+    fn seed_emulators(&self) {
+        run_command(
+            &self.repo_root,
+            "bash",
+            &[path_arg(
+                self.repo_root.join("scripts/firebase/seed_emulators.sh"),
+            )],
+        );
     }
 
     fn remove_stale_application_containers(&self) {
@@ -565,6 +580,8 @@ VOCAS_QUERY_UPSTREAM_BASE_URL={}
 FIRESTORE_EMULATOR_HOST=host.docker.internal:{}
 STORAGE_EMULATOR_HOST=host.docker.internal:{}
 FIREBASE_AUTH_EMULATOR_HOST=host.docker.internal:{}
+PUBSUB_EMULATOR_HOST=host.docker.internal:{}
+VOCAS_PRODUCTION_ADAPTERS=true
 ",
         unique_suffix,
         std::process::id(),
@@ -581,7 +598,8 @@ FIREBASE_AUTH_EMULATOR_HOST=host.docker.internal:{}
             .unwrap_or(&format!("http://query-api:{}", ports.query)),
         ports.firestore,
         ports.storage,
-        ports.auth
+        ports.auth,
+        ports.pubsub,
     ));
 
     fs::write(&env_file, contents)

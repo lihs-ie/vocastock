@@ -42,7 +42,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let accepted = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-accepted"),
         &register_mutation_payload("feature-accepted", "  Mixed   Case  ", None),
     );
@@ -65,7 +65,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let replay = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-accepted"),
         &register_mutation_payload("feature-accepted", "  Mixed   Case  ", None),
     );
@@ -78,7 +78,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let reused = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-reused"),
         &register_mutation_payload("feature-reuse", "mixed case", None),
     );
@@ -91,7 +91,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let not_started = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-not-started"),
         &register_mutation_payload("feature-no-dispatch", "silent term", Some(false)),
     );
@@ -104,7 +104,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let dispatch_failed = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-dispatch-fail"),
         &register_mutation_payload("feature-dispatch-fail", "rollback term", None),
     );
@@ -117,7 +117,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let accepted_after_failure = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-dispatch-retry"),
         &register_mutation_payload("feature-dispatch-retry", "rollback term", None),
     );
@@ -130,14 +130,14 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let conflict_first = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-conflict"),
         &register_mutation_payload("feature-conflict", "conflict one", None),
     );
     assert_eq!(conflict_first.status, 200);
     let conflict = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-conflict"),
         &register_mutation_payload("feature-conflict", "conflict two", None),
     );
@@ -150,7 +150,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let catalog = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-catalog"),
         &catalog_query_payload(),
     );
@@ -170,7 +170,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let empty_catalog = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-empty-token"),
+        Some("Bearer valid-free-token"),
         Some("client-empty-catalog"),
         &catalog_query_payload(),
     );
@@ -215,7 +215,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let unsupported = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-unsupported"),
         &unsupported_query_payload(),
     );
@@ -228,7 +228,7 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
 
     let ambiguous = runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-ambiguous"),
         &ambiguous_query_payload(),
     );
@@ -332,7 +332,7 @@ fn public_graphql_gateway_shapes_downstream_unavailable_and_invalid_response_fai
 
     let invalid_response = invalid_runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-invalid-response"),
         &register_mutation_payload("feature-invalid", "coffee", None),
     );
@@ -356,7 +356,7 @@ fn public_graphql_gateway_shapes_downstream_unavailable_and_invalid_response_fai
     });
     let unavailable = unavailable_runtime.post_json(
         "/graphql",
-        Some("Bearer valid-learner-token"),
+        Some("Bearer valid-demo-token"),
         Some("client-unavailable"),
         &catalog_query_payload(),
     );
@@ -374,7 +374,7 @@ fn register_mutation_payload(
     start_explanation: Option<bool>,
 ) -> Value {
     let mut variables = json!({
-        "actor": "actor:learner",
+        "actor": "stub-actor-demo",
         "idempotencyKey": idempotency_key,
         "text": text
     });
@@ -419,7 +419,7 @@ fn stubbed_accepted_command_result(vocabulary_expression: &str) -> Value {
             "registration": "registered",
             "explanation": "queued"
         },
-        "statusHandle": format!("status:actor:learner:{vocabulary_expression}"),
+        "statusHandle": format!("status:stub-actor-demo:{vocabulary_expression}"),
         "message": "registerVocabularyExpression was accepted for asynchronous processing",
         "replayedByIdempotency": false
     })
