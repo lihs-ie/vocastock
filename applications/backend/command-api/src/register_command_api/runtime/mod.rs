@@ -6,7 +6,6 @@ pub mod mutation_command_store;
 pub mod pubsub_dispatch_port;
 pub mod server_loop;
 pub mod service_contract;
-pub mod stub_token_verifier;
 
 pub use command_store::{
     CommandStore, InMemoryCommandStore, PlannedNewRegistration, PlannedReuseRegistration,
@@ -36,4 +35,3 @@ pub use service_contract::{
     REQUEST_IMAGE_GENERATION_PATH, REQUEST_PURCHASE_PATH, REQUEST_RESTORE_PURCHASE_PATH,
     RETRY_GENERATION_PATH, ROOT_MESSAGE, SERVICE_NAME, STATUS_HANDLE_PREFIX,
 };
-pub use stub_token_verifier::StubTokenVerifier;

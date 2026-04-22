@@ -1,3 +1,7 @@
+pub mod stub_token_verifier;
+
+pub use stub_token_verifier::StubTokenVerifier;
+
 use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap};
 

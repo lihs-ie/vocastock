@@ -1,10 +1,11 @@
 use query_api::{
     read_catalog, read_catalog_from_authorization_header, CatalogReadError, CatalogVisibility,
     CollectionState, InMemoryCatalogProjectionSource, ProjectionFreshness, ProjectionSourceRecord,
-    StubTokenVerifier, WorkflowState,
+    WorkflowState,
 };
 use shared_auth::TokenVerificationError;
 
+use crate::support::StubTokenVerifier;
 use crate::support::{active_actor, custom_source, reauth_actor};
 
 #[test]

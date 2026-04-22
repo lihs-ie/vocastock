@@ -33,9 +33,9 @@ pub use image_detail::{
     ImageDetailError, ImageDetailRecord, ImageDetailSource, ImageDetailView,
 };
 pub use runtime::{
-    StubTokenVerifier, ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH, IMAGE_DETAIL_PATH,
-    LEARNING_STATE_PATH, ROOT_MESSAGE, SERVICE_NAME, SUBSCRIPTION_STATUS_PATH,
-    VOCABULARY_CATALOG_PATH, VOCABULARY_EXPRESSION_DETAIL_PATH,
+    ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH, IMAGE_DETAIL_PATH, LEARNING_STATE_PATH,
+    ROOT_MESSAGE, SERVICE_NAME, SUBSCRIPTION_STATUS_PATH, VOCABULARY_CATALOG_PATH,
+    VOCABULARY_EXPRESSION_DETAIL_PATH,
 };
 pub use subscription_status::{
     read_subscription_status, read_subscription_status_from_authorization_header, AllowanceRecord,

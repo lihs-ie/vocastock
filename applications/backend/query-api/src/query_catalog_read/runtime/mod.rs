@@ -1,10 +1,8 @@
 pub(crate) mod authorization;
 mod service_contract;
-mod stub_token_verifier;
 
 pub use service_contract::{
     ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH, IMAGE_DETAIL_PATH, LEARNING_STATE_PATH,
     ROOT_MESSAGE, SERVICE_NAME, SUBSCRIPTION_STATUS_PATH, VOCABULARY_CATALOG_PATH,
     VOCABULARY_EXPRESSION_DETAIL_PATH,
 };
-pub use stub_token_verifier::StubTokenVerifier;

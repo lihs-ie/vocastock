@@ -4,10 +4,11 @@ use std::thread;
 
 use command_api::{
     bind_listener, handle_connection, serve_incoming_stream, startup_message, InMemoryCommandStore,
-    InMemoryDispatchPort, RouteContext, ServerConfig, StubTokenVerifier,
+    InMemoryDispatchPort, RouteContext, ServerConfig,
 };
 
 use crate::support::env_lock;
+use crate::support::StubTokenVerifier;
 
 fn scoped_ctx<'a>(
     verifier: &'a StubTokenVerifier,

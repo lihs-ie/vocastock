@@ -1,8 +1,6 @@
-use query_api::{
-    read_image_detail, read_image_detail_from_authorization_header, ImageDetailError,
-    StubTokenVerifier,
-};
+use query_api::{read_image_detail, read_image_detail_from_authorization_header, ImageDetailError};
 
+use crate::support::StubTokenVerifier;
 use crate::support::{active_actor, reauth_actor, sample_image_record, ImageDetailTestSource};
 
 #[test]

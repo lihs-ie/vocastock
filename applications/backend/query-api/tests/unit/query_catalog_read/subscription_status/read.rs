@@ -1,10 +1,11 @@
 use query_api::{
     read_subscription_status, read_subscription_status_from_authorization_header,
-    EntitlementBundle, PlanCode, StubTokenVerifier, SubscriptionState, SubscriptionStatusError,
+    EntitlementBundle, PlanCode, SubscriptionState, SubscriptionStatusError,
 };
 
 use crate::support::{
-    active_actor, reauth_actor, sample_subscription_record, SubscriptionStatusTestSource,
+    active_actor, reauth_actor, sample_subscription_record, StubTokenVerifier,
+    SubscriptionStatusTestSource,
 };
 
 #[test]

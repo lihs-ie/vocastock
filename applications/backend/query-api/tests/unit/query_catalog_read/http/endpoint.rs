@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 use std::io::Cursor;
 
+use crate::support::StubTokenVerifier;
 use query_api::{
     read_request, route_request, write_response, InMemoryCatalogProjectionSource, Request,
-    RouteContext, StubTokenVerifier,
+    RouteContext,
 };
 
 fn request(method: &str, path: &str) -> Request {

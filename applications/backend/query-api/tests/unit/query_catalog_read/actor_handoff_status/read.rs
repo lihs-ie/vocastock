@@ -1,8 +1,9 @@
 use query_api::{
     read_actor_handoff_status, read_actor_handoff_status_from_authorization_header,
-    ActorHandoffStatusError, SessionStateCode, StubTokenVerifier,
+    ActorHandoffStatusError, SessionStateCode,
 };
 
+use crate::support::StubTokenVerifier;
 use crate::support::{active_actor, reauth_actor};
 
 #[test]

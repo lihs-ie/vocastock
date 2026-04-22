@@ -1,4 +1,4 @@
-use query_api::StubTokenVerifier;
+use crate::support::StubTokenVerifier;
 use shared_auth::TokenVerificationPort;
 
 #[test]

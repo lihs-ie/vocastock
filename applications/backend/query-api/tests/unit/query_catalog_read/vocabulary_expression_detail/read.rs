@@ -1,10 +1,10 @@
 use query_api::{
     read_vocabulary_expression_detail, read_vocabulary_expression_detail_from_authorization_header,
-    GenerationStatus, RegistrationStatus, StubTokenVerifier, VocabularyExpressionDetailError,
+    GenerationStatus, RegistrationStatus, VocabularyExpressionDetailError,
 };
 
 use crate::support::{
-    active_actor, reauth_actor, sample_vocabulary_expression_record,
+    active_actor, reauth_actor, sample_vocabulary_expression_record, StubTokenVerifier,
     VocabularyExpressionDetailTestSource,
 };
 

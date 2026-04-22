@@ -1,10 +1,11 @@
 use query_api::{
     read_explanation_detail, read_explanation_detail_from_authorization_header,
-    ExplanationDetailError, FrequencyLevel, SophisticationLevel, StubTokenVerifier,
+    ExplanationDetailError, FrequencyLevel, SophisticationLevel,
 };
 
 use crate::support::{
     active_actor, reauth_actor, sample_explanation_record, ExplanationDetailTestSource,
+    StubTokenVerifier,
 };
 
 #[test]
