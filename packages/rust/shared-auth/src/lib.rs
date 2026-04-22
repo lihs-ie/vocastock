@@ -1,3 +1,10 @@
+mod firebase_verifier;
+
+pub use firebase_verifier::{
+    FirebaseAuthTokenVerifier, DEFAULT_EMULATOR_API_KEY, FIREBASE_AUTH_API_KEY_ENV,
+    FIREBASE_AUTH_EMULATOR_HOST_ENV,
+};
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActorReference(String);
 
