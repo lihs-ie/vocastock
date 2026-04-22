@@ -30,11 +30,43 @@ done
 
 compose_file="$(vocas_application_compose_file)"
 base_env_file="$(vocas_prepare_application_env_file)"
+
+# Backend services (query-api / command-api) now require the production
+# Firestore + PubSub adapters to be wired — there is no in-memory
+# fallback in the release binary. Launch the Firebase emulator stack +
+# seed fixtures here so the compose containers have real adapter
+# dependencies to talk to, then expose the emulator host ports via env
+# so the smoke env file inherits them.
+firebase_env_file="$(vocas_repo_root)/docker/firebase/env/.env"
+if [[ ! -f "$firebase_env_file" ]]; then
+  firebase_env_file="$(vocas_repo_root)/docker/firebase/env/.env.example"
+fi
+# shellcheck disable=SC1090
+set -a
+source "$firebase_env_file"
+set +a
+
+export VOCAS_PRODUCTION_ADAPTERS=true
+export FIRESTORE_EMULATOR_HOST="host.docker.internal:${FIREBASE_FIRESTORE_PORT}"
+export STORAGE_EMULATOR_HOST="host.docker.internal:${FIREBASE_STORAGE_PORT}"
+export FIREBASE_AUTH_EMULATOR_HOST="host.docker.internal:${FIREBASE_AUTH_PORT}"
+export PUBSUB_EMULATOR_HOST="host.docker.internal:${FIREBASE_PUBSUB_PORT}"
+
 env_file="$(vocas_prepare_application_smoke_env_file "$base_env_file")"
+# vocas_prepare_application_smoke_env_file appends FIRESTORE/STORAGE/AUTH/PUBSUB
+# entries only when the corresponding host env vars are non-empty, so the
+# exports above make them land in $env_file.
+printf "VOCAS_PRODUCTION_ADAPTERS=%s\n" "$VOCAS_PRODUCTION_ADAPTERS" >> "$env_file"
+
 vocas_load_env_file "$env_file"
 
 docker info >/dev/null
 docker compose --env-file "$env_file" -f "$compose_file" config >/dev/null
+
+failure_stage="firebase-emulators-start"
+bash "$SCRIPT_DIR/../firebase/start_emulators.sh"
+bash "$SCRIPT_DIR/../firebase/smoke_local_stack.sh" "${VOCAS_EMULATOR_READY_BUDGET_SECONDS:-300}"
+bash "$SCRIPT_DIR/../firebase/seed_emulators.sh"
 
 services=()
 while IFS= read -r service_name; do
@@ -54,6 +86,7 @@ cleanup() {
   printf "%s\n" "$failure_stage" > "$stage_file"
   if (( reuse_running == 0 )); then
     docker compose --env-file "$env_file" -f "$compose_file" down >/dev/null 2>&1 || true
+    bash "$SCRIPT_DIR/../firebase/stop_emulators.sh" >/dev/null 2>&1 || true
   fi
 }
 
