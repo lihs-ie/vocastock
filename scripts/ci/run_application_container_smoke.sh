@@ -66,7 +66,16 @@ docker compose --env-file "$env_file" -f "$compose_file" config >/dev/null
 failure_stage="firebase-emulators-start"
 bash "$SCRIPT_DIR/../firebase/start_emulators.sh"
 bash "$SCRIPT_DIR/../firebase/smoke_local_stack.sh" "${VOCAS_EMULATOR_READY_BUDGET_SECONDS:-300}"
-bash "$SCRIPT_DIR/../firebase/seed_emulators.sh"
+# seed runs in host node(1) and talks to 127.0.0.1:{port}; the
+# `host.docker.internal` values above are only valid from within the
+# compose containers. Unset them for the seed subshell so firebase-admin
+# resolves to localhost.
+(
+  unset FIRESTORE_EMULATOR_HOST STORAGE_EMULATOR_HOST \
+    FIREBASE_AUTH_EMULATOR_HOST PUBSUB_EMULATOR_HOST \
+    FIREBASE_STORAGE_EMULATOR_HOST
+  bash "$SCRIPT_DIR/../firebase/seed_emulators.sh"
+)
 
 services=()
 while IFS= read -r service_name; do

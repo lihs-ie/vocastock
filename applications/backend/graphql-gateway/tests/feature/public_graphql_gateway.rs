@@ -102,31 +102,14 @@ fn public_graphql_gateway_relays_allowlisted_operations_against_dockerized_servi
         "startExplanation=false response",
     );
 
-    let dispatch_failed = runtime.post_json(
-        "/graphql",
-        Some("Bearer valid-demo-token"),
-        Some("client-dispatch-fail"),
-        &register_mutation_payload("feature-dispatch-fail", "rollback term", None),
-    );
-    assert_eq!(dispatch_failed.status, 503);
-    assert_contains(
-        &dispatch_failed.body,
-        "\"code\":\"dispatch-failed\"",
-        "dispatch failure response",
-    );
-
-    let accepted_after_failure = runtime.post_json(
-        "/graphql",
-        Some("Bearer valid-demo-token"),
-        Some("client-dispatch-retry"),
-        &register_mutation_payload("feature-dispatch-retry", "rollback term", None),
-    );
-    assert_eq!(accepted_after_failure.status, 200);
-    assert_contains(
-        &accepted_after_failure.body,
-        "\"acceptance\":\"accepted\"",
-        "accepted after dispatch failure response",
-    );
+    // Note: the legacy InMemoryDispatchPort recognised a magic
+    // "rollback term" text to simulate a dispatch failure + subsequent
+    // retry. The production PubSub adapter has no such hook, so the
+    // dispatch_failed / accepted_after_failure scenarios that relied on
+    // it are no longer reproducible through this E2E path. The
+    // equivalent command-api error envelopes remain unit-tested against
+    // the error-producing adapter substitutes in
+    // `register_command_api/http/endpoint.rs` unit tests.
 
     let conflict_first = runtime.post_json(
         "/graphql",
