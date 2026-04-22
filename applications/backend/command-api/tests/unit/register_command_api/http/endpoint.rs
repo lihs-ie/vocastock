@@ -2,10 +2,24 @@ use std::io::Cursor;
 
 use command_api::{
     read_request, route_request, write_response, InMemoryCommandStore, InMemoryDispatchPort,
-    RenderedResponse, RequestReadError, StubTokenVerifier,
+    RenderedResponse, RequestReadError, RouteContext, StubTokenVerifier,
 };
 
 use crate::support::{active_actor, env_lock, register_command_json, request};
+
+fn ctx<'a>(
+    verifier: &'a StubTokenVerifier,
+    store: &'a InMemoryCommandStore,
+    dispatcher: &'a InMemoryDispatchPort,
+) -> RouteContext<'a> {
+    RouteContext {
+        readiness_path: "/readyz",
+        verifier,
+        register_store: store,
+        mutation_store: None,
+        dispatcher,
+    }
+}
 
 #[test]
 fn read_request_parses_method_path_headers_and_body() {
@@ -59,46 +73,35 @@ fn route_request_covers_ready_root_not_found_and_method_not_allowed() {
     let verifier = StubTokenVerifier;
     let store = InMemoryCommandStore::default();
     let dispatcher = InMemoryDispatchPort::default();
+    let ctx = ctx(&verifier, &store, &dispatcher);
 
-    let ready = route_request(
-        &request("GET", "/readyz", None, ""),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
-    );
+    let ready = route_request(&request("GET", "/readyz", None, ""), &ctx);
     assert_eq!(ready.status, "200 OK");
     assert!(ready.body.contains("command-api ready"));
 
-    let root = route_request(
-        &request("GET", "/", None, ""),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
-    );
+    let root = route_request(&request("GET", "/", None, ""), &ctx);
     assert_eq!(root.status, "200 OK");
     assert!(root.body.contains("accepted/reused-existing"));
 
-    let not_found = route_request(
-        &request("GET", "/unknown", None, ""),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
-    );
+    let not_found = route_request(&request("GET", "/unknown", None, ""), &ctx);
     assert_eq!(not_found.status, "404 Not Found");
     assert_eq!(not_found.body, "not found");
 
     let method_not_allowed = route_request(
         &request("GET", "/commands/register-vocabulary-expression", None, ""),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     assert_eq!(method_not_allowed.status, "405 Method Not Allowed");
     assert!(method_not_allowed.body.contains("method not allowed"));
+
+    let detail_method_not_allowed = route_request(
+        &request("GET", "/commands/request-explanation-generation", None, ""),
+        &ctx,
+    );
+    assert_eq!(
+        detail_method_not_allowed.status, "405 Method Not Allowed",
+        "GET on a mutation path is rejected"
+    );
 }
 
 #[test]
@@ -106,6 +109,7 @@ fn route_request_covers_success_auth_failures_and_ownership_mismatch() {
     let verifier = StubTokenVerifier;
     let store = InMemoryCommandStore::default();
     let dispatcher = InMemoryDispatchPort::default();
+    let ctx = ctx(&verifier, &store, &dispatcher);
 
     let success = route_request(
         &request(
@@ -120,10 +124,7 @@ fn route_request_covers_success_auth_failures_and_ownership_mismatch() {
             )
             .as_str(),
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     assert_eq!(success.status, "202 Accepted");
     assert!(success.body.contains("\"acceptance\":\"accepted\""));
@@ -139,10 +140,7 @@ fn route_request_covers_success_auth_failures_and_ownership_mismatch() {
             None,
             "{}",
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     assert_eq!(missing.status, "401 Unauthorized");
     assert!(missing.body.contains("missing bearer token"));
@@ -154,10 +152,7 @@ fn route_request_covers_success_auth_failures_and_ownership_mismatch() {
             Some("Bearer invalid-token"),
             "{}",
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     assert_eq!(invalid.status, "401 Unauthorized");
     assert!(invalid.body.contains("invalid bearer token"));
@@ -169,10 +164,7 @@ fn route_request_covers_success_auth_failures_and_ownership_mismatch() {
             Some("Bearer reauth-token"),
             "{}",
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     assert_eq!(reauth.status, "403 Forbidden");
     assert!(reauth.body.contains("reauthentication"));
@@ -184,10 +176,7 @@ fn route_request_covers_success_auth_failures_and_ownership_mismatch() {
             Some("Bearer valid-learner-token"),
             register_command_json("actor:other", "req-http-owner", "tea", None).as_str(),
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     assert_eq!(ownership_mismatch.status, "403 Forbidden");
     assert!(ownership_mismatch.body.contains("ownership-mismatch"));
@@ -198,6 +187,7 @@ fn route_request_covers_dispatch_failed_and_replay() {
     let verifier = StubTokenVerifier;
     let store = InMemoryCommandStore::default();
     let dispatcher = InMemoryDispatchPort::default();
+    let ctx = ctx(&verifier, &store, &dispatcher);
     let dispatch_fail_body =
         register_command_json("actor:learner", "dispatch-fail-http", "rollback term", None);
 
@@ -208,10 +198,7 @@ fn route_request_covers_dispatch_failed_and_replay() {
             Some("Bearer valid-learner-token"),
             dispatch_fail_body.as_str(),
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     assert_eq!(failure.status, "503 Service Unavailable");
     assert!(failure.body.contains("dispatch-failed"));
@@ -229,10 +216,7 @@ fn route_request_covers_dispatch_failed_and_replay() {
             Some("Bearer valid-learner-token"),
             request_body.as_str(),
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     let replay = route_request(
         &request(
@@ -241,10 +225,7 @@ fn route_request_covers_dispatch_failed_and_replay() {
             Some("Bearer valid-learner-token"),
             request_body.as_str(),
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
 
     assert_eq!(accepted.status, "202 Accepted");
@@ -257,6 +238,7 @@ fn route_request_covers_invalid_json_malformed_auth_and_unhealthy_dependencies()
     let verifier = StubTokenVerifier;
     let store = InMemoryCommandStore::default();
     let dispatcher = InMemoryDispatchPort::default();
+    let ctx = ctx(&verifier, &store, &dispatcher);
 
     let malformed_auth = route_request(
         &request(
@@ -265,10 +247,7 @@ fn route_request_covers_invalid_json_malformed_auth_and_unhealthy_dependencies()
             Some("invalid-header"),
             "{}",
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     assert_eq!(malformed_auth.status, "401 Unauthorized");
     assert!(malformed_auth.body.contains("invalid bearer token"));
@@ -280,10 +259,7 @@ fn route_request_covers_invalid_json_malformed_auth_and_unhealthy_dependencies()
             Some("Bearer valid-learner-token"),
             "{",
         ),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
+        &ctx,
     );
     assert_eq!(invalid_json.status, "400 Bad Request");
     assert!(invalid_json
@@ -298,19 +274,34 @@ fn route_request_covers_invalid_json_malformed_auth_and_unhealthy_dependencies()
         std::env::remove_var("PUBSUB_EMULATOR_HOST");
     }
 
-    let unhealthy = route_request(
-        &request("GET", "/dependencies/firebase", None, ""),
-        "/readyz",
-        &verifier,
-        &store,
-        &dispatcher,
-    );
+    let unhealthy = route_request(&request("GET", "/dependencies/firebase", None, ""), &ctx);
     assert_eq!(unhealthy.status, "503 Service Unavailable");
     assert!(unhealthy.body.contains("connect failed"));
 
     unsafe {
         std::env::remove_var("FIRESTORE_EMULATOR_HOST");
     }
+}
+
+#[test]
+fn route_request_mutation_endpoints_without_store_return_downstream_unavailable() {
+    let verifier = StubTokenVerifier;
+    let store = InMemoryCommandStore::default();
+    let dispatcher = InMemoryDispatchPort::default();
+    let ctx = ctx(&verifier, &store, &dispatcher);
+
+    let response = route_request(
+        &request(
+            "POST",
+            "/commands/request-explanation-generation",
+            Some("Bearer valid-learner-token"),
+            "{\"actor\":\"actor:learner\",\"idempotencyKey\":\"k\",\"vocabularyExpression\":\"vocabulary:run\"}",
+        ),
+        &ctx,
+    );
+    assert_eq!(response.status, "503 Service Unavailable");
+    assert!(response.body.contains("DOWNSTREAM_UNAVAILABLE"));
+    assert!(response.body.contains("command.mutation_store_unavailable"));
 }
 
 #[test]

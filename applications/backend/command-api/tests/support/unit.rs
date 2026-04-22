@@ -1,7 +1,11 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
-use command_api::{RegisterVocabularyExpressionCommand, Request};
+use command_api::{
+    CommandResponseEnvelope, DispatchPlan, DispatchPort, DispatchRequest, IdempotencyDecision,
+    MutationCommandStore, MutationFingerprint, RegisterVocabularyExpressionCommand, Request,
+};
 use serde_json::json;
 use shared_auth::{
     ActorReference, AuthAccountReference, SessionReference, SessionState, VerifiedActorContext,
@@ -79,4 +83,123 @@ pub fn env_lock() -> MutexGuard<'static, ()> {
     LOCK.get_or_init(|| Mutex::new(()))
         .lock()
         .expect("unit env lock poisoned")
+}
+
+// ---------- Test doubles (tests/support only, not in production crate) ----
+
+#[derive(Default)]
+pub struct MutationCommandStoreTestDouble {
+    decisions: RefCell<HashMap<(String, String), StoredDecision>>,
+    commits: RefCell<Vec<CommitRecord>>,
+}
+
+#[derive(Clone)]
+pub struct StoredDecision {
+    pub fingerprint: MutationFingerprint,
+    pub envelope: CommandResponseEnvelope,
+}
+
+#[derive(Clone)]
+#[allow(dead_code)]
+pub struct CommitRecord {
+    pub actor: String,
+    pub idempotency_key: String,
+    pub fingerprint: MutationFingerprint,
+    pub envelope: CommandResponseEnvelope,
+}
+
+impl MutationCommandStoreTestDouble {
+    pub fn with_existing(
+        actor: &str,
+        idempotency_key: &str,
+        fingerprint: MutationFingerprint,
+        envelope: CommandResponseEnvelope,
+    ) -> Self {
+        let mut decisions = HashMap::new();
+        decisions.insert(
+            (actor.to_owned(), idempotency_key.to_owned()),
+            StoredDecision {
+                fingerprint,
+                envelope,
+            },
+        );
+        Self {
+            decisions: RefCell::new(decisions),
+            commits: RefCell::new(Vec::new()),
+        }
+    }
+
+    pub fn commits(&self) -> Vec<CommitRecord> {
+        self.commits.borrow().clone()
+    }
+}
+
+impl MutationCommandStore for MutationCommandStoreTestDouble {
+    fn idempotency_decision(
+        &self,
+        actor: &str,
+        idempotency_key: &str,
+        fingerprint: &MutationFingerprint,
+    ) -> IdempotencyDecision {
+        match self
+            .decisions
+            .borrow()
+            .get(&(actor.to_owned(), idempotency_key.to_owned()))
+        {
+            Some(stored) if &stored.fingerprint == fingerprint => {
+                IdempotencyDecision::Replay(stored.envelope.clone())
+            }
+            Some(_) => IdempotencyDecision::Conflict,
+            None => IdempotencyDecision::Fresh,
+        }
+    }
+
+    fn commit_mutation(
+        &self,
+        actor: &str,
+        idempotency_key: &str,
+        fingerprint: &MutationFingerprint,
+        envelope: &CommandResponseEnvelope,
+    ) {
+        self.commits.borrow_mut().push(CommitRecord {
+            actor: actor.to_owned(),
+            idempotency_key: idempotency_key.to_owned(),
+            fingerprint: fingerprint.clone(),
+            envelope: envelope.clone(),
+        });
+    }
+}
+
+#[derive(Default)]
+pub struct DispatchPortTestDouble {
+    requests: RefCell<Vec<DispatchRequest>>,
+    force_fail: bool,
+}
+
+impl DispatchPortTestDouble {
+    pub fn accepting() -> Self {
+        Self::default()
+    }
+
+    pub fn failing() -> Self {
+        Self {
+            requests: RefCell::new(Vec::new()),
+            force_fail: true,
+        }
+    }
+
+    pub fn dispatched(&self) -> Vec<DispatchRequest> {
+        self.requests.borrow().clone()
+    }
+}
+
+impl DispatchPort for DispatchPortTestDouble {
+    fn dispatch(&self, request: DispatchRequest) -> DispatchPlan {
+        self.requests.borrow_mut().push(request);
+        if self.force_fail {
+            DispatchPlan::failed()
+        } else {
+            DispatchPlan::accepted()
+        }
+    }
 }

@@ -4,10 +4,24 @@ use std::thread;
 
 use command_api::{
     bind_listener, handle_connection, serve_incoming_stream, startup_message, InMemoryCommandStore,
-    InMemoryDispatchPort, ServerConfig, StubTokenVerifier,
+    InMemoryDispatchPort, RouteContext, ServerConfig, StubTokenVerifier,
 };
 
 use crate::support::env_lock;
+
+fn scoped_ctx<'a>(
+    verifier: &'a StubTokenVerifier,
+    store: &'a InMemoryCommandStore,
+    dispatcher: &'a InMemoryDispatchPort,
+) -> RouteContext<'a> {
+    RouteContext {
+        readiness_path: "/readyz",
+        verifier,
+        register_store: store,
+        mutation_store: None,
+        dispatcher,
+    }
+}
 
 #[test]
 fn server_config_reads_env_and_falls_back_to_defaults() {
@@ -50,14 +64,11 @@ fn handle_connection_serves_readyz_request() {
 
     let server = thread::spawn(move || {
         let (stream, _) = listener.accept().expect("connection should be accepted");
-        handle_connection(
-            stream,
-            "/readyz",
-            &StubTokenVerifier,
-            &InMemoryCommandStore::default(),
-            &InMemoryDispatchPort::default(),
-        )
-        .expect("connection should be handled");
+        let verifier = StubTokenVerifier;
+        let store = InMemoryCommandStore::default();
+        let dispatcher = InMemoryDispatchPort::default();
+        let ctx = scoped_ctx(&verifier, &store, &dispatcher);
+        handle_connection(stream, &ctx).expect("connection should be handled");
     });
 
     let mut client = TcpStream::connect(address).expect("client should connect");
@@ -86,14 +97,11 @@ fn handle_connection_returns_413_for_oversized_request_body() {
 
     let server = thread::spawn(move || {
         let (stream, _) = listener.accept().expect("connection should be accepted");
-        handle_connection(
-            stream,
-            "/readyz",
-            &StubTokenVerifier,
-            &InMemoryCommandStore::default(),
-            &InMemoryDispatchPort::default(),
-        )
-        .expect("connection should be handled");
+        let verifier = StubTokenVerifier;
+        let store = InMemoryCommandStore::default();
+        let dispatcher = InMemoryDispatchPort::default();
+        let ctx = scoped_ctx(&verifier, &store, &dispatcher);
+        handle_connection(stream, &ctx).expect("connection should be handled");
     });
 
     let mut client = TcpStream::connect(address).expect("client should connect");
@@ -130,14 +138,12 @@ fn server_loop_helpers_cover_bind_message_and_error_passthrough() {
     assert_eq!(bound_address.ip().to_string(), "127.0.0.1");
     assert!(startup_message(&config).contains("command-api listening on 127.0.0.1:0"));
 
-    let error = serve_incoming_stream(
-        Err(std::io::Error::other("accept failed")),
-        "/readyz",
-        &StubTokenVerifier,
-        &InMemoryCommandStore::default(),
-        &InMemoryDispatchPort::default(),
-    )
-    .expect_err("incoming error should pass through");
+    let verifier = StubTokenVerifier;
+    let store = InMemoryCommandStore::default();
+    let dispatcher = InMemoryDispatchPort::default();
+    let ctx = scoped_ctx(&verifier, &store, &dispatcher);
+    let error = serve_incoming_stream(Err(std::io::Error::other("accept failed")), &ctx)
+        .expect_err("incoming error should pass through");
 
     assert_eq!(error.kind(), std::io::ErrorKind::Other);
 }

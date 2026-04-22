@@ -19,6 +19,7 @@ const DEFAULT_QUERY_API_PORT: u16 = 18182;
 const DEFAULT_FIRESTORE_PORT: u16 = 18080;
 const DEFAULT_STORAGE_PORT: u16 = 19199;
 const DEFAULT_AUTH_PORT: u16 = 19099;
+const DEFAULT_PUBSUB_PORT: u16 = 18085;
 const DEFAULT_READINESS_PATH: &str = "/readyz";
 const DEFAULT_READY_BUDGET_SECONDS: u64 = 120;
 const DEFAULT_EMULATOR_READY_BUDGET_SECONDS: &str = "300";
@@ -32,6 +33,7 @@ struct ApplicationPorts {
     firestore: u16,
     storage: u16,
     auth: u16,
+    pubsub: u16,
 }
 
 pub struct FeatureRuntime {
@@ -44,8 +46,18 @@ pub struct FeatureRuntime {
     firestore_port: u16,
     storage_port: u16,
     auth_port: u16,
+    #[allow(dead_code)]
+    pubsub_port: u16,
     started_emulators: bool,
     started_command_api: bool,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct FeatureRuntimeOptions {
+    /// When true, export `VOCAS_PRODUCTION_ADAPTERS=true` + the PubSub
+    /// emulator host so the command-api container routes through the
+    /// Firestore / PubSub adapters instead of the in-memory fixtures.
+    pub production_adapters: bool,
 }
 
 pub struct HttpResponse {
@@ -55,6 +67,16 @@ pub struct HttpResponse {
 
 impl FeatureRuntime {
     pub fn start() -> Self {
+        Self::start_with_options(FeatureRuntimeOptions::default())
+    }
+
+    pub fn start_with_production_adapters() -> Self {
+        Self::start_with_options(FeatureRuntimeOptions {
+            production_adapters: true,
+        })
+    }
+
+    pub fn start_with_options(options: FeatureRuntimeOptions) -> Self {
         let lock = feature_test_lock()
             .lock()
             .expect("feature test lock poisoned");
@@ -74,6 +96,7 @@ impl FeatureRuntime {
         let storage_port =
             port_from_env(&firebase_env, "FIREBASE_STORAGE_PORT", DEFAULT_STORAGE_PORT);
         let auth_port = port_from_env(&firebase_env, "FIREBASE_AUTH_PORT", DEFAULT_AUTH_PORT);
+        let pubsub_port = port_from_env(&firebase_env, "FIREBASE_PUBSUB_PORT", DEFAULT_PUBSUB_PORT);
 
         let app_env_file = ensure_application_env_file(&repo_root);
         let app_env = load_env_file(app_env_file.clone());
@@ -103,9 +126,10 @@ impl FeatureRuntime {
             firestore: firestore_port,
             storage: storage_port,
             auth: auth_port,
+            pubsub: pubsub_port,
         };
 
-        let env_file = write_application_smoke_env_file(&repo_root, &app_env_file, &ports);
+        let env_file = write_application_smoke_env_file(&repo_root, &app_env_file, &ports, options);
 
         let mut runtime = Self {
             _lock: lock,
@@ -117,12 +141,17 @@ impl FeatureRuntime {
             firestore_port,
             storage_port,
             auth_port,
+            pubsub_port,
             started_emulators: false,
             started_command_api: false,
         };
 
         if !runtime.should_reuse_running_emulators() {
             runtime.start_emulators();
+        }
+
+        if options.production_adapters {
+            runtime.run_seed();
         }
 
         runtime.remove_stale_command_api_container();
@@ -155,6 +184,10 @@ impl FeatureRuntime {
     ) -> HttpResponse {
         let body = payload.to_string();
         self.request("POST", path, authorization, Some(body.as_str()))
+    }
+
+    pub fn post_raw(&self, path: &str, authorization: Option<&str>, body: &str) -> HttpResponse {
+        self.request("POST", path, authorization, Some(body))
     }
 
     pub fn request(
@@ -199,6 +232,36 @@ impl FeatureRuntime {
             ],
         );
         self.started_emulators = true;
+    }
+
+    fn run_seed(&self) {
+        // `firebase/seed/seed.mjs` provisions actors, fixtures, and PubSub
+        // topics/subscriptions. `production_adapters=true` tests exercise the
+        // Firestore + PubSub adapters, which require the `workflow.*` and
+        // `billing.*` topics to exist before command-api publishes.
+        let seed_script = self
+            .repo_root
+            .join("firebase/seed/seed.mjs");
+        let mut command = Command::new("node");
+        command
+            .arg(path_arg(seed_script))
+            .current_dir(self.repo_root.join("firebase/seed"))
+            .env("FIREBASE_PROJECT", "demo-vocastock")
+            .env("FIREBASE_FIRESTORE_PORT", self.firestore_port.to_string())
+            .env("FIREBASE_STORAGE_PORT", self.storage_port.to_string())
+            .env("FIREBASE_AUTH_PORT", self.auth_port.to_string())
+            .env("FIREBASE_PUBSUB_PORT", self.pubsub_port.to_string());
+        let output = command
+            .output()
+            .unwrap_or_else(|error| panic!("failed to execute node firebase/seed/seed.mjs: {error}"));
+        if !output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            panic!(
+                "firebase seed failed: status={}\nstdout:\n{}\nstderr:\n{}",
+                output.status, stdout, stderr
+            );
+        }
     }
 
     fn remove_stale_command_api_container(&self) {
@@ -399,6 +462,7 @@ fn write_application_smoke_env_file(
     repo_root: &Path,
     base_env_file: &Path,
     ports: &ApplicationPorts,
+    options: FeatureRuntimeOptions,
 ) -> PathBuf {
     let logs_dir = repo_root.join(".artifacts/ci/logs");
     fs::create_dir_all(&logs_dir)
@@ -432,6 +496,7 @@ VOCAS_QUERY_UPSTREAM_BASE_URL=http://query-api:{}
 FIRESTORE_EMULATOR_HOST=host.docker.internal:{}
 STORAGE_EMULATOR_HOST=host.docker.internal:{}
 FIREBASE_AUTH_EMULATOR_HOST=host.docker.internal:{}
+PUBSUB_EMULATOR_HOST=host.docker.internal:{}
 ",
         ports.gateway,
         ports.command,
@@ -440,8 +505,13 @@ FIREBASE_AUTH_EMULATOR_HOST=host.docker.internal:{}
         ports.query,
         ports.firestore,
         ports.storage,
-        ports.auth
+        ports.auth,
+        ports.pubsub,
     ));
+
+    if options.production_adapters {
+        contents.push_str("VOCAS_PRODUCTION_ADAPTERS=true\n");
+    }
 
     fs::write(&env_file, contents)
         .unwrap_or_else(|error| panic!("failed to write {}: {error}", env_file.display()));

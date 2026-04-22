@@ -58,6 +58,25 @@ struct StoreState {
     idempotency_records: BTreeMap<String, StoredIdempotencyRecord>,
 }
 
+/// Port for the register-vocabulary-expression authoritative write
+/// path. Implementations may be backed by in-memory fixtures (unit
+/// tests, local dev) or Firestore (production adapters).
+pub trait CommandStore {
+    fn plan(&self, command: &RegisterVocabularyExpressionCommand) -> StoreDecision;
+    fn commit_new(
+        &self,
+        command: &RegisterVocabularyExpressionCommand,
+        plan: &PlannedNewRegistration,
+        result: &AcceptedCommandResult,
+    );
+    fn commit_reuse(
+        &self,
+        command: &RegisterVocabularyExpressionCommand,
+        plan: &PlannedReuseRegistration,
+        result: &AcceptedCommandResult,
+    );
+}
+
 #[derive(Default)]
 pub struct InMemoryCommandStore {
     state: Mutex<StoreState>,
@@ -182,6 +201,30 @@ impl InMemoryCommandStore {
             .idempotency_records
             .get(scoped_idempotency_key(actor_reference, idempotency_key).as_str())
             .map(|record| record.result.clone())
+    }
+}
+
+impl CommandStore for InMemoryCommandStore {
+    fn plan(&self, command: &RegisterVocabularyExpressionCommand) -> StoreDecision {
+        Self::plan(self, command)
+    }
+
+    fn commit_new(
+        &self,
+        command: &RegisterVocabularyExpressionCommand,
+        plan: &PlannedNewRegistration,
+        result: &AcceptedCommandResult,
+    ) {
+        Self::commit_new(self, command, plan, result)
+    }
+
+    fn commit_reuse(
+        &self,
+        command: &RegisterVocabularyExpressionCommand,
+        plan: &PlannedReuseRegistration,
+        result: &AcceptedCommandResult,
+    ) {
+        Self::commit_reuse(self, command, plan, result)
     }
 }
 
