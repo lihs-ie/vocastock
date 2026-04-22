@@ -39,6 +39,7 @@ specs/NNN-<slug>/         機能ごとの spec.md / plan.md / tasks.md など
 4. **非同期生成は完了結果のみ公開**: `pending` / `running` / `succeeded` / `failed` を区別し、ユーザーへは完了結果のみ表示。生成中や失敗中の本体は表示しない。
 5. **外部依存はポート越し**: AI サービス、画像ストレージ等はドメイン層から直接呼ばず、ポート/アダプタ経由で接続。ベンダー SDK をドメインへ持ち込まない。
 6. **学習概念を混同しない**: 頻出度、知的度、習熟度、登録状態、解説生成状態、画像生成状態を別概念として扱う。UI 文言、API、永続化、分析軸で混同しない。
+7. **production コードにモック/インメモリ実装を置かない**: server binary / worker binary / Flutter release binary の runtime 経路で、in-memory fixture や synthetic token verifier を参照しない。これらの double は Rust / Dart では `tests/support/` 配下、Haskell では test-sublibrary または test-support module に隔離する。production path は必ず real adapter を経由する — query-api / command-api → `FirestoreCatalogProjectionSource` / `FirestoreCommandStore` / `PubSubDispatchPort` / `FirebaseAuthTokenVerifier`、worker → `AnthropicAdapter` / `StabilityAdapter` / `StripePort` / `PubSubClient` / `FirestoreClient`、Flutter → `FerryVocabularyCatalog` / `FerryCompletedDetails` / `FerrySubscriptionState` / `FirebaseActorHandoffController`。env が揃わなければ起動時に panic して早期に fail させる。
 
 ## Naming Constraints (厳守)
 

@@ -62,12 +62,16 @@ API は process 起動だけでは成功とみなさない。worker は外向き
 | `RUST_LOG` | no | API/Worker | log verbosity |
 | `VOCAS_COMMAND_UPSTREAM_BASE_URL` | no | Gateway | internal routing default |
 | `VOCAS_QUERY_UPSTREAM_BASE_URL` | no | Gateway | internal routing default |
-| `PUBSUB_EMULATOR_HOST` | no | Worker | local dependency 接続 |
-| `FIRESTORE_EMULATOR_HOST` | no | API/Worker | local dependency 接続 |
-| `STORAGE_EMULATOR_HOST` | no | API/Worker | local dependency 接続 |
-| `FIREBASE_AUTH_EMULATOR_HOST` | no | API/Worker | local dependency 接続 |
+| `VOCAS_PRODUCTION_ADAPTERS` | yes | API/Worker | production 経路で必須 (`true`/`1`/`yes`)。production binary は in-memory fixture を持たないため、未設定だと起動時に panic する |
+| `PUBSUB_EMULATOR_HOST` | yes | API/Worker | `command-api` と worker の PubSub dispatch 経路で必須。emulator もしくは production PubSub の host:port |
+| `FIRESTORE_EMULATOR_HOST` | yes | API/Worker | すべての Firestore adapter (`FirestoreCommandStore` / `FirestoreMutationCommandStore` / `FirestoreCatalogProjectionSource` / detail reader 群 / `SubscriptionPersistence`) で必須 |
+| `FIREBASE_AUTH_EMULATOR_HOST` | yes | API | `FirebaseAuthTokenVerifier` の REST 宛先 |
+| `STORAGE_EMULATOR_HOST` | yes | Worker | `image-worker` の `AssetStoragePort` で必須 |
+| `ANTHROPIC_API_KEY` | yes | Worker | `explanation-worker` の `AnthropicAdapter` (smoke 時は placeholder でも OK) |
+| `STABILITY_API_KEY` | yes | Worker | `image-worker` の `StabilityAdapter` (smoke 時は placeholder でも OK) |
+| `STRIPE_SECRET_KEY` | yes | Worker | `billing-worker` の `StripePort` (smoke 時は placeholder でも OK) |
 
-secret は committed local default に置かない。
+secret は committed local default に置かない。smoke script (`scripts/ci/run_application_container_smoke.sh`) は sentinel placeholder を自動注入して stable-run を確認する — placeholder で外部 API を実行することはない (smoke で PubSub queue は empty なので pull loop は idle)。
 
 ## Default Port Policy
 
