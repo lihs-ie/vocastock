@@ -141,6 +141,7 @@ impl FeatureRuntime {
         if !runtime.should_reuse_running_emulators() {
             runtime.start_emulators();
         }
+        runtime.seed_emulators();
 
         runtime.remove_stale_query_api_container();
         runtime.start_query_api();
@@ -197,6 +198,16 @@ impl FeatureRuntime {
             ],
         );
         self.started_emulators = true;
+    }
+
+    fn seed_emulators(&self) {
+        run_command(
+            &self.repo_root,
+            "bash",
+            &[path_arg(
+                self.repo_root.join("scripts/firebase/seed_emulators.sh"),
+            )],
+        );
     }
 
     fn remove_stale_query_api_container(&self) {
