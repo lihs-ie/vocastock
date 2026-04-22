@@ -1,13 +1,14 @@
 module Main (main) where
 
-import ExplanationWorker.WorkerRuntime
-  ( WorkerScenario,
-    parseWorkerScenarioLabel,
-    renderScenarioReport,
-    runScenarioReport
-  )
 import Control.Concurrent (threadDelay)
 import Control.Monad (forever)
+import Data.Char (toLower)
+import ExplanationWorker.PullLoop (runPullLoop)
+import ExplanationWorker.RuntimeHttp
+  ( internalHttpEnabled,
+    internalHttpPort,
+    startInternalRuntimeServer
+  )
 import System.Environment (lookupEnv)
 import System.IO
   ( BufferMode (LineBuffering),
@@ -15,14 +16,6 @@ import System.IO
     stderr,
     stdout
   )
-
-import ExplanationWorker.PullLoop (runPullLoop)
-import ExplanationWorker.RuntimeHttp
-  ( internalHttpEnabled,
-    internalHttpPort,
-    startInternalRuntimeServer
-  )
-import Data.Char (toLower)
 
 data WorkerMode
   = StableRunMode
@@ -33,7 +26,6 @@ data WorkerConfig = WorkerConfig
     workerMode :: WorkerMode,
     workerStableRunSeconds :: Int,
     workerPollIntervalSeconds :: Int,
-    workerScenario :: Maybe WorkerScenario,
     workerInternalHttpEnabled :: Bool,
     workerInternalHttpPort :: Int
   }
@@ -50,7 +42,6 @@ loadWorkerConfigFromEnvironment = do
   workerModeValue <- lookupOrDefault "VOCAS_WORKER_RUN_MODE" "stable"
   stableRunEnv <- lookupEnv "VOCAS_WORKER_STABLE_RUN_SECONDS"
   pollIntervalEnv <- lookupEnv "VOCAS_WORKER_POLL_INTERVAL_SECONDS"
-  scenarioValue <- lookupEnv "VOCAS_EXPLANATION_WORKFLOW_SCENARIO"
   internalHttpEnabledValue <- lookupEnv "VOCAS_INTERNAL_HTTP_ENABLED"
   internalHttpPortValue <- lookupEnv "VOCAS_INTERNAL_HTTP_PORT"
   pure
@@ -59,7 +50,6 @@ loadWorkerConfigFromEnvironment = do
         workerMode = parseWorkerMode workerModeValue,
         workerStableRunSeconds = readIntOrDefault stableRunEnv 10,
         workerPollIntervalSeconds = readIntOrDefault pollIntervalEnv 30,
-        workerScenario = scenarioValue >>= parseScenario,
         workerInternalHttpEnabled = internalHttpEnabled internalHttpEnabledValue,
         workerInternalHttpPort = internalHttpPort internalHttpPortValue
       }
@@ -67,7 +57,6 @@ loadWorkerConfigFromEnvironment = do
 workerMain :: WorkerConfig -> IO ()
 workerMain workerConfig = do
   maybeStartInternalHttp workerConfig
-  maybePrintScenario workerConfig
   case workerMode workerConfig of
     ValidateMode -> pure ()
     StableRunMode -> do
@@ -117,15 +106,6 @@ parseWorkerMode workerModeValue =
   case workerModeValue of
     "validate" -> ValidateMode
     _ -> StableRunMode
-
-parseScenario :: String -> Maybe WorkerScenario
-parseScenario = parseWorkerScenarioLabel
-
-maybePrintScenario :: WorkerConfig -> IO ()
-maybePrintScenario workerConfig =
-  case workerScenario workerConfig of
-    Nothing -> pure ()
-    Just scenario -> putStrLn (renderScenarioReport (runScenarioReport scenario))
 
 maybeStartInternalHttp :: WorkerConfig -> IO ()
 maybeStartInternalHttp workerConfig =

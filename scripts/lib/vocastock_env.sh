@@ -265,20 +265,6 @@ vocas_application_smoke_summary_file() {
   printf "%s/.artifacts/ci/logs/application-container-smoke.summary\n" "$(vocas_repo_root)"
 }
 
-vocas_explanation_worker_validation_scenarios() {
-  printf "%s\n" \
-    "success" \
-    "retryable-failure" \
-    "terminal-failure"
-}
-
-vocas_image_worker_validation_scenarios() {
-  printf "%s\n" \
-    "success" \
-    "retryable-failure" \
-    "terminal-failure"
-}
-
 
 vocas_prepare_application_smoke_env_file() {
   local base_env_file="$1"

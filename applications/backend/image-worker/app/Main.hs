@@ -4,12 +4,6 @@ import Control.Concurrent (threadDelay)
 import Control.Monad (forever)
 import Data.Char (toLower)
 import ImageWorker.PullLoop (runPullLoop)
-import ImageWorker.WorkerRuntime
-  ( WorkerScenario,
-    parseWorkerScenarioLabel,
-    renderScenarioReport,
-    runScenarioReport
-  )
 import System.Environment (lookupEnv)
 import System.IO
   ( BufferMode (LineBuffering),
@@ -26,8 +20,7 @@ data WorkerConfig = WorkerConfig
   { workerName :: String,
     workerMode :: WorkerMode,
     workerStableRunSeconds :: Int,
-    workerPollIntervalSeconds :: Int,
-    workerScenario :: Maybe WorkerScenario
+    workerPollIntervalSeconds :: Int
   }
 
 main :: IO ()
@@ -42,19 +35,16 @@ loadWorkerConfigFromEnvironment = do
   workerModeValue <- lookupOrDefault "VOCAS_WORKER_RUN_MODE" "stable"
   stableRunEnv <- lookupEnv "VOCAS_WORKER_STABLE_RUN_SECONDS"
   pollIntervalEnv <- lookupEnv "VOCAS_WORKER_POLL_INTERVAL_SECONDS"
-  scenarioValue <- lookupEnv "VOCAS_IMAGE_WORKFLOW_SCENARIO"
   pure
     WorkerConfig
       { workerName = workerNameValue,
         workerMode = parseWorkerMode workerModeValue,
         workerStableRunSeconds = readIntOrDefault stableRunEnv 10,
-        workerPollIntervalSeconds = readIntOrDefault pollIntervalEnv 30,
-        workerScenario = scenarioValue >>= parseWorkerScenarioLabel
+        workerPollIntervalSeconds = readIntOrDefault pollIntervalEnv 30
       }
 
 workerMain :: WorkerConfig -> IO ()
-workerMain workerConfig = do
-  maybePrintScenario workerConfig
+workerMain workerConfig =
   case workerMode workerConfig of
     ValidateMode -> pure ()
     StableRunMode -> do
@@ -104,9 +94,3 @@ parseWorkerMode workerModeValue =
   case workerModeValue of
     "validate" -> ValidateMode
     _ -> StableRunMode
-
-maybePrintScenario :: WorkerConfig -> IO ()
-maybePrintScenario workerConfig =
-  case workerScenario workerConfig of
-    Nothing -> pure ()
-    Just scenario -> putStrLn (renderScenarioReport (runScenarioReport scenario))
