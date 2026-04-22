@@ -61,17 +61,13 @@ pub struct HttpResponse {
 }
 
 impl FeatureRuntime {
-    pub fn start() -> Self {
-        Self::start_with_options(FeatureRuntimeOptions::default())
-    }
-
     pub fn start_with_production_adapters() -> Self {
         Self::start_with_options(FeatureRuntimeOptions {
             production_adapters: true,
         })
     }
 
-    pub fn start_with_options(options: FeatureRuntimeOptions) -> Self {
+    fn start_with_options(options: FeatureRuntimeOptions) -> Self {
         let lock = feature_test_lock()
             .lock()
             .expect("feature test lock poisoned");

@@ -2,7 +2,7 @@ use crate::support::{assert_contains, assert_not_contains, FeatureRuntime};
 
 #[test]
 fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() {
-    let runtime = FeatureRuntime::start();
+    let runtime = FeatureRuntime::start_with_production_adapters();
 
     let root = runtime.get("/", None);
     assert_eq!(root.status, 200);
@@ -39,7 +39,7 @@ fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() 
         "firebase dependency report",
     );
 
-    let populated = runtime.get("/vocabulary-catalog", Some("Bearer valid-learner-token"));
+    let populated = runtime.get("/vocabulary-catalog", Some("Bearer valid-demo-token"));
     assert_eq!(populated.status, 200);
     assert_contains(
         &populated.body,
@@ -67,7 +67,7 @@ fn vocabulary_catalog_runs_against_dockerized_query_api_and_firebase_emulator() 
         "catalog populated response",
     );
 
-    let empty = runtime.get("/vocabulary-catalog", Some("Bearer valid-empty-token"));
+    let empty = runtime.get("/vocabulary-catalog", Some("Bearer valid-free-token"));
     assert_eq!(empty.status, 200);
     assert_contains(&empty.body, "\"items\":[]", "empty catalog response");
     assert_contains(

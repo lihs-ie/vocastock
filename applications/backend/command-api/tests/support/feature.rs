@@ -9,7 +9,6 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::thread::sleep;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use serde_json::Value;
 
 const COMMAND_API_SERVICE: &str = "command-api";
 const EMULATOR_CONTAINER_NAME: &str = "vocastock-firebase-emulators";
@@ -66,17 +65,13 @@ pub struct HttpResponse {
 }
 
 impl FeatureRuntime {
-    pub fn start() -> Self {
-        Self::start_with_options(FeatureRuntimeOptions::default())
-    }
-
     pub fn start_with_production_adapters() -> Self {
         Self::start_with_options(FeatureRuntimeOptions {
             production_adapters: true,
         })
     }
 
-    pub fn start_with_options(options: FeatureRuntimeOptions) -> Self {
+    fn start_with_options(options: FeatureRuntimeOptions) -> Self {
         let lock = feature_test_lock()
             .lock()
             .expect("feature test lock poisoned");
@@ -160,50 +155,14 @@ impl FeatureRuntime {
         runtime
     }
 
-    pub fn firestore_port(&self) -> u16 {
-        self.firestore_port
-    }
-
-    pub fn storage_port(&self) -> u16 {
-        self.storage_port
-    }
-
-    pub fn auth_port(&self) -> u16 {
-        self.auth_port
-    }
-
-    pub fn get(&self, path: &str, authorization: Option<&str>) -> HttpResponse {
-        self.request("GET", path, authorization, None)
-    }
-
-    pub fn post_json(
-        &self,
-        path: &str,
-        authorization: Option<&str>,
-        payload: &Value,
-    ) -> HttpResponse {
-        let body = payload.to_string();
-        self.request("POST", path, authorization, Some(body.as_str()))
-    }
-
     pub fn post_raw(&self, path: &str, authorization: Option<&str>, body: &str) -> HttpResponse {
-        self.request("POST", path, authorization, Some(body))
-    }
-
-    pub fn request(
-        &self,
-        method: &str,
-        path: &str,
-        authorization: Option<&str>,
-        body: Option<&str>,
-    ) -> HttpResponse {
         http_request(
             "127.0.0.1",
             self.command_port,
-            method,
+            "POST",
             path,
             authorization,
-            body,
+            Some(body),
         )
     }
 
@@ -351,13 +310,6 @@ pub fn assert_contains(haystack: &str, needle: &str, label: &str) {
     assert!(
         haystack.contains(needle),
         "expected {label} to contain {needle}, actual body: {haystack}"
-    );
-}
-
-pub fn assert_not_contains(haystack: &str, needle: &str, label: &str) {
-    assert!(
-        !haystack.contains(needle),
-        "expected {label} to not contain {needle}, actual body: {haystack}"
     );
 }
 

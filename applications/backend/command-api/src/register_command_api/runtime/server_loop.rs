@@ -10,8 +10,7 @@ use crate::http::{
 
 use super::{
     CommandStore, DispatchPort, FirestoreCommandStore, FirestoreMutationCommandStore,
-    InMemoryCommandStore, InMemoryDispatchPort, MutationCommandStore, PubSubDispatchPort,
-    StubTokenVerifier, SERVICE_NAME,
+    MutationCommandStore, PubSubDispatchPort, StubTokenVerifier, SERVICE_NAME,
 };
 
 const DEFAULT_HOST: &str = "0.0.0.0";
@@ -51,56 +50,44 @@ pub fn run_server() {
     println!("{}", startup_message(&config));
 
     let verifier = StubTokenVerifier;
-    let register_store: Box<dyn CommandStore> = match FirestoreCommandStore::from_env() {
-        Some(firestore) => {
-            println!(
-                "{} register store wired to Firestore emulator",
+    let register_store: Box<dyn CommandStore> =
+        Box::new(FirestoreCommandStore::from_env().unwrap_or_else(|| {
+            panic!(
+                "{} requires VOCAS_PRODUCTION_ADAPTERS=true and FIRESTORE_EMULATOR_HOST to be set — in-memory fixtures are test-only",
                 SERVICE_NAME,
-            );
-            Box::new(firestore)
-        }
-        None => {
-            println!(
-                "{} register store using in-memory fixture (set VOCAS_PRODUCTION_ADAPTERS=true + FIRESTORE_EMULATOR_HOST to switch)",
+            )
+        }));
+    println!(
+        "{} register store wired to Firestore emulator",
+        SERVICE_NAME,
+    );
+    let mutation_store: Box<dyn MutationCommandStore> = Box::new(
+        FirestoreMutationCommandStore::from_env().unwrap_or_else(|| {
+            panic!(
+                "{} requires Firestore emulator for mutation endpoints",
                 SERVICE_NAME,
-            );
-            Box::new(InMemoryCommandStore::default())
-        }
-    };
-    let mutation_store: Option<Box<dyn MutationCommandStore>> =
-        FirestoreMutationCommandStore::from_env().map(|s| Box::new(s) as Box<_>);
-    let dispatcher: Box<dyn DispatchPort> = match PubSubDispatchPort::from_env() {
-        Some(pubsub) => {
-            println!("{} dispatcher wired to PubSub emulator", SERVICE_NAME,);
-            Box::new(pubsub)
-        }
-        None => {
-            println!(
-                "{} dispatcher using in-memory fixture (set VOCAS_PRODUCTION_ADAPTERS=true + PUBSUB_EMULATOR_HOST to switch)",
+            )
+        }),
+    );
+    println!(
+        "{} mutation store wired to Firestore emulator",
+        SERVICE_NAME,
+    );
+    let dispatcher: Box<dyn DispatchPort> =
+        Box::new(PubSubDispatchPort::from_env().unwrap_or_else(|| {
+            panic!(
+                "{} requires VOCAS_PRODUCTION_ADAPTERS=true and PUBSUB_EMULATOR_HOST to be set",
                 SERVICE_NAME,
-            );
-            Box::new(InMemoryDispatchPort::default())
-        }
-    };
-
-    if mutation_store.is_some() {
-        println!(
-            "{} mutation store wired to Firestore emulator",
-            SERVICE_NAME,
-        );
-    } else {
-        println!(
-            "{} mutation store unavailable (5 new mutation endpoints will return DOWNSTREAM_UNAVAILABLE)",
-            SERVICE_NAME,
-        );
-    }
+            )
+        }));
+    println!("{} dispatcher wired to PubSub emulator", SERVICE_NAME,);
 
     for stream in listener.incoming() {
         let ctx = RouteContext {
             readiness_path: config.readiness_path.as_str(),
             verifier: &verifier,
             register_store: register_store.as_ref(),
-            mutation_store: mutation_store.as_deref(),
+            mutation_store: Some(mutation_store.as_ref()),
             dispatcher: dispatcher.as_ref(),
         };
         if let Err(error) = serve_incoming_stream(stream, &ctx) {

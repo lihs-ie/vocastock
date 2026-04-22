@@ -35,47 +35,56 @@ fn main() {
 
     let verifier = query_api::StubTokenVerifier;
     let catalog_source: Box<dyn query_api::CatalogProjectionSource> =
-        match query_api::FirestoreCatalogProjectionSource::from_env() {
-            Some(firestore) => {
-                println!(
-                    "{} reading catalog from Firestore emulator (FIRESTORE_EMULATOR_HOST set)",
-                    query_api::SERVICE_NAME,
-                );
-                Box::new(firestore)
-            }
-            None => {
-                println!(
-                    "{} reading catalog from the in-memory fixture (set FIRESTORE_EMULATOR_HOST to switch)",
-                    query_api::SERVICE_NAME,
-                );
-                Box::new(query_api::InMemoryCatalogProjectionSource::default())
-            }
-        };
+        Box::new(query_api::FirestoreCatalogProjectionSource::from_env().unwrap_or_else(|| {
+            panic!(
+                "{} requires VOCAS_PRODUCTION_ADAPTERS=true and FIRESTORE_EMULATOR_HOST to be set — in-memory fixtures are test-only",
+                query_api::SERVICE_NAME,
+            )
+        }));
+    println!(
+        "{} reading catalog from Firestore emulator",
+        query_api::SERVICE_NAME,
+    );
 
-    let vocabulary_expression_detail_source: Option<
-        Box<dyn query_api::VocabularyExpressionDetailSource>,
-    > = query_api::FirestoreVocabularyExpressionDetailSource::from_env()
-        .map(|source| Box::new(source) as Box<_>);
-    let explanation_detail_source: Option<Box<dyn query_api::ExplanationDetailSource>> =
-        query_api::FirestoreExplanationDetailSource::from_env()
-            .map(|source| Box::new(source) as Box<_>);
-    let image_detail_source: Option<Box<dyn query_api::ImageDetailSource>> =
-        query_api::FirestoreImageDetailSource::from_env().map(|source| Box::new(source) as Box<_>);
-    let subscription_status_source: Option<Box<dyn query_api::SubscriptionStatusSource>> =
-        query_api::FirestoreSubscriptionStatusSource::from_env()
-            .map(|source| Box::new(source) as Box<_>);
-
-    if vocabulary_expression_detail_source.is_some() {
-        println!(
-            "{} detail readers wired to Firestore emulator",
-            query_api::SERVICE_NAME,
+    let vocabulary_expression_detail_source: Box<dyn query_api::VocabularyExpressionDetailSource> =
+        Box::new(
+            query_api::FirestoreVocabularyExpressionDetailSource::from_env().unwrap_or_else(
+                || {
+                    panic!(
+                        "{} requires VOCAS_PRODUCTION_ADAPTERS=true and FIRESTORE_EMULATOR_HOST for vocabulary expression detail",
+                        query_api::SERVICE_NAME,
+                    )
+                },
+            ),
         );
-    } else {
-        println!(
-            "{} detail readers unavailable (set VOCAS_PRODUCTION_ADAPTERS=true + FIRESTORE_EMULATOR_HOST to enable)",
-            query_api::SERVICE_NAME,
-        );
-    }
+    let explanation_detail_source: Box<dyn query_api::ExplanationDetailSource> = Box::new(
+        query_api::FirestoreExplanationDetailSource::from_env().unwrap_or_else(|| {
+            panic!(
+                "{} requires Firestore emulator for explanation detail",
+                query_api::SERVICE_NAME,
+            )
+        }),
+    );
+    let image_detail_source: Box<dyn query_api::ImageDetailSource> = Box::new(
+        query_api::FirestoreImageDetailSource::from_env().unwrap_or_else(|| {
+            panic!(
+                "{} requires Firestore emulator for image detail",
+                query_api::SERVICE_NAME,
+            )
+        }),
+    );
+    let subscription_status_source: Box<dyn query_api::SubscriptionStatusSource> = Box::new(
+        query_api::FirestoreSubscriptionStatusSource::from_env().unwrap_or_else(|| {
+            panic!(
+                "{} requires Firestore emulator for subscription status",
+                query_api::SERVICE_NAME,
+            )
+        }),
+    );
+    println!(
+        "{} detail readers wired to Firestore emulator",
+        query_api::SERVICE_NAME,
+    );
 
     for stream in listener.incoming() {
         match stream {
@@ -84,11 +93,12 @@ fn main() {
                     readiness_path: readiness_path.as_str(),
                     verifier: &verifier,
                     catalog_source: catalog_source.as_ref(),
-                    vocabulary_expression_detail_source: vocabulary_expression_detail_source
-                        .as_deref(),
-                    explanation_detail_source: explanation_detail_source.as_deref(),
-                    image_detail_source: image_detail_source.as_deref(),
-                    subscription_status_source: subscription_status_source.as_deref(),
+                    vocabulary_expression_detail_source: Some(
+                        vocabulary_expression_detail_source.as_ref(),
+                    ),
+                    explanation_detail_source: Some(explanation_detail_source.as_ref()),
+                    image_detail_source: Some(image_detail_source.as_ref()),
+                    subscription_status_source: Some(subscription_status_source.as_ref()),
                 };
                 if let Err(error) = handle_connection(stream, &ctx) {
                     eprintln!(
