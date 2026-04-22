@@ -12,8 +12,12 @@
 | Check | Workflow | Runner | Purpose |
 |-------|----------|--------|---------|
 | `toolchain-validate` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | version catalog と CI toolchain の整合確認 |
+| `no-mocks-in-production` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | 憲章 principle #7 の自動ガード。`scripts/ci/verify_no_mock_in_production.sh` が production `src/` / `lib/src/` に in-memory / stub 実装がないか検査 |
 | `flutter-static-checks` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | `flutter doctor`、`dart analyze`、`flutter test` |
 | `emulator-smoke` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | Dockerized Firebase emulator の起動確認 |
+| `application-container-smoke` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | backend 6 コンテナの起動と real adapter 経路 smoke |
+| `rust-quality` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | Rust workspace の `fmt` / `clippy` / unit / feature 全通し |
+| `haskell-quality` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | Haskell worker 3 本の `cabal build` + unit test |
 | `android-build-smoke` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | Android build の最小確認 |
 | `vulnerability-scan` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | `MEDIUM/HIGH/CRITICAL` 脆弱性 block |
 | `ci-runtime-budget` | [ci.yml](/Users/lihs/workspace/vocastock/.github/workflows/ci.yml) | `ubuntu-24.04` | Linux CI aggregate が `30 分` 以内か検証 |
