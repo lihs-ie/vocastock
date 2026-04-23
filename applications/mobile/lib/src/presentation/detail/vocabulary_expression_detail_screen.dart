@@ -62,10 +62,11 @@ class VocabularyExpressionDetailScreen extends ConsumerWidget {
                 ),
                 onRequestImage: () => unawaited(_requestImage(context, ref)),
                 onRetryExplanation: () => unawaited(
-                  _retry(ref, GenerationTargetKind.explanation),
+                  _retry(context, ref, GenerationTargetKind.explanation),
                 ),
-                onRetryImage: () =>
-                    unawaited(_retry(ref, GenerationTargetKind.image)),
+                onRetryImage: () => unawaited(
+                  _retry(context, ref, GenerationTargetKind.image),
+                ),
                 onBack: () => context.go(AppRoutes.catalog),
               ),
       ),
@@ -95,7 +96,31 @@ class VocabularyExpressionDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _retry(WidgetRef ref, GenerationTargetKind target) async {
+  Future<void> _retry(
+    BuildContext context,
+    WidgetRef ref,
+    GenerationTargetKind target,
+  ) async {
+    final gate = ref.read(subscriptionFeatureGateProvider);
+    final status = ref.read(subscriptionStatusStreamProvider).value;
+    if (status != null) {
+      final featureKey = target == GenerationTargetKind.explanation
+          ? FeatureKey.explanationGeneration
+          : FeatureKey.imageGeneration;
+      final decision = gate.evaluate(
+        feature: featureKey,
+        state: status.state,
+        plan: status.plan.tier,
+      );
+      final canGenerate = target == GenerationTargetKind.explanation
+          ? status.allowance.canGenerateExplanation
+          : status.allowance.canGenerateImage;
+      if (decision is FeatureGateLimited && !canGenerate) {
+        if (!context.mounted) return;
+        context.go(AppRoutes.paywall);
+        return;
+      }
+    }
     final command = ref.read(retryGenerationCommandProvider);
     final response = await command.retry(
       vocabularyExpression: identifier,
