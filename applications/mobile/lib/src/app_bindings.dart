@@ -22,7 +22,9 @@ import 'domain/subscription/subscription_status_view.dart';
 import 'domain/visual/visual_image_detail.dart';
 import 'domain/vocabulary/vocabulary_expression_entry.dart';
 import 'infrastructure/firebase/firebase_actor_handoff_controller.dart';
+import 'infrastructure/firebase/firebase_auth_service.dart';
 import 'infrastructure/firebase/firebase_auth_token_supplier.dart';
+import 'infrastructure/graphql/adapters/ferry_actor_resolver.dart';
 import 'infrastructure/graphql/adapters/ferry_completed_details.dart';
 import 'infrastructure/graphql/adapters/ferry_learning_state.dart';
 import 'infrastructure/graphql/adapters/ferry_subscription.dart';
@@ -37,9 +39,23 @@ import 'infrastructure/graphql/graphql_client.dart';
 /// the stubs live under `test/support/stubs/` and never link into the
 /// release binary (spec 024 plan.md dependency rules).
 
+final firebaseAuthServiceProvider = Provider<FirebaseAuthService>((ref) {
+  return FirebaseAuthService();
+});
+
+final ferryActorHandoffAdapterProvider =
+    Provider<FerryActorHandoffAdapter>((ref) {
+  return FerryActorHandoffAdapter(client: ref.watch(graphqlClientProvider));
+});
+
 final firebaseActorHandoffControllerProvider =
     Provider<FirebaseActorHandoffController>((ref) {
-  final controller = FirebaseActorHandoffController();
+  final adapter = ref.watch(ferryActorHandoffAdapterProvider);
+  final controller = FirebaseActorHandoffController(
+    authService: ref.watch(firebaseAuthServiceProvider),
+    tokenVerifier: adapter,
+    actorResolver: adapter,
+  );
   ref.onDispose(controller.dispose);
   return controller;
 });
