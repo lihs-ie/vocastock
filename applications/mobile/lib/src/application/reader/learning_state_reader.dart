@@ -3,21 +3,10 @@ import '../../domain/status/proficiency_level.dart';
 
 /// Reads the learner's proficiency assignment for a VocabularyExpression.
 ///
-/// Real implementation depends on spec 005 LearningState aggregate once it
-/// is exposed through the GraphQL gateway. Until then the production
-/// binding returns [NullLearningStateReader], which reports no proficiency
-/// for every entry so the Proficiency screen renders an empty bucket
-/// instead of fabricated categories.
+/// The production binding uses `FerryLearningStateReader` which pre-loads
+/// all learning states via the `learningStates` batch query and serves
+/// `proficiencyFor` from cache. Test doubles live under
+/// `test/support/stubs/stub_learning_state_reader.dart`.
 abstract class LearningStateReader {
   ProficiencyLevel? proficiencyFor(VocabularyExpressionIdentifier identifier);
-}
-
-class NullLearningStateReader implements LearningStateReader {
-  const NullLearningStateReader();
-
-  @override
-  ProficiencyLevel? proficiencyFor(
-    VocabularyExpressionIdentifier identifier,
-  ) =>
-      null;
 }
