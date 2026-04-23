@@ -24,6 +24,7 @@ import 'domain/vocabulary/vocabulary_expression_entry.dart';
 import 'infrastructure/firebase/firebase_actor_handoff_controller.dart';
 import 'infrastructure/firebase/firebase_auth_token_supplier.dart';
 import 'infrastructure/graphql/adapters/ferry_completed_details.dart';
+import 'infrastructure/graphql/adapters/ferry_learning_state.dart';
 import 'infrastructure/graphql/adapters/ferry_subscription.dart';
 import 'infrastructure/graphql/adapters/ferry_vocabulary_catalog.dart';
 import 'infrastructure/graphql/graphql_client.dart';
@@ -83,13 +84,19 @@ final subscriptionFeatureGateProvider = Provider<SubscriptionFeatureGate>((ref) 
   return const SubscriptionFeatureGate();
 });
 
-/// Learning state reader — returns a null object across the production
-/// binding because spec 005 `LearningState` aggregate is not yet exposed
-/// through the GraphQL gateway. The proficiency screen renders the
-/// "未分類" bucket when no level is reported.
-final learningStateReaderProvider = Provider<LearningStateReader>((ref) {
-  return const NullLearningStateReader();
+/// Learning state reader backed by the `learningStates` batch query.
+/// [FerryLearningStateReader.load] populates the synchronous cache on
+/// first access; subsequent [proficiencyFor] calls return from cache.
+final ferryLearningStateReaderProvider =
+    Provider<FerryLearningStateReader>((ref) {
+  return FerryLearningStateReader(
+    client: ref.watch(graphqlClientProvider),
+  );
 });
+
+final learningStateReaderProvider = Provider<LearningStateReader>(
+  (ref) => ref.watch(ferryLearningStateReaderProvider),
+);
 
 final ferryVocabularyCatalogProvider =
     Provider<FerryVocabularyCatalog>((ref) {

@@ -51,6 +51,10 @@ Serializers _$serializers =
           ..add(GLearningStateQueryData_learningState.serializer)
           ..add(GLearningStateQueryReq.serializer)
           ..add(GLearningStateQueryVars.serializer)
+          ..add(GLearningStatesQueryData.serializer)
+          ..add(GLearningStatesQueryData_learningStates.serializer)
+          ..add(GLearningStatesQueryReq.serializer)
+          ..add(GLearningStatesQueryVars.serializer)
           ..add(GPlanCode.serializer)
           ..add(GProficiencyLevel.serializer)
           ..add(GRegisterVocabularyExpressionInput.serializer)
@@ -182,6 +186,12 @@ Serializers _$serializers =
                 ListBuilder<
                   GExplanationDetailQueryData_explanationDetail_senses
                 >(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltList, const [
+              const FullType(GLearningStatesQueryData_learningStates),
+            ]),
+            () => ListBuilder<GLearningStatesQueryData_learningStates>(),
           )
           ..addBuilderFactory(
             const FullType(BuiltList, const [

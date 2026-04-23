@@ -81,6 +81,12 @@ import 'package:vocastock_mobile/src/infrastructure/graphql/operations/__generat
     show GExplanationDetailQueryReq, GImageDetailQueryReq;
 import 'package:vocastock_mobile/src/infrastructure/graphql/operations/__generated__/completed_details.var.gql.dart'
     show GExplanationDetailQueryVars, GImageDetailQueryVars;
+import 'package:vocastock_mobile/src/infrastructure/graphql/operations/__generated__/learning_state.data.gql.dart'
+    show GLearningStatesQueryData, GLearningStatesQueryData_learningStates;
+import 'package:vocastock_mobile/src/infrastructure/graphql/operations/__generated__/learning_state.req.gql.dart'
+    show GLearningStatesQueryReq;
+import 'package:vocastock_mobile/src/infrastructure/graphql/operations/__generated__/learning_state.var.gql.dart'
+    show GLearningStatesQueryVars;
 import 'package:vocastock_mobile/src/infrastructure/graphql/operations/__generated__/subscription.data.gql.dart'
     show
         GRequestPurchaseMutationData,
@@ -150,6 +156,10 @@ final SerializersBuilder _serializersBuilder = _$serializers.toBuilder()
   GLearningStateQueryData_learningState,
   GLearningStateQueryReq,
   GLearningStateQueryVars,
+  GLearningStatesQueryData,
+  GLearningStatesQueryData_learningStates,
+  GLearningStatesQueryReq,
+  GLearningStatesQueryVars,
   GPlanCode,
   GProficiencyLevel,
   GRegisterVocabularyExpressionInput,

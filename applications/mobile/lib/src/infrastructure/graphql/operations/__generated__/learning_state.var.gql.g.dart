@@ -8,6 +8,8 @@ part of 'learning_state.var.gql.dart';
 
 Serializer<GLearningStateQueryVars> _$gLearningStateQueryVarsSerializer =
     _$GLearningStateQueryVarsSerializer();
+Serializer<GLearningStatesQueryVars> _$gLearningStatesQueryVarsSerializer =
+    _$GLearningStatesQueryVarsSerializer();
 
 class _$GLearningStateQueryVarsSerializer
     implements StructuredSerializer<GLearningStateQueryVars> {
@@ -62,6 +64,35 @@ class _$GLearningStateQueryVarsSerializer
     }
 
     return result.build();
+  }
+}
+
+class _$GLearningStatesQueryVarsSerializer
+    implements StructuredSerializer<GLearningStatesQueryVars> {
+  @override
+  final Iterable<Type> types = const [
+    GLearningStatesQueryVars,
+    _$GLearningStatesQueryVars,
+  ];
+  @override
+  final String wireName = 'GLearningStatesQueryVars';
+
+  @override
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    GLearningStatesQueryVars object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return <Object?>[];
+  }
+
+  @override
+  GLearningStatesQueryVars deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return GLearningStatesQueryVarsBuilder().build();
   }
 }
 
@@ -148,6 +179,65 @@ class GLearningStateQueryVarsBuilder
             'identifier',
           ),
         );
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$GLearningStatesQueryVars extends GLearningStatesQueryVars {
+  factory _$GLearningStatesQueryVars([
+    void Function(GLearningStatesQueryVarsBuilder)? updates,
+  ]) => (GLearningStatesQueryVarsBuilder()..update(updates))._build();
+
+  _$GLearningStatesQueryVars._() : super._();
+  @override
+  GLearningStatesQueryVars rebuild(
+    void Function(GLearningStatesQueryVarsBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
+
+  @override
+  GLearningStatesQueryVarsBuilder toBuilder() =>
+      GLearningStatesQueryVarsBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is GLearningStatesQueryVars;
+  }
+
+  @override
+  int get hashCode {
+    return 827205671;
+  }
+
+  @override
+  String toString() {
+    return newBuiltValueToStringHelper(r'GLearningStatesQueryVars').toString();
+  }
+}
+
+class GLearningStatesQueryVarsBuilder
+    implements
+        Builder<GLearningStatesQueryVars, GLearningStatesQueryVarsBuilder> {
+  _$GLearningStatesQueryVars? _$v;
+
+  GLearningStatesQueryVarsBuilder();
+
+  @override
+  void replace(GLearningStatesQueryVars other) {
+    _$v = other as _$GLearningStatesQueryVars;
+  }
+
+  @override
+  void update(void Function(GLearningStatesQueryVarsBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  GLearningStatesQueryVars build() => _build();
+
+  _$GLearningStatesQueryVars _build() {
+    final _$result = _$v ?? _$GLearningStatesQueryVars._();
     replace(_$result);
     return _$result;
   }

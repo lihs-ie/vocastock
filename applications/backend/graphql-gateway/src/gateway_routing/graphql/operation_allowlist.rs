@@ -4,9 +4,9 @@ use command_api::{
     RETRY_GENERATION_PATH, SERVICE_NAME as COMMAND_API_SERVICE_NAME,
 };
 use query_api::{
-    ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH, IMAGE_DETAIL_PATH, LEARNING_STATE_PATH,
-    SERVICE_NAME as QUERY_API_SERVICE_NAME, SUBSCRIPTION_STATUS_PATH, VOCABULARY_CATALOG_PATH,
-    VOCABULARY_EXPRESSION_DETAIL_PATH,
+    ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH, IMAGE_DETAIL_PATH, LEARNING_STATES_PATH,
+    LEARNING_STATE_PATH, SERVICE_NAME as QUERY_API_SERVICE_NAME, SUBSCRIPTION_STATUS_PATH,
+    VOCABULARY_CATALOG_PATH, VOCABULARY_EXPRESSION_DETAIL_PATH,
 };
 
 use super::{failure_envelope::GatewayFailure, public_request::UnifiedGraphqlRequestEnvelope};
@@ -19,6 +19,7 @@ pub const IMAGE_DETAIL_OPERATION: &str = "imageDetail";
 pub const SUBSCRIPTION_STATUS_OPERATION: &str = "subscriptionStatus";
 pub const ACTOR_HANDOFF_STATUS_OPERATION: &str = "actorHandoffStatus";
 pub const LEARNING_STATE_OPERATION: &str = "learningState";
+pub const LEARNING_STATES_OPERATION: &str = "learningStates";
 pub const REQUEST_EXPLANATION_GENERATION_OPERATION: &str = "requestExplanationGeneration";
 pub const REQUEST_IMAGE_GENERATION_OPERATION: &str = "requestImageGeneration";
 pub const RETRY_GENERATION_OPERATION: &str = "retryGeneration";
@@ -125,6 +126,9 @@ pub fn allowlisted_operation(
         )),
         (GraphqlOperationKind::Query, LEARNING_STATE_OPERATION) => {
             Ok(query(LEARNING_STATE_OPERATION, LEARNING_STATE_PATH))
+        }
+        (GraphqlOperationKind::Query, LEARNING_STATES_OPERATION) => {
+            Ok(query(LEARNING_STATES_OPERATION, LEARNING_STATES_PATH))
         }
         _ => Err(GatewayFailure::unsupported_operation()),
     }

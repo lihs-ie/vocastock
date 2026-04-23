@@ -32,3 +32,27 @@ abstract class GLearningStateQueryVars
         json,
       );
 }
+
+abstract class GLearningStatesQueryVars
+    implements
+        Built<GLearningStatesQueryVars, GLearningStatesQueryVarsBuilder> {
+  GLearningStatesQueryVars._();
+
+  factory GLearningStatesQueryVars(
+          [void Function(GLearningStatesQueryVarsBuilder b) updates]) =
+      _$GLearningStatesQueryVars;
+
+  static Serializer<GLearningStatesQueryVars> get serializer =>
+      _$gLearningStatesQueryVarsSerializer;
+
+  Map<String, dynamic> toJson() => (_i1.serializers.serializeWith(
+        GLearningStatesQueryVars.serializer,
+        this,
+      ) as Map<String, dynamic>);
+
+  static GLearningStatesQueryVars? fromJson(Map<String, dynamic> json) =>
+      _i1.serializers.deserializeWith(
+        GLearningStatesQueryVars.serializer,
+        json,
+      );
+}

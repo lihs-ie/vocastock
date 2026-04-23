@@ -265,6 +265,7 @@ type Query {
   subscriptionStatus: SubscriptionStatusView!
   actorHandoffStatus: ActorHandoffStatus!
   learningState(identifier: ID!): LearningState
+  learningStates: [LearningState!]!
 }
 
 type Mutation {

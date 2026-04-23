@@ -4,3 +4,10 @@ query LearningStateQuery($identifier: ID!) {
     proficiency
   }
 }
+
+query LearningStatesQuery {
+  learningStates {
+    vocabularyExpression
+    proficiency
+  }
+}
