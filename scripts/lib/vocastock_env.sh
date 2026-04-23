@@ -32,6 +32,11 @@ VOCAS_APPLICATION_WORKER_STABLE_RUN_SECONDS="10"
 VOCAS_APPLICATION_WORKER_POLL_INTERVAL_SECONDS="30"
 VOCAS_RUST_QUALITY_NAMESPACE="rust-quality"
 VOCAS_RUST_QUALITY_BUDGET_SECONDS="1800"
+VOCAS_E2E_ROUND_TRIP_NAMESPACE="e2e-round-trip-smoke"
+VOCAS_E2E_ROUND_TRIP_BUDGET_SECONDS="550"
+VOCAS_E2E_POLL_INTERVAL_SECONDS="2"
+VOCAS_E2E_POLL_MAX_RETRIES="60"
+VOCAS_E2E_STATUS_ONLY_WINDOW_SECONDS="5"
 VOCAS_DEFAULT_GRAPHQL_GATEWAY_PORT="18180"
 VOCAS_DEFAULT_COMMAND_API_PORT="18181"
 VOCAS_DEFAULT_QUERY_API_PORT="18182"
@@ -263,6 +268,54 @@ vocas_application_smoke_env_file() {
 
 vocas_application_smoke_summary_file() {
   printf "%s/.artifacts/ci/logs/application-container-smoke.summary\n" "$(vocas_repo_root)"
+}
+
+vocas_e2e_round_trip_summary_file() {
+  printf "%s/.artifacts/ci/logs/%s.summary\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_E2E_ROUND_TRIP_NAMESPACE"
+}
+
+vocas_e2e_round_trip_stage_file() {
+  printf "%s/.artifacts/ci/logs/%s.stage\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_E2E_ROUND_TRIP_NAMESPACE"
+}
+
+vocas_e2e_round_trip_compose_logs_file() {
+  printf "%s/.artifacts/ci/logs/%s.compose-logs.txt\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_E2E_ROUND_TRIP_NAMESPACE"
+}
+
+vocas_e2e_round_trip_firestore_snapshot_file() {
+  printf "%s/.artifacts/ci/logs/%s.firestore-snapshot.json\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_E2E_ROUND_TRIP_NAMESPACE"
+}
+
+vocas_e2e_round_trip_pubsub_state_file() {
+  printf "%s/.artifacts/ci/logs/%s.pubsub-state.txt\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_E2E_ROUND_TRIP_NAMESPACE"
+}
+
+vocas_e2e_round_trip_stub_access_log_file() {
+  printf "%s/.artifacts/ci/logs/%s.stub-access.log\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_E2E_ROUND_TRIP_NAMESPACE"
+}
+
+vocas_e2e_round_trip_stub_server_log_file() {
+  printf "%s/.artifacts/ci/logs/%s.stub-server.log\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_E2E_ROUND_TRIP_NAMESPACE"
+}
+
+vocas_e2e_round_trip_env_file() {
+  printf "%s/.artifacts/ci/logs/%s.env\n" \
+    "$(vocas_repo_root)" \
+    "$VOCAS_E2E_ROUND_TRIP_NAMESPACE"
 }
 
 

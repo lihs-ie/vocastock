@@ -97,6 +97,22 @@ jobs:
           path: .artifacts/ci
           if-no-files-found: ignore
 
+  e2e-round-trip-smoke:
+    name: e2e-round-trip-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    needs: toolchain-validate
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run E2E command -> worker -> query round-trip smoke
+        run: bash scripts/ci/run_e2e_round_trip_smoke.sh
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ success() || failure() }}
+        with:
+          name: ci-metrics-e2e-round-trip-smoke
+          path: .artifacts/ci
+          if-no-files-found: ignore
+
   rust-quality:
     name: rust-quality
     runs-on: ubuntu-24.04
@@ -219,6 +235,7 @@ jobs:
       - flutter-static-checks
       - emulator-smoke
       - application-container-smoke
+      - e2e-round-trip-smoke
       - no-mocks-in-production
       - rust-quality
       - haskell-quality
