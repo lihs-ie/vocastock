@@ -47,6 +47,36 @@ impl LearningStateSource for FirestoreLearningStateSource {
         let payload: serde_json::Value = serde_json::from_str(&body).ok()?;
         parse_learning_state_document(&payload)
     }
+
+    fn all_records_for(&self, actor_context: &VerifiedActorContext) -> Vec<LearningStateRecord> {
+        let path = format!(
+            "/v1/projects/{}/databases/(default)/documents/actors/{}/learningStates",
+            self.project_id,
+            percent_encode_path(actor_context.actor().as_str()),
+        );
+        let body = match shared_firestore::execute_get(&self.emulator_host, &path) {
+            Ok(body) => body,
+            Err(_) => return Vec::new(),
+        };
+        let payload: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(value) => value,
+            Err(_) => return Vec::new(),
+        };
+        parse_learning_state_collection(&payload)
+    }
+}
+
+pub fn parse_learning_state_collection(payload: &serde_json::Value) -> Vec<LearningStateRecord> {
+    payload
+        .get("documents")
+        .and_then(|documents| documents.as_array())
+        .map(|documents| {
+            documents
+                .iter()
+                .filter_map(parse_learning_state_document)
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 pub fn parse_learning_state_document(payload: &serde_json::Value) -> Option<LearningStateRecord> {

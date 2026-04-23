@@ -129,3 +129,4 @@ dist-newstyle/
 docker/applications/env/.env
 docker/applications/env/.env.local
 docker/applications/*.override.yaml
+.claude/settings.local.json

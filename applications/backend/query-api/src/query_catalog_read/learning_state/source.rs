@@ -14,4 +14,6 @@ pub trait LearningStateSource {
         actor_context: &VerifiedActorContext,
         vocabulary_expression: &str,
     ) -> Option<LearningStateRecord>;
+
+    fn all_records_for(&self, actor_context: &VerifiedActorContext) -> Vec<LearningStateRecord>;
 }

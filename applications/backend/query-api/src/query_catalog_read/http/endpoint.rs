@@ -5,7 +5,8 @@ use serde::Serialize;
 use shared_auth::TokenVerificationPort;
 
 use crate::{
-    read_actor_handoff_status_from_authorization_header, read_catalog_from_authorization_header,
+    read_actor_handoff_status_from_authorization_header,
+    read_all_learning_states_from_authorization_header, read_catalog_from_authorization_header,
     read_explanation_detail_from_authorization_header, read_image_detail_from_authorization_header,
     read_learning_state_from_authorization_header,
     read_subscription_status_from_authorization_header,
@@ -14,8 +15,8 @@ use crate::{
     ImageDetailError, ImageDetailSource, LearningStateError, LearningStateSource,
     SubscriptionStatusError, SubscriptionStatusSource, VocabularyExpressionDetailError,
     VocabularyExpressionDetailSource, ACTOR_HANDOFF_STATUS_PATH, EXPLANATION_DETAIL_PATH,
-    IMAGE_DETAIL_PATH, LEARNING_STATE_PATH, ROOT_MESSAGE, SERVICE_NAME, SUBSCRIPTION_STATUS_PATH,
-    VOCABULARY_CATALOG_PATH, VOCABULARY_EXPRESSION_DETAIL_PATH,
+    IMAGE_DETAIL_PATH, LEARNING_STATES_PATH, LEARNING_STATE_PATH, ROOT_MESSAGE, SERVICE_NAME,
+    SUBSCRIPTION_STATUS_PATH, VOCABULARY_CATALOG_PATH, VOCABULARY_EXPRESSION_DETAIL_PATH,
 };
 
 const FIREBASE_DEPENDENCIES_PATH: &str = "/dependencies/firebase";
@@ -95,6 +96,7 @@ pub fn route_request(request: &Request, ctx: &RouteContext<'_>) -> RenderedRespo
         ("GET", IMAGE_DETAIL_PATH) => image_detail_response(request, query, ctx),
         ("GET", SUBSCRIPTION_STATUS_PATH) => subscription_status_response(request, ctx),
         ("GET", LEARNING_STATE_PATH) => learning_state_response(request, query, ctx),
+        ("GET", LEARNING_STATES_PATH) => learning_states_list_response(request, ctx),
         ("GET", ACTOR_HANDOFF_STATUS_PATH) => actor_handoff_status_response(request, ctx),
         (
             "POST" | "PUT" | "PATCH" | "DELETE",
@@ -104,6 +106,7 @@ pub fn route_request(request: &Request, ctx: &RouteContext<'_>) -> RenderedRespo
             | IMAGE_DETAIL_PATH
             | SUBSCRIPTION_STATUS_PATH
             | LEARNING_STATE_PATH
+            | LEARNING_STATES_PATH
             | ACTOR_HANDOFF_STATUS_PATH,
         ) => json_response(
             "405 Method Not Allowed",
@@ -277,6 +280,27 @@ fn learning_state_response(
     ) {
         Ok(Some(view)) => json_response("200 OK", &view),
         Ok(None) => detail_not_found_response(),
+        Err(error) => json_response(
+            learning_state_error_status(&error),
+            &ErrorResponse {
+                message: learning_state_error_message(&error),
+            },
+        ),
+    }
+}
+
+fn learning_states_list_response(request: &Request, ctx: &RouteContext<'_>) -> RenderedResponse {
+    let Some(source) = ctx.learning_state_source else {
+        return detail_source_unavailable();
+    };
+    let authorization_header = request.headers.get("authorization").map(String::as_str);
+
+    match read_all_learning_states_from_authorization_header(
+        authorization_header,
+        ctx.verifier,
+        source,
+    ) {
+        Ok(views) => json_response("200 OK", &views),
         Err(error) => json_response(
             learning_state_error_status(&error),
             &ErrorResponse {

@@ -6,4 +6,5 @@ pub const IMAGE_DETAIL_PATH: &str = "/image-detail";
 pub const SUBSCRIPTION_STATUS_PATH: &str = "/subscription-status";
 pub const ACTOR_HANDOFF_STATUS_PATH: &str = "/actor-handoff-status";
 pub const LEARNING_STATE_PATH: &str = "/learning-state";
+pub const LEARNING_STATES_PATH: &str = "/learning-states";
 pub const ROOT_MESSAGE: &str = "query-api returns completed summaries or status-only catalog items";

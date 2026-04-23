@@ -229,6 +229,15 @@ impl LearningStateSource for LearningStateTestSource {
             ))
             .cloned()
     }
+
+    fn all_records_for(&self, actor_context: &VerifiedActorContext) -> Vec<LearningStateRecord> {
+        let actor = actor_context.actor().as_str();
+        self.records
+            .iter()
+            .filter(|((a, _), _)| a == actor)
+            .map(|(_, record)| record.clone())
+            .collect()
+    }
 }
 
 pub fn sample_learning_state_record() -> LearningStateRecord {

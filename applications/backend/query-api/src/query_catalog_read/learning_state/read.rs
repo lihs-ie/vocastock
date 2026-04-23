@@ -39,6 +39,50 @@ pub fn read_learning_state(
     }))
 }
 
+pub fn read_all_learning_states(
+    actor_context: &VerifiedActorContext,
+    source: &dyn LearningStateSource,
+) -> Result<Vec<LearningStateView>, LearningStateError> {
+    if !actor_context.is_active() {
+        return Err(LearningStateError::ReauthRequired);
+    }
+
+    let records = source.all_records_for(actor_context);
+    let views = records
+        .into_iter()
+        .filter_map(|record| {
+            let proficiency = ProficiencyLevel::parse(&record.proficiency)?;
+            Some(LearningStateView {
+                vocabulary_expression: record.vocabulary_expression,
+                proficiency,
+                created_at: record.created_at,
+                updated_at: record.updated_at,
+            })
+        })
+        .collect();
+
+    Ok(views)
+}
+
+pub fn read_all_learning_states_from_authorization_header(
+    authorization_header: Option<&str>,
+    verifier: &(impl TokenVerificationPort + ?Sized),
+    source: &dyn LearningStateSource,
+) -> Result<Vec<LearningStateView>, LearningStateError> {
+    let bearer_token = extract_bearer_token(authorization_header).map_err(|error| match error {
+        shared_auth::TokenVerificationError::MissingToken => LearningStateError::MissingToken,
+        shared_auth::TokenVerificationError::InvalidToken => LearningStateError::InvalidToken,
+        shared_auth::TokenVerificationError::ReauthRequired => LearningStateError::ReauthRequired,
+    })?;
+    let actor_context = verifier.verify(bearer_token).map_err(|error| match error {
+        shared_auth::TokenVerificationError::MissingToken => LearningStateError::MissingToken,
+        shared_auth::TokenVerificationError::InvalidToken => LearningStateError::InvalidToken,
+        shared_auth::TokenVerificationError::ReauthRequired => LearningStateError::ReauthRequired,
+    })?;
+
+    read_all_learning_states(&actor_context, source)
+}
+
 pub fn read_learning_state_from_authorization_header(
     authorization_header: Option<&str>,
     vocabulary_expression: Option<&str>,
