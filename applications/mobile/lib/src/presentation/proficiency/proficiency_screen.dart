@@ -20,17 +20,20 @@ class ProficiencyScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cacheState = ref.watch(learningStateCacheProvider);
     final catalogAsync = ref.watch(vocabularyCatalogStreamProvider);
     final catalog = catalogAsync.value ??
         VocabularyCatalog(const <VocabularyExpressionEntry>[]);
-    final learningState = ref.watch(learningStateReaderProvider);
+    final learningState = cacheState.hasValue
+        ? ref.watch(learningStateReaderProvider)
+        : null;
     final theme = Theme.of(context);
 
     final byLevel = <ProficiencyLevel, List<VocabularyExpressionEntry>>{
       for (final level in ProficiencyLevel.values) level: <VocabularyExpressionEntry>[],
     };
     for (final entry in catalog.entries) {
-      final level = learningState.proficiencyFor(entry.identifier);
+      final level = learningState?.proficiencyFor(entry.identifier);
       if (level == null) continue;
       byLevel[level]!.add(entry);
     }

@@ -98,6 +98,16 @@ final learningStateReaderProvider = Provider<LearningStateReader>(
   (ref) => ref.watch(ferryLearningStateReaderProvider),
 );
 
+/// Triggers [FerryLearningStateReader.load] exactly once so the
+/// synchronous cache is populated before the Proficiency screen
+/// iterates over catalog entries. Screens that need learning-state
+/// data should `ref.watch(learningStateCacheProvider)` and handle the
+/// loading / error states before reading [learningStateReaderProvider].
+final learningStateCacheProvider = FutureProvider<void>((ref) async {
+  final reader = ref.watch(ferryLearningStateReaderProvider);
+  await reader.load();
+});
+
 final ferryVocabularyCatalogProvider =
     Provider<FerryVocabularyCatalog>((ref) {
   final catalog = FerryVocabularyCatalog(

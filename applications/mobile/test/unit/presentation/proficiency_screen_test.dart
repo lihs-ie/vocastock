@@ -43,6 +43,8 @@ void main() {
             requestRestorePurchaseCommandProvider.overrideWithValue(subscription),
             learningStateReaderProvider
                 .overrideWithValue(const StubLearningStateReader()),
+            learningStateCacheProvider
+                .overrideWith((ref) => Future<void>.value()),
           ],
           child: const VocastockApp(),
         ),
@@ -88,6 +90,8 @@ void main() {
             requestRestorePurchaseCommandProvider.overrideWithValue(subscription),
             learningStateReaderProvider
                 .overrideWithValue(const StubLearningStateReader()),
+            learningStateCacheProvider
+                .overrideWith((ref) => Future<void>.value()),
           ],
           child: const VocastockApp(),
         ),
