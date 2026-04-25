@@ -31,6 +31,7 @@ pub struct DispatchRequest {
     pub kind: DispatchKind,
     pub retry_target: Option<String>,
     pub plan_code: Option<String>,
+    pub sense_identifier: Option<String>,
 }
 
 impl DispatchRequest {
@@ -50,6 +51,7 @@ impl DispatchRequest {
             kind: DispatchKind::ExplanationGeneration,
             retry_target: None,
             plan_code: None,
+            sense_identifier: None,
         }
     }
 
@@ -65,6 +67,11 @@ impl DispatchRequest {
 
     pub fn with_plan_code(mut self, plan_code: impl Into<String>) -> Self {
         self.plan_code = Some(plan_code.into());
+        self
+    }
+
+    pub fn with_sense_identifier(mut self, sense: impl Into<String>) -> Self {
+        self.sense_identifier = Some(sense.into());
         self
     }
 }

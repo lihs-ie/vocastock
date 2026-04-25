@@ -82,6 +82,9 @@ pub fn build_dispatch_message(request: &DispatchRequest) -> PubSubMessage {
     if let Some(plan_code) = request.plan_code.as_ref() {
         message = message.with_attribute("planCode", plan_code.clone());
     }
+    if let Some(sense_identifier) = request.sense_identifier.as_ref() {
+        message = message.with_attribute("senseIdentifier", sense_identifier.clone());
+    }
     message
 }
 
@@ -110,6 +113,12 @@ fn build_dispatch_payload(request: &DispatchRequest) -> String {
             value.insert(
                 "planCode".to_owned(),
                 serde_json::Value::String(plan_code.clone()),
+            );
+        }
+        if let Some(sense_identifier) = request.sense_identifier.as_ref() {
+            value.insert(
+                "senseIdentifier".to_owned(),
+                serde_json::Value::String(sense_identifier.clone()),
             );
         }
     }

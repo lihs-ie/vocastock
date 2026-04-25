@@ -91,7 +91,7 @@ fn production_adapters_path_accepts_register_and_five_mutations() {
         "explanation outcome",
     );
 
-    // --- request image generation ---
+    // --- request image generation (with senseIdentifier per #22) ---
     let image = runtime.post_raw(
         "/commands/request-image-generation",
         Some(demo_bearer.as_str()),
@@ -99,7 +99,10 @@ fn production_adapters_path_accepts_register_and_five_mutations() {
             "requestImageGeneration",
             "stub-actor-demo",
             "feat-image-1",
-            json!({"vocabularyExpression": "vocabulary:serendipity"}),
+            json!({
+                "vocabularyExpression": "vocabulary:serendipity",
+                "senseIdentifier": "sense-001",
+            }),
         )
         .as_str(),
     );
