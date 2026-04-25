@@ -130,3 +130,6 @@ docker/applications/env/.env
 docker/applications/env/.env.local
 docker/applications/*.override.yaml
 .claude/settings.local.json
+
+# Local AI provider stub (per-run env file written by scripts/dev/start_stub_providers.sh)
+.env.stub

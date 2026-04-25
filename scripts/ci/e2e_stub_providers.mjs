@@ -1,9 +1,12 @@
 #!/usr/bin/env node
-// Test-scope HTTP stub that pretends to be the Anthropic Messages API so
-// the E2E round-trip smoke can exercise the real worker -> provider
-// transport path without hitting the live endpoint. Used only from
-// `scripts/ci/run_e2e_round_trip_smoke.sh` and kept under `scripts/ci/`
-// so production binaries never link or reference it.
+// Test-scope HTTP stub that pretends to be the Anthropic Messages API
+// **and** the Stability text-to-image API so workers can talk to a
+// deterministic fake instead of paid live endpoints. Two callers:
+//   * `scripts/ci/run_e2e_round_trip_smoke.sh`  — CI smoke harness.
+//   * `scripts/dev/start_stub_providers.sh`     — local-dev launcher
+//     (see `docs/development/local-stub.md`).
+// The stub stays under `scripts/ci/` so production binaries never link
+// or reference it; the dev launcher just `node`-invokes the same file.
 //
 // Usage:
 //   node scripts/ci/e2e_stub_providers.mjs [--port <port>] \
@@ -14,9 +17,14 @@
 // - Each incoming request is appended to the access log file (if the
 //   `--access-log` flag is provided) in the form `ISO8601 METHOD PATH`.
 // - Responds to:
-//     GET  /readyz             -> 200 `OK`
-//     POST /v1/messages        -> 200 JSON (Anthropic success body)
-//     *                        -> 404
+//     GET  /readyz                                       -> 200 `OK`
+//     POST /v1/messages                                  -> 200 JSON
+//                                                          (Anthropic success)
+//     POST /v1/generation/{engineId}/text-to-image       -> 200 JSON
+//                                                          (Stability success
+//                                                           with a 1x1
+//                                                           transparent PNG)
+//     *                                                  -> 404
 //
 // Shutdown: SIGTERM / SIGINT close the server cleanly so the driver's
 // trap can proceed with the rest of the cleanup steps.
@@ -86,6 +94,22 @@ const anthropicSuccessBody = JSON.stringify({
   ],
 });
 
+// 1x1 transparent PNG, base64-encoded. ImageWorker.StabilityAdapter
+// reads `artifacts[0].base64`, base64-decodes it, and uploads the bytes
+// verbatim to Cloud Storage; the value must be a real, decodable PNG.
+const stabilityPngBase64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=";
+
+const stabilitySuccessBody = JSON.stringify({
+  artifacts: [
+    {
+      base64: stabilityPngBase64,
+      finishReason: "SUCCESS",
+      seed: 0,
+    },
+  ],
+});
+
 async function appendAccessLog(accessLogPath, method, path) {
   if (!accessLogPath) {
     return;
@@ -120,6 +144,19 @@ async function handleRequest(accessLogPath, request, response) {
   if (method === "POST" && path === "/v1/messages") {
     response.writeHead(200, { "content-type": "application/json" });
     response.end(anthropicSuccessBody);
+    return;
+  }
+
+  // Stability `text-to-image`: the engine id segment is variable
+  // (`StabilityAdapter.hs` hardcodes `stable-diffusion-v1-6` today, but
+  // that constant could change). Match by suffix to stay forward-compat.
+  if (
+    method === "POST" &&
+    path.startsWith("/v1/generation/") &&
+    path.endsWith("/text-to-image")
+  ) {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(stabilitySuccessBody);
     return;
   }
 
