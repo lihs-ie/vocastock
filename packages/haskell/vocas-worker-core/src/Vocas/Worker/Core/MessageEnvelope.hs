@@ -50,7 +50,8 @@ data DispatchEnvelope = DispatchEnvelope
     envelopeRestartRequested :: Bool,
     envelopeNormalizedText :: Maybe Text,
     envelopeRetryTarget :: Maybe GenerationTarget,
-    envelopePlanCode :: Maybe PlanCode
+    envelopePlanCode :: Maybe PlanCode,
+    envelopeSenseIdentifier :: Maybe Text
   }
   deriving (Eq, Show)
 
@@ -78,6 +79,7 @@ buildEnvelope obj = do
   retryTarget <- traverse decodeGenerationTarget retryTargetRaw
   planCodeRaw <- optionalMaybeText "planCode" obj
   planCode <- traverse decodePlanCode planCodeRaw
+  senseIdentifier <- optionalMaybeText "senseIdentifier" obj
   Right
     DispatchEnvelope
       { envelopeActor = actor,
@@ -87,7 +89,8 @@ buildEnvelope obj = do
         envelopeRestartRequested = restartRequested,
         envelopeNormalizedText = normalizedText,
         envelopeRetryTarget = retryTarget,
-        envelopePlanCode = planCode
+        envelopePlanCode = planCode,
+        envelopeSenseIdentifier = senseIdentifier
       }
 
 decodeDispatchKind :: Text -> Either String DispatchKind

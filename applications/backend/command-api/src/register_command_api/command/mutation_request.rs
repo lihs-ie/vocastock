@@ -121,6 +121,9 @@ pub struct RequestImageGenerationCommand {
     pub actor: VerifiedActorContext,
     pub idempotency_key: String,
     pub vocabulary_expression: String,
+    /// Sense the regenerated image illustrates (per
+    /// `docs/internal/domain/visual.md:45,52`); null = explanation-wide image.
+    pub sense_identifier: Option<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -152,6 +155,16 @@ struct GenerationRequestEnvelope {
     actor: String,
     idempotency_key: String,
     vocabulary_expression: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ImageGenerationRequestEnvelope {
+    actor: String,
+    idempotency_key: String,
+    vocabulary_expression: String,
+    #[serde(default)]
+    sense_identifier: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -200,15 +213,22 @@ pub fn parse_request_image_generation(
     body: &str,
     actor_context: &VerifiedActorContext,
 ) -> Result<RequestImageGenerationCommand, MutationRequestError> {
-    let envelope: GenerationRequestEnvelope =
+    let envelope: ImageGenerationRequestEnvelope =
         serde_json::from_str(body).map_err(|_| MutationRequestError::InvalidJson)?;
     let (actor, idempotency_key) =
         validate_actor_and_key(&envelope.actor, &envelope.idempotency_key, actor_context)?;
     let vocabulary_expression = validate_vocabulary_expression(&envelope.vocabulary_expression)?;
+    let sense_identifier = envelope
+        .sense_identifier
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned);
     Ok(RequestImageGenerationCommand {
         actor,
         idempotency_key,
         vocabulary_expression,
+        sense_identifier,
     })
 }
 
@@ -350,17 +370,24 @@ impl MutationCommand for RequestImageGenerationCommand {
         &self.idempotency_key
     }
     fn payload_hash(&self) -> String {
-        format!("vocab={}", self.vocabulary_expression)
+        match self.sense_identifier.as_deref() {
+            Some(sense) => format!("vocab={};sense={}", self.vocabulary_expression, sense),
+            None => format!("vocab={}", self.vocabulary_expression),
+        }
     }
     fn dispatch_request(&self) -> DispatchRequest {
-        DispatchRequest::new(
+        let mut request = DispatchRequest::new(
             self.actor_reference(),
             self.idempotency_key.as_str(),
             "",
             self.vocabulary_expression.as_str(),
             false,
         )
-        .with_kind(DispatchKind::ImageGeneration)
+        .with_kind(DispatchKind::ImageGeneration);
+        if let Some(sense) = self.sense_identifier.as_deref() {
+            request = request.with_sense_identifier(sense);
+        }
+        request
     }
     fn success_message(&self) -> UserFacingMessage {
         UserFacingMessage::new(

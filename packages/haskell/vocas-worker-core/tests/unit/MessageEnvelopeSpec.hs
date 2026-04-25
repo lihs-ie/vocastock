@@ -20,6 +20,8 @@ run = do
         caseRetry,
         casePurchase,
         caseRestore,
+        caseImageWithSense,
+        caseImageWithoutSense,
         caseMalformed
       ]
   pure (all id cases)
@@ -107,6 +109,35 @@ caseRestore = do
     Right envelope -> assertEq "kind" RestorePurchaseKind (envelopeKind envelope)
     Left err -> do
       putStrLn ("  FAIL restore envelope: " ++ err)
+      pure False
+
+caseImageWithSense :: IO Bool
+caseImageWithSense = do
+  let raw =
+        LBS8.pack
+          "{\"actor\":\"a\",\"idempotencyKey\":\"k5\",\"kind\":\"image-generation\",\"vocabularyExpression\":\"vocabulary:run\",\"restartRequested\":false,\"senseIdentifier\":\"sense-001\"}"
+  case decodeDispatchEnvelope raw of
+    Right envelope -> do
+      results <-
+        sequence
+          [ assertEq "kind" ImageGenerationKind (envelopeKind envelope),
+            assertEq "sense identifier" (Just "sense-001") (envelopeSenseIdentifier envelope)
+          ]
+      pure (all id results)
+    Left err -> do
+      putStrLn ("  FAIL image-with-sense envelope: " ++ err)
+      pure False
+
+caseImageWithoutSense :: IO Bool
+caseImageWithoutSense = do
+  let raw =
+        LBS8.pack
+          "{\"actor\":\"a\",\"idempotencyKey\":\"k6\",\"kind\":\"image-generation\",\"vocabularyExpression\":\"vocabulary:run\",\"restartRequested\":false}"
+  case decodeDispatchEnvelope raw of
+    Right envelope ->
+      assertEq "sense identifier defaults to Nothing" Nothing (envelopeSenseIdentifier envelope)
+    Left err -> do
+      putStrLn ("  FAIL image-without-sense envelope: " ++ err)
       pure False
 
 caseMalformed :: IO Bool

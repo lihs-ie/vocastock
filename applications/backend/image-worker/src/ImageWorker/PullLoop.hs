@@ -6,6 +6,7 @@
 -- handoff -> ack.
 module ImageWorker.PullLoop
   ( runPullLoop,
+    imagePrompt,
   )
 where
 
@@ -129,10 +130,7 @@ runImageJob firestore storage stability manager bucket envelope = do
   let actor = envelopeActor envelope
   let vocabularyExpressionId = envelopeVocabularyExpression envelope
   let idempotencyKey = envelopeIdempotencyKey envelope
-  let prompt =
-        "Illustration visualising \""
-          <> fromMaybe vocabularyExpressionId (envelopeNormalizedText envelope)
-          <> "\""
+  let prompt = imagePrompt envelope
   outcome <- generateImage stability manager prompt idempotencyKey
   case outcome of
     ImageRetryable reason -> pure (Left (True, reason))
@@ -167,7 +165,7 @@ runImageJob firestore storage stability manager bucket envelope = do
               explanationId
               assetReference
               (T.pack "Generated illustration")
-              Nothing
+              (envelopeSenseIdentifier envelope)
               Nothing
               previousImage
           case writeResult of
@@ -182,3 +180,17 @@ die :: String -> IO a
 die reason = do
   hPutStrLn stderr ("[vocastock] image-worker cannot start: " <> reason)
   error reason
+
+-- | Builds the Stability prompt from the dispatch envelope, folding in
+-- the optional `senseIdentifier` so a sense-specific regeneration job
+-- actually steers the image (per `docs/internal/domain/visual.md:45,52`
+-- and `docs/internal/domain/service.md:64-66`). Exposed for unit
+-- testing without spinning up the loop.
+imagePrompt :: DispatchEnvelope -> Text
+imagePrompt envelope =
+  let baseSubject =
+        fromMaybe (envelopeVocabularyExpression envelope) (envelopeNormalizedText envelope)
+      senseSuffix = case envelopeSenseIdentifier envelope of
+        Just sense -> T.concat [" (sense: ", sense, ")"]
+        Nothing -> T.empty
+   in T.concat ["Illustration visualising \"", baseSubject, "\"", senseSuffix]

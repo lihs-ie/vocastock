@@ -93,6 +93,37 @@ fn build_dispatch_message_includes_plan_code_for_purchase() {
 }
 
 #[test]
+fn build_dispatch_message_includes_sense_identifier_for_image_generation() {
+    let request = DispatchRequest::new("actor:learner", "k4", "", "vocabulary:run", false)
+        .with_kind(DispatchKind::ImageGeneration)
+        .with_sense_identifier("sense-001");
+    let message = build_dispatch_message(&request);
+
+    let attributes: std::collections::HashMap<_, _> = message.attributes.iter().cloned().collect();
+    assert_eq!(attributes.get("kind"), Some(&"image-generation".to_owned()));
+    assert_eq!(
+        attributes.get("senseIdentifier"),
+        Some(&"sense-001".to_owned())
+    );
+
+    let payload_json = String::from_utf8(message.data.clone()).expect("utf-8 data");
+    assert!(payload_json.contains("\"senseIdentifier\":\"sense-001\""));
+}
+
+#[test]
+fn build_dispatch_message_omits_sense_identifier_when_absent() {
+    let request = DispatchRequest::new("actor:learner", "k5", "", "vocabulary:run", false)
+        .with_kind(DispatchKind::ImageGeneration);
+    let message = build_dispatch_message(&request);
+
+    let attributes: std::collections::HashMap<_, _> = message.attributes.iter().cloned().collect();
+    assert!(!attributes.contains_key("senseIdentifier"));
+
+    let payload_json = String::from_utf8(message.data.clone()).expect("utf-8 data");
+    assert!(!payload_json.contains("senseIdentifier"));
+}
+
+#[test]
 fn decode_data_helper_round_trips() {
     // sanity check the in-test decoder against shared-pubsub's encoder.
     assert_eq!(decode_data("Zm9v"), "foo");

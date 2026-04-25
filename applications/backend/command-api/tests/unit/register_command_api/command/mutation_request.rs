@@ -59,6 +59,34 @@ fn parse_request_image_generation_builds_image_kind_dispatch() {
         command.dispatch_request().kind,
         DispatchKind::ImageGeneration
     );
+    assert!(command.sense_identifier.is_none());
+    assert!(command.dispatch_request().sense_identifier.is_none());
+}
+
+#[test]
+fn parse_request_image_generation_accepts_optional_sense_identifier() {
+    let body = "{\"actor\":\"actor:learner\",\"idempotencyKey\":\"k2-sense\",\"vocabularyExpression\":\"vocabulary:tea\",\"senseIdentifier\":\"sense-001\"}";
+    let command = parse_request_image_generation(body, &active_actor()).expect("valid request");
+    assert_eq!(command.sense_identifier.as_deref(), Some("sense-001"));
+    assert_eq!(
+        command.dispatch_request().sense_identifier.as_deref(),
+        Some("sense-001"),
+    );
+}
+
+#[test]
+fn parse_request_image_generation_treats_empty_sense_identifier_as_none() {
+    let body = "{\"actor\":\"actor:learner\",\"idempotencyKey\":\"k2-empty\",\"vocabularyExpression\":\"vocabulary:tea\",\"senseIdentifier\":\"\"}";
+    let command = parse_request_image_generation(body, &active_actor()).expect("valid request");
+    assert!(command.sense_identifier.is_none());
+    assert!(command.dispatch_request().sense_identifier.is_none());
+}
+
+#[test]
+fn parse_request_image_generation_trims_whitespace_only_sense_identifier_to_none() {
+    let body = "{\"actor\":\"actor:learner\",\"idempotencyKey\":\"k2-ws\",\"vocabularyExpression\":\"vocabulary:tea\",\"senseIdentifier\":\"   \"}";
+    let command = parse_request_image_generation(body, &active_actor()).expect("valid request");
+    assert!(command.sense_identifier.is_none());
 }
 
 #[test]
