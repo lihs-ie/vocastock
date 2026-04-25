@@ -54,26 +54,36 @@ writeCompletedExplanation client actor explanationId vocabularyExpressionId summ
 
 -- | Patches the vocabulary-expression document so `currentExplanation`
 -- points at the freshly-written explanation and `explanationStatus`
--- flips to `succeeded`. Atomic-ish because Firestore applies per-field
--- patches server-side in a single transaction.
+-- flips to `succeeded`. Also writes `id` + `text` because Firestore
+-- PATCH on a missing document creates it with only the masked fields,
+-- and the catalog read model (query-api) treats those two as required.
+-- Re-writing them on update is harmless: vocabulary id derives from
+-- normalized text, so both stay invariant for a given identifier.
 switchCurrentExplanation ::
   FirestoreClient ->
+  -- | actor UID
   Text ->
+  -- | vocabulary expression identifier (e.g. "vocabulary:slug")
   Text ->
+  -- | normalized text the identifier was derived from
+  Text ->
+  -- | explanation document id
   Text ->
   IO (Either FirestoreError ())
-switchCurrentExplanation client actor vocabularyExpressionId explanationId = do
+switchCurrentExplanation client actor vocabularyExpressionId normalizedText explanationId = do
   let documentPath =
         T.concat ["actors/", actor, "/vocabularyExpressions/", vocabularyExpressionId]
   let fieldsObject =
         encodeFieldsObject
-          [ ("currentExplanation", encodeStringField explanationId),
+          [ ("id", encodeStringField vocabularyExpressionId),
+            ("text", encodeStringField normalizedText),
+            ("currentExplanation", encodeStringField explanationId),
             ("explanationStatus", encodeStringField "succeeded")
           ]
   result <-
     patchDocument
       client
       documentPath
-      ["currentExplanation", "explanationStatus"]
+      ["id", "text", "currentExplanation", "explanationStatus"]
       fieldsObject
   pure (fmap (const ()) result)

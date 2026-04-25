@@ -218,6 +218,8 @@ commitSucceededGeneration ::
 commitSucceededGeneration firestore envelope outcome payload = do
   let actor = envelopeActor envelope
   let vocabularyExpressionId = envelopeVocabularyExpression envelope
+  let normalizedText =
+        fromMaybe vocabularyExpressionId (envelopeNormalizedText envelope)
   let explanationId =
         T.pack
           ( "exp-"
@@ -235,7 +237,7 @@ commitSucceededGeneration firestore envelope outcome payload = do
     Left err -> pure (JobRetryableFailure ("firestore-write-failed: " <> show err))
     Right () -> do
       handoffResult <-
-        switchCurrentExplanation firestore actor vocabularyExpressionId explanationId
+        switchCurrentExplanation firestore actor vocabularyExpressionId normalizedText explanationId
       case handoffResult of
         Left err ->
           pure (JobRetryableFailure ("firestore-patch-failed: " <> show err))
