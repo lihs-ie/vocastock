@@ -212,6 +212,7 @@ testDuplicateTransitions = do
               assetChecksum = "checksum-001"
             }
           3
+          Nothing
       freshOutcome =
         duplicateOutcome ProcessFresh (ExistingCurrent "existing-current-image-001") emptyImageStore Nothing
       inflightOutcome =

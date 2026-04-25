@@ -30,6 +30,7 @@ library scenarios
       ImageWorker.CurrentImageHandoff
       ImageWorker.FailureSummary
       ImageWorker.ImagePersistence
+      ImageWorker.PreviousImageInvariant
       ImageWorker.TargetResolution
       ImageWorker.WorkerRuntime
       ImageWorker.WorkflowStateMachine
@@ -59,6 +60,7 @@ test-suite unit
       ImageWorker.FailureSummarySpec
       ImageWorker.ImageGenerationPortSpec
       ImageWorker.ImagePersistenceSpec
+      ImageWorker.PreviousImageInvariantSpec
       ImageWorker.StabilityAdapterSpec
       ImageWorker.TargetResolutionSpec
       ImageWorker.WorkItemContractSpec

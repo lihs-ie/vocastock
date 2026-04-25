@@ -9,8 +9,10 @@ fn image_detail_record_preserves_nullable_sense_fields() {
         description: "-".to_owned(),
         sense_identifier: None,
         sense_label: None,
+        previous_image: None,
     };
     assert!(record.sense_identifier.is_none());
     assert!(record.sense_label.is_none());
+    assert!(record.previous_image.is_none());
     assert_eq!(record.identifier, "stub-img");
 }

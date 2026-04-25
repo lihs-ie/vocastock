@@ -31,7 +31,8 @@ data CompletedVisualImageRecord = CompletedVisualImageRecord
     recordSense :: Maybe String,
     recordAssetReference :: String,
     recordVisibility :: CompletedImageVisibility,
-    recordAcceptedOrder :: Int
+    recordAcceptedOrder :: Int,
+    recordPreviousImage :: Maybe String
   }
   deriving (Eq, Show)
 
@@ -65,16 +66,24 @@ completedRecordFor ::
   Maybe String ->
   StoredAssetReference ->
   Int ->
+  Maybe String ->
   CompletedVisualImageRecord
-completedRecordFor businessKey explanationIdentifier maybeSense storedAssetReference acceptedOrder =
-  CompletedVisualImageRecord
-    { recordIdentifier = businessKey ++ "-image",
-      recordExplanation = explanationIdentifier,
-      recordSense = maybeSense,
-      recordAssetReference = assetReference storedAssetReference,
-      recordVisibility = HiddenUntilHandoff,
-      recordAcceptedOrder = acceptedOrder
-    }
+completedRecordFor
+  businessKey
+  explanationIdentifier
+  maybeSense
+  storedAssetReference
+  acceptedOrder
+  maybePreviousImage =
+    CompletedVisualImageRecord
+      { recordIdentifier = businessKey ++ "-image",
+        recordExplanation = explanationIdentifier,
+        recordSense = maybeSense,
+        recordAssetReference = assetReference storedAssetReference,
+        recordVisibility = HiddenUntilHandoff,
+        recordAcceptedOrder = acceptedOrder,
+        recordPreviousImage = maybePreviousImage
+      }
 
 renderCompletedImageVisibility :: CompletedImageVisibility -> String
 renderCompletedImageVisibility completedImageVisibility =
@@ -96,33 +105,42 @@ saveCompletedImage ::
   Maybe String ->
   StoredAssetReference ->
   Int ->
+  Maybe String ->
   ImageStore ->
   SaveResult
-saveCompletedImage businessKey explanationIdentifier maybeSense storedAssetReference acceptedOrder imageStore =
-  case existingRecordFor businessKey imageStore of
-    Just existingRecord ->
-      SaveResult
-        { saveAction = SaveReused,
-          saveRecord = existingRecord,
-          saveStore = imageStore
-        }
-    Nothing ->
-      let newRecord =
-            completedRecordFor
-              businessKey
-              explanationIdentifier
-              maybeSense
-              storedAssetReference
-              acceptedOrder
-          newStore =
-            case imageStore of
-              ImageStore entries ->
-                ImageStore ((businessKey, newRecord) : entries)
-       in SaveResult
-            { saveAction = SaveCreated,
-              saveRecord = newRecord,
-              saveStore = newStore
-            }
+saveCompletedImage
+  businessKey
+  explanationIdentifier
+  maybeSense
+  storedAssetReference
+  acceptedOrder
+  maybePreviousImage
+  imageStore =
+    case existingRecordFor businessKey imageStore of
+      Just existingRecord ->
+        SaveResult
+          { saveAction = SaveReused,
+            saveRecord = existingRecord,
+            saveStore = imageStore
+          }
+      Nothing ->
+        let newRecord =
+              completedRecordFor
+                businessKey
+                explanationIdentifier
+                maybeSense
+                storedAssetReference
+                acceptedOrder
+                maybePreviousImage
+            newStore =
+              case imageStore of
+                ImageStore entries ->
+                  ImageStore ((businessKey, newRecord) : entries)
+         in SaveResult
+              { saveAction = SaveCreated,
+                saveRecord = newRecord,
+                saveStore = newStore
+              }
 
 markRecordCurrentApplied :: String -> ImageStore -> (CompletedVisualImageRecord, ImageStore)
 markRecordCurrentApplied businessKey imageStore =

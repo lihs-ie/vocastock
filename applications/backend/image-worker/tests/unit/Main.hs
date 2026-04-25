@@ -5,6 +5,7 @@ import qualified ImageWorker.CurrentImageHandoffSpec
 import qualified ImageWorker.FailureSummarySpec
 import qualified ImageWorker.ImageGenerationPortSpec
 import qualified ImageWorker.ImagePersistenceSpec
+import qualified ImageWorker.PreviousImageInvariantSpec
 import qualified ImageWorker.StabilityAdapterSpec
 import qualified ImageWorker.TargetResolutionSpec
 import qualified ImageWorker.WorkItemContractSpec
@@ -18,6 +19,7 @@ main = do
   ImageWorker.ImageGenerationPortSpec.run
   ImageWorker.AssetStoragePortSpec.run
   ImageWorker.ImagePersistenceSpec.run
+  ImageWorker.PreviousImageInvariantSpec.run
   ImageWorker.CurrentImageHandoffSpec.run
   ImageWorker.FailureSummarySpec.run
   ImageWorker.WorkflowStateMachineSpec.run

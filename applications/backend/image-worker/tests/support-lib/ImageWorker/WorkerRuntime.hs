@@ -308,6 +308,7 @@ duplicateCompletedRecord =
                   (Just "sense-001")
                   storedAssetReference
                   3
+                  Nothing
                   emptyImageStore
               (currentRecord, _) =
                 markRecordCurrentApplied "image-business-key-001" (saveStore saveResult)

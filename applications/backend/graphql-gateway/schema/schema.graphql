@@ -179,6 +179,7 @@ type CompletedImageDetail {
   description: String!
   senseIdentifier: String
   senseLabel: String
+  previousImage: ID
 }
 
 # ---------- vocabulary catalog --------------------------------------------

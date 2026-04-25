@@ -8,6 +8,7 @@ pub struct ImageDetailRecord {
     pub description: String,
     pub sense_identifier: Option<String>,
     pub sense_label: Option<String>,
+    pub previous_image: Option<String>,
 }
 
 pub trait ImageDetailSource {

@@ -60,6 +60,7 @@ pub fn parse_image_document(payload: &Value) -> Option<ImageDetailRecord> {
     let description = read_string_field(fields, "description").unwrap_or_default();
     let sense_identifier = read_nullable_string_field(fields, "senseIdentifier").unwrap_or(None);
     let sense_label = read_nullable_string_field(fields, "senseLabel").unwrap_or(None);
+    let previous_image = read_nullable_string_field(fields, "previousImage").unwrap_or(None);
 
     Some(ImageDetailRecord {
         identifier,
@@ -68,5 +69,6 @@ pub fn parse_image_document(payload: &Value) -> Option<ImageDetailRecord> {
         description,
         sense_identifier,
         sense_label,
+        previous_image,
     })
 }

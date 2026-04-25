@@ -9,6 +9,7 @@ fn view_serializes_with_camel_case_and_optional_fields() {
         description: "走るランナー".to_owned(),
         sense_identifier: Some("s1".to_owned()),
         sense_label: Some("走る".to_owned()),
+        previous_image: Some("stub-img-prior".to_owned()),
     };
     let serialized = serde_json::to_string(&view).expect("view serializes");
 
@@ -18,6 +19,7 @@ fn view_serializes_with_camel_case_and_optional_fields() {
     );
     assert!(serialized.contains("\"senseIdentifier\":\"s1\""));
     assert!(serialized.contains("\"senseLabel\":\"走る\""));
+    assert!(serialized.contains("\"previousImage\":\"stub-img-prior\""));
 }
 
 #[test]
@@ -29,9 +31,11 @@ fn missing_sense_fields_are_skipped_on_serialization() {
         description: "-".to_owned(),
         sense_identifier: None,
         sense_label: None,
+        previous_image: None,
     };
     let serialized = serde_json::to_string(&view).expect("view serializes");
 
     assert!(!serialized.contains("senseIdentifier"));
     assert!(!serialized.contains("senseLabel"));
+    assert!(!serialized.contains("previousImage"));
 }

@@ -984,6 +984,14 @@ class _$GImageDetailQueryData_imageDetailSerializer
           serializers.serialize(value, specifiedType: const FullType(String)),
         );
     }
+    value = object.previousImage;
+    if (value != null) {
+      result
+        ..add('previousImage')
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
+    }
     return result;
   }
 
@@ -1051,6 +1059,14 @@ class _$GImageDetailQueryData_imageDetailSerializer
           break;
         case 'senseLabel':
           result.senseLabel =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
+          break;
+        case 'previousImage':
+          result.previousImage =
               serializers.deserialize(
                     value,
                     specifiedType: const FullType(String),
@@ -2512,6 +2528,8 @@ class _$GImageDetailQueryData_imageDetail
   final String? senseIdentifier;
   @override
   final String? senseLabel;
+  @override
+  final String? previousImage;
 
   factory _$GImageDetailQueryData_imageDetail([
     void Function(GImageDetailQueryData_imageDetailBuilder)? updates,
@@ -2525,6 +2543,7 @@ class _$GImageDetailQueryData_imageDetail
     required this.description,
     this.senseIdentifier,
     this.senseLabel,
+    this.previousImage,
   }) : super._();
   @override
   GImageDetailQueryData_imageDetail rebuild(
@@ -2545,7 +2564,8 @@ class _$GImageDetailQueryData_imageDetail
         assetReference == other.assetReference &&
         description == other.description &&
         senseIdentifier == other.senseIdentifier &&
-        senseLabel == other.senseLabel;
+        senseLabel == other.senseLabel &&
+        previousImage == other.previousImage;
   }
 
   @override
@@ -2558,6 +2578,7 @@ class _$GImageDetailQueryData_imageDetail
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, senseIdentifier.hashCode);
     _$hash = $jc(_$hash, senseLabel.hashCode);
+    _$hash = $jc(_$hash, previousImage.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -2571,7 +2592,8 @@ class _$GImageDetailQueryData_imageDetail
           ..add('assetReference', assetReference)
           ..add('description', description)
           ..add('senseIdentifier', senseIdentifier)
-          ..add('senseLabel', senseLabel))
+          ..add('senseLabel', senseLabel)
+          ..add('previousImage', previousImage))
         .toString();
   }
 }
@@ -2614,6 +2636,11 @@ class GImageDetailQueryData_imageDetailBuilder
   String? get senseLabel => _$this._senseLabel;
   set senseLabel(String? senseLabel) => _$this._senseLabel = senseLabel;
 
+  String? _previousImage;
+  String? get previousImage => _$this._previousImage;
+  set previousImage(String? previousImage) =>
+      _$this._previousImage = previousImage;
+
   GImageDetailQueryData_imageDetailBuilder() {
     GImageDetailQueryData_imageDetail._initializeBuilder(this);
   }
@@ -2628,6 +2655,7 @@ class GImageDetailQueryData_imageDetailBuilder
       _description = $v.description;
       _senseIdentifier = $v.senseIdentifier;
       _senseLabel = $v.senseLabel;
+      _previousImage = $v.previousImage;
       _$v = null;
     }
     return this;
@@ -2679,6 +2707,7 @@ class GImageDetailQueryData_imageDetailBuilder
           ),
           senseIdentifier: senseIdentifier,
           senseLabel: senseLabel,
+          previousImage: previousImage,
         );
     replace(_$result);
     return _$result;

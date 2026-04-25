@@ -16,6 +16,7 @@ class CompletedImageDetail {
     required this.description,
     this.senseIdentifier,
     this.senseLabel,
+    this.previousImage,
   });
 
   final VisualImageIdentifier identifier;
@@ -29,6 +30,12 @@ class CompletedImageDetail {
   /// Short Japanese label of the associated sense (for UI overlays).
   final String? senseLabel;
 
+  /// Predecessor image in the same explanation lineage; null on first
+  /// generation. Wired through from the worker's
+  /// `actors/{actor}/images/{id}.previousImage` field per
+  /// `docs/internal/domain/visual.md:46`.
+  final VisualImageIdentifier? previousImage;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -38,7 +45,8 @@ class CompletedImageDetail {
           other.assetReference == assetReference &&
           other.description == description &&
           other.senseIdentifier == senseIdentifier &&
-          other.senseLabel == senseLabel);
+          other.senseLabel == senseLabel &&
+          other.previousImage == previousImage);
 
   @override
   int get hashCode => Object.hash(
@@ -48,5 +56,6 @@ class CompletedImageDetail {
         description,
         senseIdentifier,
         senseLabel,
+        previousImage,
       );
 }
