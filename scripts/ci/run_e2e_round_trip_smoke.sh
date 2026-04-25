@@ -287,10 +287,16 @@ done < <(vocas_application_service_names)
 failure_stage="compose-up"
 vocas_log "compose up for services: ${services[*]}"
 if (( reuse_running == 0 )); then
-  up_args=(--env-file "$e2e_env_file" -f "$compose_file" up -d)
   if (( skip_build == 0 )); then
-    up_args+=(--build)
+    # Pre-build Haskell worker images via explicit `docker buildx build`
+    # so the GHA cache backend actually receives the cache_to flag.
+    # `docker compose --build` silently drops cache_from/cache_to with
+    # the docker-container builder set up by setup-buildx-action; see
+    # scripts/ci/build_haskell_worker_images.sh for the working pattern.
+    bash "$SCRIPT_DIR/build_haskell_worker_images.sh"
   fi
+
+  up_args=(--env-file "$e2e_env_file" -f "$compose_file" up -d)
   up_args+=("${services[@]}")
   docker compose "${up_args[@]}"
 fi
