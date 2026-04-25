@@ -155,7 +155,10 @@ async function main() {
     });
   }
 
-  server.listen(port, "127.0.0.1");
+  // Bind to all interfaces so that compose containers can reach the stub
+  // via `host.docker.internal:host-gateway` (the bridge gateway IP, not
+  // the host loopback). Local dev still reaches it via 127.0.0.1.
+  server.listen(port, "0.0.0.0");
 }
 
 main().catch((error) => {
