@@ -338,6 +338,7 @@ abstract class GImageDetailQueryData_imageDetail
   String get description;
   String? get senseIdentifier;
   String? get senseLabel;
+  String? get previousImage;
   static Serializer<GImageDetailQueryData_imageDetail> get serializer =>
       _$gImageDetailQueryDataImageDetailSerializer;
 

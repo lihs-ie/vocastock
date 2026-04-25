@@ -25,6 +25,7 @@ completedRecord =
         assetChecksum = "checksum-001"
       }
     3
+    Nothing
 
 testSwitchesCurrentOnSuccess :: IO ()
 testSwitchesCurrentOnSuccess =

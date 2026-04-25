@@ -18,7 +18,7 @@ import qualified Network.HTTP.Conduit as Http
 import System.Environment (lookupEnv)
 import System.IO (hPutStrLn, stderr)
 
-import ImageWorker.FirestoreWriter (switchCurrentImage, writeCompletedImage)
+import ImageWorker.FirestoreWriter (readCurrentImage, switchCurrentImage, writeCompletedImage)
 import ImageWorker.StabilityAdapter
   ( ImageOutcome (..),
     StabilityConfig,
@@ -158,6 +158,7 @@ runImageJob firestore storage stability manager bucket envelope = do
           -- explanation id == vocabulary id (a placeholder covered by
           -- feature tests in Phase E).
           let explanationId = vocabularyExpressionId
+          previousImage <- readCurrentImage firestore actor explanationId
           writeResult <-
             writeCompletedImage
               firestore
@@ -168,6 +169,7 @@ runImageJob firestore storage stability manager bucket envelope = do
               (T.pack "Generated illustration")
               Nothing
               Nothing
+              previousImage
           case writeResult of
             Left err -> pure (Left (True, "firestore-write-failed: " <> show err))
             Right () -> do

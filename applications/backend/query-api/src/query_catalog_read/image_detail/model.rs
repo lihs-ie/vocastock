@@ -11,4 +11,6 @@ pub struct ImageDetailView {
     pub sense_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sense_label: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub previous_image: Option<String>,
 }

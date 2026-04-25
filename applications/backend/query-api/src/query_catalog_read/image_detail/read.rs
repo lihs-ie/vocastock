@@ -59,5 +59,6 @@ fn map_record(record: ImageDetailRecord) -> ImageDetailView {
         description: record.description,
         sense_identifier: record.sense_identifier,
         sense_label: record.sense_label,
+        previous_image: record.previous_image,
     }
 }

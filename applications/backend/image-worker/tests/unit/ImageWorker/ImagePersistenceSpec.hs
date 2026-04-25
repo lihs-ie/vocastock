@@ -11,6 +11,8 @@ run = do
   runNamed "marks current applied and retained non-current" testMarksRecordVisibility
   runNamed "renders save actions and visibility" testRendersLabels
   runNamed "covers accessors and show instances" testAccessorsAndShow
+  runNamed "persists previousImage when present" testPersistsPreviousImage
+  runNamed "first generation has no previousImage" testFirstGenerationHasNoPreviousImage
 
 storedAssetReference :: StoredAssetReference
 storedAssetReference =
@@ -21,13 +23,21 @@ storedAssetReference =
 
 testBuildsCompletedRecord :: IO ()
 testBuildsCompletedRecord = do
-  let record = completedRecordFor "image-business-key-001" "explanation-001" (Just "sense-001") storedAssetReference 3
+  let record =
+        completedRecordFor
+          "image-business-key-001"
+          "explanation-001"
+          (Just "sense-001")
+          storedAssetReference
+          3
+          Nothing
   assertEqual "record identifier" "image-business-key-001-image" (recordIdentifier record)
   assertEqual "record explanation" "explanation-001" (recordExplanation record)
   assertEqual "record sense" (Just "sense-001") (recordSense record)
   assertEqual "record asset reference" "gs://vocastock/images/image-business-key-001.png" (recordAssetReference record)
   assertEqual "record visibility" HiddenUntilHandoff (recordVisibility record)
   assertEqual "record accepted order" 3 (recordAcceptedOrder record)
+  assertEqual "record previous image" Nothing (recordPreviousImage record)
 
 testSavesCompletedRecord :: IO ()
 testSavesCompletedRecord = do
@@ -38,6 +48,7 @@ testSavesCompletedRecord = do
           (Just "sense-001")
           storedAssetReference
           3
+          Nothing
           emptyImageStore
       reused =
         saveCompletedImage
@@ -46,6 +57,7 @@ testSavesCompletedRecord = do
           (Just "sense-001")
           storedAssetReference
           3
+          Nothing
           (saveStore created)
   assertEqual "save created" SaveCreated (saveAction created)
   assertEqual "save reused" SaveReused (saveAction reused)
@@ -60,6 +72,7 @@ testMarksRecordVisibility = do
           (Just "sense-001")
           storedAssetReference
           3
+          Nothing
           emptyImageStore
       (currentRecord, currentStore) =
         markRecordCurrentApplied "image-business-key-001" (saveStore created)
@@ -87,6 +100,7 @@ testAccessorsAndShow = do
           Nothing
           storedAssetReference
           3
+          Nothing
           emptyImageStore
   assertEqual "entries length" 1 (length (imageEntries (saveStore created)))
   assertEqual "record equality" True (saveRecord created == saveRecord created)
@@ -94,3 +108,34 @@ testAccessorsAndShow = do
   assertEqual "show save action" "SaveCreated" (show SaveCreated)
   assertEqual "show visibility" "CurrentApplied" (show CurrentApplied)
   assertEqual "show record" True ("CompletedVisualImageRecord" `elem` words (show (saveRecord created)))
+
+testPersistsPreviousImage :: IO ()
+testPersistsPreviousImage = do
+  let record =
+        completedRecordFor
+          "image-business-key-002"
+          "explanation-001"
+          (Just "sense-001")
+          storedAssetReference
+          4
+          (Just "image-business-key-001-image")
+  assertEqual
+    "record previous image"
+    (Just "image-business-key-001-image")
+    (recordPreviousImage record)
+
+testFirstGenerationHasNoPreviousImage :: IO ()
+testFirstGenerationHasNoPreviousImage = do
+  let created =
+        saveCompletedImage
+          "image-business-key-first"
+          "explanation-001"
+          Nothing
+          storedAssetReference
+          1
+          Nothing
+          emptyImageStore
+  assertEqual
+    "first record previous image"
+    Nothing
+    (recordPreviousImage (saveRecord created))

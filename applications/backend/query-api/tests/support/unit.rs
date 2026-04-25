@@ -309,6 +309,7 @@ pub fn sample_image_record() -> ImageDetailRecord {
         description: "「run」を視覚化したイラスト".to_owned(),
         sense_identifier: Some("s1".to_owned()),
         sense_label: Some("走る".to_owned()),
+        previous_image: None,
     }
 }
 

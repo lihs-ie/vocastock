@@ -256,6 +256,7 @@ runStoredImageOutcome retryBudget existingCurrent imageStore validatedWorkItem r
                   (resolvedSense resolvedTarget)
                   storedAssetReference
                   (resolvedAcceptedOrder resolvedTarget)
+                  Nothing
                   imageStore
            in case resolvedCurrentPriority resolvedTarget of
                 SupersededByNewerAccepted ->

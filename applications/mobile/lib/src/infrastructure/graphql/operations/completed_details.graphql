@@ -42,5 +42,6 @@ query ImageDetailQuery($identifier: ID!) {
     description
     senseIdentifier
     senseLabel
+    previousImage
   }
 }

@@ -106,6 +106,9 @@ class FerryCompletedDetails
       description: data.description,
       senseIdentifier: data.senseIdentifier,
       senseLabel: data.senseLabel,
+      previousImage: data.previousImage != null
+          ? VisualImageIdentifier(data.previousImage!)
+          : null,
     );
   }
 

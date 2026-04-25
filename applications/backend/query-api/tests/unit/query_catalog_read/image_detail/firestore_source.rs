@@ -11,7 +11,8 @@ fn parses_fully_populated_image_document() {
             "assetReference": {"stringValue": "actors/stub-actor-demo/images/stub-img-for-stub-vocab-0000.png"},
             "description": {"stringValue": "「run」を視覚化したイラスト"},
             "senseIdentifier": {"stringValue": "s1"},
-            "senseLabel": {"stringValue": "走る"}
+            "senseLabel": {"stringValue": "走る"},
+            "previousImage": {"stringValue": "stub-img-prior"}
         }
     });
 
@@ -24,6 +25,7 @@ fn parses_fully_populated_image_document() {
     );
     assert_eq!(record.sense_identifier.as_deref(), Some("s1"));
     assert_eq!(record.sense_label.as_deref(), Some("走る"));
+    assert_eq!(record.previous_image.as_deref(), Some("stub-img-prior"));
 }
 
 #[test]
@@ -42,6 +44,23 @@ fn parses_document_with_null_sense_fields() {
     let record = parse_image_document(&payload).expect("document parses");
     assert!(record.sense_identifier.is_none());
     assert!(record.sense_label.is_none());
+    assert!(record.previous_image.is_none());
+}
+
+#[test]
+fn parses_document_with_explicit_null_previous_image() {
+    let payload = json!({
+        "fields": {
+            "id": {"stringValue": "stub-img"},
+            "explanation": {"stringValue": "stub-exp"},
+            "assetReference": {"stringValue": "gs://bucket/x.png"},
+            "description": {"stringValue": "-"},
+            "previousImage": {"nullValue": null}
+        }
+    });
+
+    let record = parse_image_document(&payload).expect("document parses");
+    assert!(record.previous_image.is_none());
 }
 
 #[test]

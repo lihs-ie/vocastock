@@ -723,6 +723,15 @@ const CompletedImageDetail = _i1.ObjectTypeDefinitionNode(
         isNonNull: false,
       ),
     ),
+    _i1.FieldDefinitionNode(
+      name: _i1.NameNode(value: 'previousImage'),
+      directives: [],
+      args: [],
+      type: _i1.NamedTypeNode(
+        name: _i1.NameNode(value: 'ID'),
+        isNonNull: false,
+      ),
+    ),
   ],
 );
 const VocabularyExpressionEntry = _i1.ObjectTypeDefinitionNode(
