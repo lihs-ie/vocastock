@@ -86,6 +86,7 @@ jobs:
     needs: toolchain-validate
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
       - name: Validate application container contract
         run: bash scripts/bootstrap/validate_application_containers.sh
       - name: Run application container smoke
@@ -104,6 +105,7 @@ jobs:
     needs: toolchain-validate
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
       - name: Run E2E command -> worker -> query round-trip smoke
         run: bash scripts/ci/run_e2e_round_trip_smoke.sh
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

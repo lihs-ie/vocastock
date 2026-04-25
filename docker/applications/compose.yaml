@@ -113,6 +113,10 @@ services:
     build:
       context: ../..
       dockerfile: docker/applications/explanation-worker/Dockerfile
+      cache_from:
+        - type=gha,scope=vocas-explanation-worker
+      cache_to:
+        - type=gha,mode=max,scope=vocas-explanation-worker
     <<: *host-gateway
     environment:
       <<: *worker-environment
@@ -124,6 +128,10 @@ services:
     build:
       context: ../..
       dockerfile: docker/applications/image-worker/Dockerfile
+      cache_from:
+        - type=gha,scope=vocas-image-worker
+      cache_to:
+        - type=gha,mode=max,scope=vocas-image-worker
     <<: *host-gateway
     environment:
       <<: *worker-environment
@@ -135,6 +143,10 @@ services:
     build:
       context: ../..
       dockerfile: docker/applications/billing-worker/Dockerfile
+      cache_from:
+        - type=gha,scope=vocas-billing-worker
+      cache_to:
+        - type=gha,mode=max,scope=vocas-billing-worker
     <<: *host-gateway
     environment:
       <<: *worker-environment
